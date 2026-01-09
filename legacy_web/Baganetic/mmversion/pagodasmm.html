@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="my">
+  <head>
+    <base href="../" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ဘုရားများ - Baganetic</title>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="./assets/css/login-popup.css" />
+    <link rel="stylesheet" href="assets/css/floating-chatbot.css" />
+    <script src="assets/js/site-layout.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+    />
+
+    <!-- Custom Styles -->
+    <style>
+      /* Pagoda Grid Styles */
+      .pagoda-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        justify-content: center;
+      }
+
+      /* Ensure consistent card heights */
+      .pagoda-grid.search-results {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 320px));
+        justify-content: center;
+      }
+
+      .pagoda-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        height: 520px;
+        min-height: 520px;
+        max-height: 520px;
+      }
+
+      .pagoda-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(170, 119, 57, 0.05) 0%,
+          rgba(242, 223, 198, 0.1) 100%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .pagoda-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      }
+
+      .pagoda-card:hover::before {
+        opacity: 1;
+      }
+
+      .pagoda-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        filter: brightness(1) contrast(1.1);
+      }
+
+      .pagoda-card:hover img {
+        transform: scale(1.1);
+        filter: brightness(1.1) contrast(1.2);
+      }
+
+      .pagoda-card-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        position: relative;
+        height: calc(100% - 200px);
+        z-index: 1;
+        padding: 20px;
+      }
+
+      .pagoda-card h3 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.6rem;
+        color: #aa7739;
+        margin-bottom: 15px;
+        font-weight: 700;
+        position: relative;
+        height: 2.4em;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .pagoda-card h3::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #aa7739, #8d5e2f);
+        transition: width 0.4s ease;
+      }
+
+      .pagoda-card:hover h3::after {
+        width: 60px;
+      }
+
+      .pagoda-card p {
+        color: #555;
+        line-height: 1.7;
+        margin-bottom: 25px;
+        flex-grow: 1;
+        font-size: 1rem;
+      }
+
+      .card-footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-top: 20px;
+        border-top: 2px solid #f9e4b7;
+      }
+
+      .read-more-btn {
+        background: linear-gradient(135deg, #aa7739 0%, #8d5e2f 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(170, 119, 57, 0.3);
+      }
+
+      .read-more-btn:hover {
+        background: linear-gradient(135deg, #8d5e2f 0%, #aa7739 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(170, 119, 57, 0.4);
+      }
+
+      .page-hero {
+        background: linear-gradient(135deg, #f9e4b7 0%, #f2dfc6 100%);
+        padding: 60px 20px;
+        text-align: center;
+      }
+
+      .page-hero h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 3rem;
+        color: #5a3d1f;
+        margin-bottom: 10px;
+      }
+
+      .page-hero p {
+        font-size: 1.2rem;
+        color: #7a5a3c;
+        margin-bottom: 20px;
+      }
+
+      /* Search Bar Styles */
+      .search-container {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .search-container input[type="text"] {
+        padding: 12px 20px;
+        border: 2px solid #aa7739;
+        border-radius: 30px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 400px;
+        outline: none;
+        transition: all 0.3s ease;
+        background: white;
+        color: #333;
+      }
+
+      .search-container input[type="text"]:focus {
+        border-color: #8d5e2f;
+        box-shadow: 0 0 8px rgba(170, 119, 57, 0.3);
+      }
+
+      .search-container button {
+        background: #aa7739;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 12px 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .search-container button:hover {
+        background: #8d5e2f;
+      }
+
+      /* No results message styles */
+      .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f9f9f9;
+        border-radius: 16px;
+        margin: 40px auto;
+        max-width: 600px;
+        border: 2px dashed #aa7739;
+      }
+
+      .no-results h3 {
+        font-family: "Playfair Display", serif;
+        color: #aa7739;
+        font-size: 2rem;
+        margin-bottom: 15px;
+      }
+
+      .no-results p {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+      }
+
+      .clear-search-btn {
+        background: #aa7739;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background-color 0.3s ease;
+      }
+
+      .clear-search-btn:hover {
+        background: #8d5e2f;
+      }
+
+      /* Handle different result counts */
+      .pagoda-grid.one-result {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        justify-content: center;
+      }
+
+      .pagoda-grid.two-results {
+        grid-template-columns: repeat(2, minmax(320px, 1fr));
+        max-width: 800px;
+        justify-content: center;
+      }
+
+      .pagoda-grid.three-results {
+        grid-template-columns: repeat(3, minmax(320px, 1fr));
+        max-width: 1200px;
+        justify-content: center;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .pagoda-grid,
+        .pagoda-grid.one-result,
+        .pagoda-grid.two-results,
+        .pagoda-grid.three-results {
+          grid-template-columns: 1fr;
+          padding: 20px;
+          max-width: 100%;
+        }
+
+        .page-hero h1 {
+          font-size: 2rem;
+        }
+
+        .search-container {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .search-container input[type="text"] {
+          max-width: 90%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header>
+      <button class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="logo">
+        <h1>Baganetic</h1>
+      </div>
+
+      <nav class="nav-inline" aria-label="Primary">
+        <a href="mmversion/indexmm.html">ပင်မစာမျက်နှာ</a>
+        <a href="mmversion/mapmm.html">မြေပုံ</a>
+        <a href="mmversion/pagodasmm.html">စေတီများ</a>
+
+        <div class="login-popup-container">
+          <button class="login-trigger" id="loginTrigger">အကောင့်ဝင်ရန်</button>
+
+          <div class="login-popup" id="loginPopup">
+            <div class="popup-content">
+              <span class="close-popup" id="closePopup">&times;</span>
+
+              <div class="form-toggle">
+                <button
+                  type="button"
+                  class="toggle-btn active"
+                  data-form="login"
+                >
+                  အကောင့်ဝင်ရန်
+                </button>
+                <button type="button" class="toggle-btn" data-form="signup">
+                  အကောင့်ဖွင့်ရန်
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form id="popupLoginForm" class="login-form active">
+                <h3>Baganetic သို့ ဝင်ရောက်ရန်</h3>
+                <div class="form-group">
+                  <label for="popupUsername"
+                    >အသုံးပြုသူအမည် သို့မဟုတ် အီးမေးလ်</label
+                  >
+                  <input
+                    type="text"
+                    id="popupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="popupPassword">စကားဝှက်</label>
+                  <input
+                    type="password"
+                    id="popupPassword"
+                    name="password"
+                    required
+                  />
+                </div>
+                <button type="submit" class="auth-button">ဝင်မည်</button>
+                <p class="popup-error" id="popupErrorMessage">
+                  အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မှားယွင်းနေပါသည်။
+                </p>
+                <p class="popup-success" id="popupSuccessMessage">
+                  အကောင့်ဝင်ခြင်း အောင်မြင်ပါသည်။
+                </p>
+              </form>
+
+              <!-- Signup Form -->
+              <form id="popupSignupForm" class="signup-form">
+                <h3>အကောင့်အသစ်ဖွင့်ရန်</h3>
+                <div class="form-group">
+                  <label for="signupFullName">အမည်အပြည့်အစုံ</label>
+                  <input
+                    type="text"
+                    id="signupFullName"
+                    name="fullName"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupEmail">အီးမေးလ်လိပ်စာ</label>
+                  <input type="email" id="signupEmail" name="email" required />
+                </div>
+                <div class="form-group">
+                  <label for="signupUsername">အသုံးပြုသူအမည်</label>
+                  <input
+                    type="text"
+                    id="signupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupPassword">စကားဝှက်</label>
+                  <input
+                    type="password"
+                    id="signupPassword"
+                    name="password"
+                    required
+                    minlength="8"
+                    placeholder="စာလုံးရေ ၈ လုံးအထက်၊ အကြီး၊ အသေး၊ ဂဏန်းနှင့် အထူးစာလုံးများ ပါဝင်ရန်"
+                  />
+                  <div
+                    id="passwordStrength"
+                    class="password-strength-container"
+                  ></div>
+                  <div class="password-requirements">
+                    <small>စကားဝှက်တွင် အောက်ပါတို့ ပါဝင်ရမည်:</small>
+                    <ul>
+                      <li id="req-length">• စာလုံးရေ ၈ လုံးအထက်</li>
+                      <li id="req-uppercase">• အင်္ဂလိပ်အက္ခရာအကြီး တစ်လုံး</li>
+                      <li id="req-lowercase">• အင်္ဂလိပ်အက္ခရာအသေး တစ်လုံး</li>
+                      <li id="req-number">• ဂဏန်းတစ်လုံး</li>
+                      <li id="req-special">• အထူးစာလုံးတစ်လုံး</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="signupConfirmPassword">စကားဝှက် အတည်ပြုရန်</label>
+                  <input
+                    type="password"
+                    id="signupConfirmPassword"
+                    name="confirmPassword"
+                    required
+                    minlength="8"
+                    placeholder="စကားဝှက်ကို နောက်တကြိမ် ရိုက်ထည့်ပါ"
+                  />
+                  <div
+                    id="passwordMatch"
+                    class="password-match-indicator"
+                  ></div>
+                </div>
+                <button type="submit" class="auth-button">
+                  အကောင့်ဖွင့်မည်
+                </button>
+                <p class="popup-error" id="signupErrorMessage">
+                  ကျေးဇူးပြု၍ အကုန်လုံးကို မှန်ကန်စွာ ဖြည့်စွက်ပါ။
+                </p>
+                <p class="popup-success" id="signupSuccessMessage">
+                  အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်။
+                </p>
+              </form>
+
+              <!-- Forgot Password Form -->
+              <form id="popupForgotPasswordForm" class="forgot-password-form">
+                <h3>စကားဝှက် ပြန်လည်သတ်မှတ်ရန်</h3>
+                <div class="form-group">
+                  <label for="forgotEmail">အီးမေးလ်လိပ်စာ</label>
+                  <input
+                    type="email"
+                    id="forgotEmail"
+                    name="email"
+                    required
+                    placeholder="သင့်အီးမေးလ်လိပ်စာကို ရိုက်ထည့်ပါ"
+                  />
+                </div>
+                <button type="submit" class="auth-button">
+                  ပြန်လည်သတ်မှတ်ရန် လင့်ခ် ပို့မည်
+                </button>
+                <p class="popup-error" id="forgotErrorMessage">
+                  ကျေးဇူးပြု၍ မှန်ကန်သော အီးမေးလ်လိပ်စာကို ရိုက်ထည့်ပါ။
+                </p>
+                <p class="popup-success" id="forgotSuccessMessage">
+                  ပြန်လည်သတ်မှတ်ရန် လင့်ခ် ပို့ခြင်း အောင်မြင်ပါသည်။
+                </p>
+              </form>
+
+              <div class="popup-links">
+                <a href="#" class="toggle-link" data-form="login"
+                  >အကောင့်ရှိပြီးသားလား? ဝင်မည်</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="signup"
+                  style="display: none"
+                  >အကောင့်မရှိသေးဘူးလား? အကောင့်ဖွင့်မည်</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="forgot-password"
+                  id="forgotPasswordLink"
+                  >စကားဝှက်မေ့နေပါသလား?</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="login"
+                  id="backToLoginLink"
+                  style="display: none"
+                  >အကောင့်ဝင်ရန် ပြန်သွားမည်</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-content"></div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Mobile Navigation Drawer -->
+        <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+        <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+    <aside class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <!-- Header Section -->
+      <div class="nav-drawer-header">
+        <h2>မီနူး</h2>
+        <button class="close-nav" id="closeNav" aria-label="မီနူးပိတ်ရန်">
+          ×
+        </button>
+      </div>
+
+      <!-- Navigation Links Section -->
+      <div class="nav-drawer-section">
+        <h3>လမ်းညွှန်မှု</h3>
+        <nav class="nav-drawer-nav" aria-label="Mobile navigation">
+          <a href="mmversion/indexmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🏠</span>
+            ပင်မစာမျက်နှာ
+          </a>
+          <a href="mmversion/mapmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🗺️</span>
+            မြေပုံ
+          </a>
+          <a href="mmversion/pagodasmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🏛️</span>
+            စေတီများ
+          </a>
+        </nav>
+      </div>
+
+      <!-- Language Section -->
+      <div class="nav-drawer-section nav-drawer-language">
+        <h3>ဘာသာစကား</h3>
+        <button class="mobile-lang-toggle" id="mobileLangToggle">
+          <span class="nav-icon">🌐</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+
+      <!-- Login Section -->
+      <div class="nav-drawer-section">
+        <h3>အကောင့်</h3>
+        <div class="nav-drawer-login">
+          <button class="login-trigger nav-drawer-login-btn" id="mobileLoginTrigger">
+            <span class="nav-icon">👤</span>
+            အကောင့်ဝင်ရန် / အကောင့်ဖွင့်ရန်
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb">
+      <a href="mmversion/indexmm.html">ပင်မစာမျက်နှာ</a>
+      <span> / </span>
+      <span id="currentPageBreadcrumb">စေတီများ</span>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="page-hero">
+      <h1>ဘုရားစေတီများကို လေ့လာရန်</h1>
+      <p>
+        မြန်မာနိုင်ငံရှိ ရှေးဟောင်းဘုရားစေတီများ၏ ကျေးဇူးတော်ရှင်များကို
+        ရှာဖွေလေ့လာပါ
+      </p>
+
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="ဘုရားများကို ရှာဖွေရန်..."
+        />
+        <button id="searchButton">ရှာမည်</button>
+      </div>
+    </div>
+
+    <!-- Pagoda Grid -->
+    <div class="pagoda-grid" id="pagodaGrid">
+      <!-- Pagoda cards will be dynamically generated here -->
+    </div>
+
+    <!-- No Results Message -->
+    <div class="no-results" id="noResults" style="display: none">
+      <h3>🔍 ဘုရားများ မတွေ့ရှိပါ</h3>
+      <p>
+        ဝမ်းနည်းပါသည်၊ သင့်ရှာဖွေမှုနှင့် ကိုက်ညီသော ဘုရားများ မတွေ့ရှိပါ။
+        အခြားသောစာလုံးများဖြင့် ထပ်မံရှာဖွေကြည့်ပါ သို့မဟုတ် ကျေးဇူးတော်ရှင်
+        ဘုရားစေတီအားလုံးကို လေ့လာပါ။
+      </p>
+      <button class="clear-search-btn" id="clearSearch">
+        ဘုရားအားလုံးကို ပြသမည်
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      &copy; ၂၀၂၅ Baganetic. သင့်ဘာသာရေး ခရီးစဉ်ကို လမ်းညွှန်ပေးသည် 🛕
+    </footer>
+
+    <!-- Scripts -->
+    <script src="assets/data/pagodas.js?v=__BUILD_TIME__"></script>
+    <script src="assets/data/pagodas-mm.js"></script>
+    <script src="assets/js/pagoda-manager-mm.js"></script>
+    <script src="assets/js/api-client.js"></script>
+    <script src="assets/js/pagoda-manager.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/pagodas-page.js"></script>
+    <script src="assets/js/script.js"></script>
+    
+    <!-- Floating Chatbot -->
+    <script src="assets/js/floating-chatbot.js"></script>
+    <script>
+      // Initialize chatbot when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for other scripts to load
+        setTimeout(() => {
+          if (typeof initializeChatbot === 'function') {
+            initializeChatbot();
+          } else if (typeof window.FloatingChatbotWidget === 'function') {
+            // Fallback: create chatbot directly
+            window.baganeticChatbot = new window.FloatingChatbotWidget();
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

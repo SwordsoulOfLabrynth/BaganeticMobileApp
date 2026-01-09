@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="my">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Baganetic - စေတီအသေးစိတ်</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Open+Sans&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <link rel="stylesheet" href="../assets/css/login-popup.css" />
+    <link rel="stylesheet" href="../assets/css/floating-chatbot.css" />
+    <script src="../assets/js/site-layout.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      #pagodaMap { height: 400px; width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 20px 0; background: #f0f0f0; }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <header>
+      <button id="hamburger" class="hamburger" aria-label="မီနူးဖွင့်ရန်">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="logo">
+        <h1>Baganetic</h1>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="navSearch" placeholder="စေတီများ ရှာဖွေရန်..." />
+        <button id="navSearchButton">🔍</button>
+      </div>
+
+      <!-- Inline Navigation (visible on desktop) -->
+      <nav class="nav-inline" aria-label="Primary">
+        <a href="indexmm.html">ပင်မစာမျက်နှာ</a>
+        <a href="mapmm.html">မြေပုံ</a>
+        <a href="pagodasmm.html">စေတီများ</a>
+        <div class="login-popup-container">
+          <button class="login-trigger" id="loginTrigger">အကောင့်ဝင်ရန်</button>
+          <div class="login-popup" id="loginPopup">
+            <div class="popup-content">
+              <span class="close-popup" id="closePopup">&times;</span>
+
+              <div class="form-toggle">
+                <button
+                  type="button"
+                  class="toggle-btn active"
+                  data-form="login"
+                >
+                  အကောင့်ဝင်ရန်
+                </button>
+                <button type="button" class="toggle-btn" data-form="signup">
+                  အကောင့်ဖွင့်ရန်
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form id="popupLoginForm" class="login-form active">
+                <h3>Baganetic သို့ ဝင်ရောက်ရန်</h3>
+                <div class="form-group">
+                  <label for="popupUsername">အသုံးပြုသူအမည် သို့မဟုတ် အီးမေးလ်</label>
+                  <input
+                    type="text"
+                    id="popupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="popupPassword">စကားဝှက်</label>
+                  <input
+                    type="password"
+                    id="popupPassword"
+                    name="password"
+                    required
+                  />
+                </div>
+                <button type="submit" class="auth-button">အကောင့်ဝင်ရန်</button>
+                <p class="popup-error" id="popupErrorMessage">
+                  အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မမှန်ကန်ပါ။
+                </p>
+                <p class="popup-success" id="popupSuccessMessage">
+                  အကောင့်ဝင်ရောက်မှု အောင်မြင်ပါပြီ။
+                </p>
+              </form>
+
+              <!-- Signup Form -->
+              <form id="popupSignupForm" class="signup-form">
+                <h3>အကောင့်ဖွင့်ရန်</h3>
+                <div class="form-group">
+                  <label for="signupFullName">အမည်အပြည့်အစုံ</label>
+                  <input
+                    type="text"
+                    id="signupFullName"
+                    name="fullName"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupEmail">အီးမေးလ်လိပ်စာ</label>
+                  <input type="email" id="signupEmail" name="email" required />
+                </div>
+                <div class="form-group">
+                  <label for="signupUsername">အသုံးပြုသူအမည်</label>
+                  <input
+                    type="text"
+                    id="signupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupPassword">စကားဝှက်</label>
+                  <input
+                    type="password"
+                    id="signupPassword"
+                    name="password"
+                    required
+                    minlength="6"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupConfirmPassword">စကားဝှက်အတည်ပြုရန်</label>
+                  <input
+                    type="password"
+                    id="signupConfirmPassword"
+                    name="confirmPassword"
+                    required
+                    minlength="6"
+                  />
+                </div>
+                <button type="submit" class="auth-button">
+                  အကောင့်ဖွင့်ရန်
+                </button>
+                <p class="popup-error" id="signupErrorMessage">
+                  ကျေးဇူးပြု၍ အကွက်အားလုံးကို မှန်ကန်စွာ ဖြည့်သွင်းပါ။
+                </p>
+                <p class="popup-success" id="signupSuccessMessage">
+                  အကောင့်ဖွင့်မှု အောင်မြင်ပါပြီ။
+                </p>
+              </form>
+
+              <div class="popup-links">
+                <a href="#" class="toggle-link" data-form="login"
+                  >အကောင့်ရှိပြီးသားလား? အကောင့်ဝင်ရန်</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="signup"
+                  style="display: none"
+                  >အကောင့်မရှိသေးလား? အကောင့်ဖွင့်ရန်</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-content"></div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+    <aside class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <!-- Header Section -->
+      <div class="nav-drawer-header">
+        <h2>မီနူး</h2>
+        <button class="close-nav" id="closeNav" aria-label="လမ်းညွှန်မှုကို ပိတ်ရန်">
+          ×
+        </button>
+      </div>
+
+      <!-- Navigation Links Section -->
+      <div class="nav-drawer-section">
+        <h3>လမ်းညွှန်မှု</h3>
+        <nav class="nav-drawer-nav" aria-label="Mobile navigation">
+          <a href="indexmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🏠</span>
+            ပင်မစာမျက်နှာ
+          </a>
+          <a href="mapmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🗺️</span>
+            မြေပုံ
+          </a>
+          <a href="pagodasmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🏛️</span>
+            စေတီများ
+          </a>
+        </nav>
+      </div>
+
+      <!-- Language Section -->
+      <div class="nav-drawer-section nav-drawer-language">
+        <h3>ဘာသာစကား</h3>
+        <button class="mobile-lang-toggle" id="mobileLangToggle">
+          <span class="nav-icon">🌐</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+
+      <!-- Login Section -->
+      <div class="nav-drawer-section">
+        <h3>အကောင့်</h3>
+        <div class="nav-drawer-login">
+          <button class="login-trigger nav-drawer-login-btn" id="mobileLoginTrigger">
+            <span class="nav-icon">👤</span>
+            အကောင့်ဝင်ရန် / အကောင့်ဖွင့်ရန်
+          </button>
+        </div>
+      </div>
+    </aside>
+    <!-- /Navbar -->
+
+    <div class="breadcrumb" id="breadcrumb">
+      <a href="indexmm.html">ပင်မစာမျက်နှာ</a> / <a href="pagodasmm.html">စေတီများ</a> /
+      <span id="breadcrumbPagoda">Loading...</span>
+    </div>
+
+    <main class="container">
+      <div class="title" id="pagodaTitle">Loading...</div>
+
+      <div class="pagoda-section" id="pagodaSection">
+        <div class="pagoda-image">
+          <img id="pagodaImage" src="" alt="Pagoda photo" loading="lazy" />
+        </div>
+        <div class="pagoda-description">
+          <h2>| စေတီအချက်အလက်</h2>
+          <p id="pagodaDescription">Loading...</p>
+          <a id="exploreDetailBtn" class="read-more" href="#">အသေးစိတ်ကြည့်ရန်</a>
+        </div>
+      </div>
+
+      <section class="map-section" aria-label="Pagoda Location">
+        <h2>| စေတီတည်နေရာ</h2>
+        <div id="pagodaMap"></div>
+      </section>
+
+      <section class="recommend-section" aria-labelledby="nearest-heading">
+        <h2 id="nearest-heading">| အနီးဆုံး စေတီများ</h2>
+        <div id="nearest-pagodas" class="recommend-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer>&copy; ၂၀၂၅ Baganetic</footer>
+
+    <!-- EN base, then MM overrides -->
+    <script src="../assets/data/pagodas.js?v=__BUILD_TIME__"></script>
+    <script src="../assets/js/pagoda-manager.js"></script>
+    <script src="../assets/data/pagodas-mm.js"></script>
+    <script src="../assets/js/pagoda-manager-mm.js"></script>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Core app scripts (auth + api client) -->
+    <script src="../assets/js/api-client.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/pagoda-details.js"></script>
+    <script src="../assets/js/script.js"></script>
+    <script>
+      // Force MM context
+      (function(){
+        try {
+          const url = new URL(window.location.href);
+          if (!url.searchParams.get('mm')) {
+            url.searchParams.set('mm', '1');
+            history.replaceState({}, '', url.toString());
+          }
+        } catch (_) {}
+      })();
+    </script>
+    
+    <!-- Floating Chatbot -->
+    <script src="../assets/js/floating-chatbot.js"></script>
+    <script>
+      // Initialize chatbot when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for other scripts to load
+        setTimeout(() => {
+          if (typeof initializeChatbot === 'function') {
+            initializeChatbot();
+          } else if (typeof window.FloatingChatbotWidget === 'function') {
+            // Fallback: create chatbot directly
+            window.baganeticChatbot = new window.FloatingChatbotWidget();
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>
+
+

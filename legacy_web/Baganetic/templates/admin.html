@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baganetic Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../assets/css/admin.css" rel="stylesheet">
+    <style>
+        :root {
+            --admin-primary: #aa7739;
+            --admin-secondary: #d4a574;
+            --admin-success: #27ae60;
+            --admin-warning: #f39c12;
+            --admin-danger: #e74c3c;
+            --admin-dark: #8b5a2b;
+            --admin-light: #fffaf3;
+        }
+
+        body {
+            background-color: #fffaf3;
+            font-family: "Open Sans", sans-serif;
+            color: #333;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: "Playfair Display", serif;
+            color: var(--admin-primary);
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #aa7739 0%, #8b5a2b 100%) !important;
+            color: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+        }
+        
+        .admin-header h4 {
+            color: white !important;
+            font-weight: 700 !important;
+        }
+        
+        .admin-header .navbar-brand {
+            color: white !important;
+            font-weight: 700 !important;
+        }
+        
+        /* Override Bootstrap navbar styles */
+        .admin-header.navbar {
+            background: linear-gradient(135deg, #aa7739 0%, #8b5a2b 100%) !important;
+            color: white !important;
+        }
+        
+        .admin-header .container-fluid {
+            background: transparent !important;
+        }
+        
+        .admin-header .btn-outline-light {
+            border-color: white !important;
+            color: white !important;
+        }
+        
+        .admin-header .btn-outline-light:hover {
+            background-color: white !important;
+            color: #aa7739 !important;
+        }
+        
+        /* Force header visibility - highest priority */
+        nav.admin-header {
+            background: linear-gradient(135deg, #aa7739 0%, #8b5a2b 100%) !important;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        }
+        
+        nav.admin-header h4,
+        nav.admin-header span,
+        nav.admin-header i,
+        nav.admin-header button {
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        }
+
+        .sidebar {
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar .nav-link {
+            color: var(--admin-dark);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 2px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: var(--admin-light);
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--admin-secondary) 0%, var(--admin-primary) 100%);
+            color: white;
+        }
+
+        .main-content {
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid var(--admin-secondary);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+
+        .stat-card.success { border-left-color: var(--admin-success); }
+        .stat-card.warning { border-left-color: var(--admin-warning); }
+        .stat-card.danger { border-left-color: var(--admin-danger); }
+
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--admin-primary);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .health-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .health-up { background-color: var(--admin-success); }
+        .health-down { background-color: var(--admin-danger); }
+
+        .login-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, var(--admin-secondary) 0%, var(--admin-primary) 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(170, 119, 57, 0.3);
+        }
+
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(170, 119, 57, 0.4);
+            color: white;
+        }
+
+        .btn-admin:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(170, 119, 57, 0.3);
+        }
+
+        .table-admin {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 0;
+        }
+
+        .table-admin th {
+            background: var(--admin-light);
+            border: none;
+            padding: 20px 15px;
+            font-weight: 600;
+            color: var(--admin-dark);
+            text-align: left;
+            vertical-align: middle;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-admin td {
+            padding: 18px 15px;
+            border: none;
+            border-bottom: 1px solid #f8f9fa;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .table-admin tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+        .table-admin tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modal-admin .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-admin .modal-header {
+            background: linear-gradient(135deg, var(--admin-secondary) 0%, var(--admin-primary) 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .form-control-admin {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-admin:focus {
+            border-color: var(--admin-secondary);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .hidden { display: none !important; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--admin-secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-admin {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .footer-admin {
+            background: var(--admin-dark);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* Custom Scrollbar Styling */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: var(--admin-secondary) #f1f1f1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--admin-secondary);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--admin-primary);
+        }
+
+        /* Dashboard Card Heights */
+        .dashboard-card {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .dashboard-card .card-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Enhanced Dashboard Styling */
+        .dashboard-card h5 {
+            color: var(--admin-primary);
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        /* Smooth scrolling */
+        .custom-scrollbar {
+            scroll-behavior: smooth;
+        }
+
+        /* Empty state styling */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* System Management Enhancements */
+        .system-actions-card {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .system-actions-card .btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .system-actions-card .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .service-status-card {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-status-card .card-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Service status indicators */
+        .service-status-indicator {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .service-status-indicator:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container d-flex align-items-center justify-content-center">
+        <div class="login-card" style="width: 100%; max-width: 400px;">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary">🏛️ Baganetic</h2>
+                <p class="text-muted">Admin Dashboard</p>
+            </div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control form-control-admin" id="username" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control form-control-admin" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-admin w-100">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </button>
+            </form>
+            <div id="loginAlert" class="alert-admin alert-danger mt-3 hidden" role="alert"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Header -->
+        <nav class="admin-header navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <h4 class="mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Baganetic Admin Dashboard
+                </h4>
+                <div class="d-flex align-items-center">
+                    <span class="me-3" id="adminUsername"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-3 col-lg-2 sidebar">
+                    <div class="position-sticky pt-3">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#" onclick="showSection('dashboard')">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showSection('pagodas')">
+                                    <i class="fas fa-monument me-2"></i>Pagodas
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showSection('users')">
+                                    <i class="fas fa-users me-2"></i>Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showSection('system')">
+                                    <i class="fas fa-server me-2"></i>System
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" onclick="showSection('logs')">
+                                    <i class="fas fa-list-alt me-2"></i>Logs
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-9 col-lg-10">
+                    <div class="main-content">
+                        <!-- Dashboard Section -->
+                        <div id="dashboardSection">
+                            <div class="d-flex justify-content-between align-items-center mb-5">
+                                <div>
+                                    <h2 class="mb-2" style="color: var(--admin-primary); font-weight: 700;">Dashboard Overview</h2>
+                                    <p class="text-muted mb-0" style="font-size: 14px;">Monitor system performance and user activity</p>
+                                </div>
+                                <button class="btn btn-admin" onclick="refreshDashboard()">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                </button>
+                            </div>
+
+                            <!-- Stats Cards -->
+                            <div class="row mb-4">
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalPagodas">-</div>
+                                        <div class="stat-label">Total Pagodas</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card success">
+                                        <div class="stat-number" id="featuredPagodas">-</div>
+                                        <div class="stat-label">Featured Pagodas</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card warning">
+                                        <div class="stat-number" id="temples">-</div>
+                                        <div class="stat-label">Temples</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card danger">
+                                        <div class="stat-number" id="locations">-</div>
+                                        <div class="stat-label" title="Different cities/regions where pagodas are located (Bagan, Nyaung-U)">Locations</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Health -->
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="stat-card dashboard-card">
+                                        <h5 class="mb-3">System Health</h5>
+                                        <div id="systemHealth" class="card-content custom-scrollbar">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span>Main App</span>
+                                                <span id="mainAppStatus">
+                                                    <span class="health-indicator health-down"></span>
+                                                    <span>Checking...</span>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span>Chatbot</span>
+                                                <span id="chatbotStatus">
+                                                    <span class="health-indicator health-down"></span>
+                                                    <span>Checking...</span>
+                                                </span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Database</span>
+                                                <span id="databaseStatus">
+                                                    <span class="health-indicator health-down"></span>
+                                                    <span>Checking...</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="stat-card dashboard-card">
+                                        <h5 class="mb-3">Recent Activity</h5>
+                                        <div id="recentLogs" class="card-content custom-scrollbar">
+                                            <div class="empty-state">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                                <span>Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pagodas Section -->
+                        <div id="pagodasSection" class="hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-5">
+                                <div>
+                                    <h2 class="mb-2" style="color: var(--admin-primary); font-weight: 700;">Pagoda Management</h2>
+                                    <p class="text-muted mb-0" style="font-size: 14px;">Manage pagoda information and details</p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-admin" onclick="showCreatePagodaModal()">
+                                        <i class="fas fa-plus me-2"></i>Add Pagoda
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-admin">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Featured</th>
+                                            <th>Status</th>
+                                            <th>Location</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pagodasTableBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-4">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Loading pagodas...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <script>
+                              // expose toggle for inline onclick
+                              window.toggleFeatured = (id, current) => {
+                                if (window.adminDashboard && typeof window.adminDashboard.toggleFeatured === 'function') {
+                                  window.adminDashboard.toggleFeatured(id, current);
+                                }
+                              };
+                            </script>
+                        </div>
+
+                        <!-- Users Section -->
+                        <div id="usersSection" class="hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-5">
+                                <div>
+                                    <h2 class="mb-2" style="color: var(--admin-primary); font-weight: 700;">User Management</h2>
+                                    <p class="text-muted mb-0" style="font-size: 14px;">Manage user accounts and verification status</p>
+                                </div>
+                                <button class="btn btn-admin" onclick="refreshUsers()">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                </button>
+                            </div>
+
+                            <!-- User Stats -->
+                            <div class="row mb-4">
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalUsers">-</div>
+                                        <div class="stat-label">Total Users</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card success">
+                                        <div class="stat-number" id="verifiedUsers">-</div>
+                                        <div class="stat-label">Verified Users</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card warning">
+                                        <div class="stat-number" id="recentUsers">-</div>
+                                        <div class="stat-label">New This Week</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="stat-card danger">
+                                        <div class="stat-number" id="activeUsers">-</div>
+                                        <div class="stat-label">Active Users</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-admin">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Full Name</th>
+                                            <th>Verified</th>
+                                            <th>Last Login</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Loading users...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <nav aria-label="User pagination" class="mt-3">
+                                <ul class="pagination justify-content-center" id="userPagination">
+                                </ul>
+                            </nav>
+                        </div>
+
+                        <!-- System Section -->
+                        <div id="systemSection" class="hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-5">
+                                <div>
+                                    <h2 class="mb-2" style="color: var(--admin-primary); font-weight: 700;">System Management</h2>
+                                    <p class="text-muted mb-0" style="font-size: 14px;">Monitor system health and manage services</p>
+                                </div>
+                            </div>
+                            <!-- System Overview Stats -->
+                            <div class="row mb-4">
+                                <div class="col-md-3 mb-3">
+                                    <div class="stat-card text-center">
+                                        <div class="stat-number" id="totalServices" style="color: var(--admin-primary);">-</div>
+                                        <div class="stat-label">Total Services</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stat-card text-center success">
+                                        <div class="stat-number" id="onlineServices" style="color: var(--admin-success);">-</div>
+                                        <div class="stat-label">Online Services</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stat-card text-center danger">
+                                        <div class="stat-number" id="offlineServices" style="color: var(--admin-danger);">-</div>
+                                        <div class="stat-label">Offline Services</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="stat-card text-center warning">
+                                        <div class="stat-number" id="avgResponseTime" style="color: var(--admin-warning);">-</div>
+                                        <div class="stat-label">Avg Response (s)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8 mb-4">
+                                    <div class="stat-card service-status-card">
+                                        <h5 class="mb-3">Service Status</h5>
+                                        <div id="detailedSystemHealth" class="card-content custom-scrollbar">
+                                            <div class="empty-state">
+                                                <i class="fas fa-spinner fa-spin"></i>
+                                                <span>Loading system status...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="stat-card system-actions-card">
+                                        <h5 class="mb-3">System Actions</h5>
+                                        <div class="d-grid gap-3">
+                                            <button class="btn btn-admin" onclick="refreshSystemHealth()" style="padding: 12px 20px; font-weight: 600;">
+                                                <i class="fas fa-sync-alt me-2"></i>Refresh Health
+                                            </button>
+                                            <button class="btn btn-outline-warning" onclick="restartService('main_app')" style="padding: 12px 20px; font-weight: 600; border-radius: 10px;">
+                                                <i class="fas fa-redo me-2"></i>Restart Main App
+                                            </button>
+                                            <button class="btn btn-outline-warning" onclick="restartService('chatbot')" style="padding: 12px 20px; font-weight: 600; border-radius: 10px;">
+                                                <i class="fas fa-redo me-2"></i>Restart Chatbot
+                                            </button>
+                                            <button class="btn btn-outline-warning" onclick="restartService('node_server')" style="padding: 12px 20px; font-weight: 600; border-radius: 10px;">
+                                                <i class="fas fa-redo me-2"></i>Restart Node Server
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs Section -->
+                        <div id="logsSection" class="hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-5">
+                                <div>
+                                    <h2 class="mb-2" style="color: var(--admin-primary); font-weight: 700;">Admin Logs</h2>
+                                    <p class="text-muted mb-0" style="font-size: 14px;">Monitor admin activities and system events</p>
+                                </div>
+                                <button class="btn btn-admin" onclick="refreshLogs()">
+                                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="stat-card">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="mb-0" style="color: var(--admin-primary); font-weight: 600;">Recent Admin Actions</h5>
+                                </div>
+                                <div id="logsList" class="text-center text-muted py-3">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Loading logs...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div class="modal fade modal-admin" id="confirmationModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="border: none; padding: 30px 30px 10px 30px;">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-exclamation-triangle text-white" style="font-size: 20px;"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0" style="color: #2c3e50; font-weight: 600;">Confirm Action</h5>
+                            <small class="text-muted">This action cannot be undone</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body" style="padding: 10px 30px 20px 30px;">
+                    <p class="mb-0" style="color: #5a6c7d; font-size: 16px; line-height: 1.5;" id="confirmationMessage">
+                        Are you sure you want to perform this action?
+                    </p>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 20px 30px 30px 30px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; padding: 10px 25px; font-weight: 500; border: 2px solid #e9ecef;">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="button" class="btn" id="confirmButton" style="border-radius: 10px; padding: 10px 25px; font-weight: 500; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border: none; color: white;">
+                        <i class="fas fa-check me-2"></i>Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagoda Modal -->
+    <div class="modal fade modal-admin" id="pagodaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pagodaModalTitle">Add Pagoda</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pagodaForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaId" class="form-label">ID *</label>
+                                <input type="text" class="form-control form-control-admin" id="pagodaId" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaName" class="form-label">Name (English) *</label>
+                                <input type="text" class="form-control form-control-admin" id="pagodaName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaShortName" class="form-label">Short Name (English) *</label>
+                                <input type="text" class="form-control form-control-admin" id="pagodaShortName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaNameMm" class="form-label">Name (Myanmar)</label>
+                                <input type="text" class="form-control form-control-admin" id="pagodaNameMm">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaShortNameMm" class="form-label">Short Name (Myanmar)</label>
+                                <input type="text" class="form-control form-control-admin" id="pagodaShortNameMm">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaType" class="form-label">Type *</label>
+                                <select class="form-control form-control-admin" id="pagodaType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Temple">Temple</option>
+                                    <option value="Pagoda">Pagoda</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaLat" class="form-label">Latitude *</label>
+                                <input type="number" step="any" class="form-control form-control-admin" id="pagodaLat" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaLng" class="form-label">Longitude *</label>
+                                <input type="number" step="any" class="form-control form-control-admin" id="pagodaLng" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="pagodaShortDesc" class="form-label">Short Description (English)</label>
+                                <textarea class="form-control form-control-admin" id="pagodaShortDesc" rows="2"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="pagodaLongDesc" class="form-label">Long Description (English)</label>
+                                <textarea class="form-control form-control-admin" id="pagodaLongDesc" rows="4"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="pagodaShortDescMm" class="form-label">Short Description (Myanmar)</label>
+                                <textarea class="form-control form-control-admin" id="pagodaShortDescMm" rows="2"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="pagodaLongDescMm" class="form-label">Long Description (Myanmar)</label>
+                                <textarea class="form-control form-control-admin" id="pagodaLongDescMm" rows="4"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaMainImage" class="form-label">Main Image</label>
+                                <input type="file" class="form-control form-control-admin" id="pagodaMainImage" accept="image/*" />
+                                <small class="text-muted">Shown on detail and listing pages.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaThumbnail" class="form-label">Thumbnail (optional)</label>
+                                <input type="file" class="form-control form-control-admin" id="pagodaThumbnail" accept="image/*" />
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="pagodaGallery" class="form-label">Gallery Images (optional)</label>
+                                <input type="file" class="form-control form-control-admin" id="pagodaGallery" accept="image/*" multiple />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaDetailHtml" class="form-label">Detail HTML (English)</label>
+                                <input type="file" class="form-control form-control-admin" id="pagodaDetailHtml" accept=".html,.htm" />
+                                <small class="text-muted">Upload a dedicated detail page. It will be saved as <code>&lt;ID&gt;.html</code>.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pagodaDetailHtmlMm" class="form-label">Detail HTML (Myanmar)</label>
+                                <input type="file" class="form-control form-control-admin" id="pagodaDetailHtmlMm" accept=".html,.htm" />
+                                <small class="text-muted">Upload a dedicated Myanmar detail page. It will be saved as <code>&lt;ID&gt;mm.html</code>.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="pagodaFeatured">
+                                    <label class="form-check-label" for="pagodaFeatured">
+                                        Featured Pagoda
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-admin" onclick="savePagoda()">
+                        <i class="fas fa-save me-2"></i>Save Pagoda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/admin.js"></script>
+</body>
+</html>

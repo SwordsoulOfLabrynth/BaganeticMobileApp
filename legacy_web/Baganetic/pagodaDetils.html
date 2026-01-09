@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Baganetic - Ananda Temple Details</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Open+Sans&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="./assets/css/login-popup.css" />
+  <link rel="stylesheet" href="assets/css/floating-chatbot.css" />
+  <script src="assets/js/site-layout.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+    />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      #pagodaMap {
+        height: 400px;
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        margin: 20px 0;
+        position: relative;
+        z-index: 1;
+        background-color: #f0f0f0;
+      }
+    </style>
+  </head>
+
+  <!--
+  Single-file pagoda detail page.
+  - Dynamically loads pagoda data based on URL parameter
+  - Uses pagodas.js data and PagodaManager for content
+  - Renders nearest pagodas dynamically
+-->
+
+  <body>
+    <header>
+      <!-- Hamburger Menu Button -->
+      <button
+        class="hamburger"
+        id="hamburger"
+        aria-label="Toggle side menu"
+        aria-expanded="false"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="logo">
+        <h1>Baganetic</h1>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="navSearch" placeholder="Search pagodas..." />
+        <button id="navSearchButton">🔍</button>
+      </div>
+      <!-- Inline Navigation (visible on desktop) -->
+      <nav class="nav-inline" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="pagodas.html">Pagodas</a>
+        <div class="login-popup-container">
+          <button class="login-trigger" id="loginTrigger">Login</button>
+          <div class="login-popup" id="loginPopup">
+            <div class="popup-content">
+              <span class="close-popup" id="closePopup">&times;</span>
+
+              <div class="form-toggle">
+                <button
+                  type="button"
+                  class="toggle-btn active"
+                  data-form="login"
+                >
+                  Login
+                </button>
+                <button type="button" class="toggle-btn" data-form="signup">
+                  Sign Up
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form id="popupLoginForm" class="login-form active">
+                <h3>Login to Baganetic</h3>
+                <div class="form-group">
+                  <label for="popupUsername">Username or Email</label>
+                  <input
+                    type="text"
+                    id="popupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="popupPassword">Password</label>
+                  <input
+                    type="password"
+                    id="popupPassword"
+                    name="password"
+                    required
+                  />
+                </div>
+                <button type="submit" class="auth-button">Login</button>
+                <p class="popup-error" id="popupErrorMessage">
+                  Invalid username or password.
+                </p>
+                <p class="popup-success" id="popupSuccessMessage">
+                  Login successful!
+                </p>
+              </form>
+
+              <!-- Signup Form -->
+              <form id="popupSignupForm" class="signup-form">
+                <h3>Create Account</h3>
+                <div class="form-group">
+                  <label for="signupFullName">Full Name</label>
+                  <input
+                    type="text"
+                    id="signupFullName"
+                    name="fullName"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupEmail">Email Address</label>
+                  <input type="email" id="signupEmail" name="email" required />
+                </div>
+                <div class="form-group">
+                  <label for="signupUsername">Username</label>
+                  <input
+                    type="text"
+                    id="signupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupPassword">Password</label>
+                  <input
+                    type="password"
+                    id="signupPassword"
+                    name="password"
+                    required
+                    minlength="6"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupConfirmPassword">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="signupConfirmPassword"
+                    name="confirmPassword"
+                    required
+                    minlength="6"
+                  />
+                </div>
+                <button type="submit" class="auth-button">
+                  Create Account
+                </button>
+                <p class="popup-error" id="signupErrorMessage">
+                  Please fill in all fields correctly.
+                </p>
+                <p class="popup-success" id="signupSuccessMessage">
+                  Account created successfully!
+                </p>
+              </form>
+
+              <div class="popup-links">
+                <a href="#" class="toggle-link" data-form="login"
+                  >Already have an account? Login</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="signup"
+                  style="display: none"
+                  >Don't have an account? Sign up</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-content"></div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+        <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+        <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+    <aside class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <!-- Header Section -->
+      <div class="nav-drawer-header">
+        <h2>Menu</h2>
+        <button class="close-nav" id="closeNav" aria-label="Close navigation">
+          ×
+        </button>
+      </div>
+
+      <!-- Navigation Links Section -->
+      <div class="nav-drawer-section">
+        <h3>Navigation</h3>
+        <nav class="nav-drawer-nav" aria-label="Mobile navigation">
+          <a href="index.html" class="nav-drawer-link">
+            <span class="nav-icon">🏠</span>
+            Home
+          </a>
+          <a href="map.html" class="nav-drawer-link">
+            <span class="nav-icon">🗺️</span>
+            Map
+          </a>
+          <a href="pagodas.html" class="nav-drawer-link">
+            <span class="nav-icon">🏛️</span>
+            Pagodas
+          </a>
+        </nav>
+      </div>
+
+      <!-- Language Section -->
+      <div class="nav-drawer-section nav-drawer-language">
+        <h3>Language</h3>
+        <button class="mobile-lang-toggle" id="mobileLangToggle">
+          <span class="nav-icon">🌐</span>
+          <span class="lang-text">MM</span>
+        </button>
+      </div>
+
+      <!-- Login Section -->
+      <div class="nav-drawer-section">
+        <h3>Account</h3>
+        <div class="nav-drawer-login">
+          <button class="login-trigger nav-drawer-login-btn" id="mobileLoginTrigger">
+            <span class="nav-icon">👤</span>
+            Login / Sign Up
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="breadcrumb" id="breadcrumb">
+      <a href="index.html">Home</a> / <a href="pagodas.html">Pagodas</a> /
+      <span id="breadcrumbPagoda">Loading...</span>
+    </div>
+
+    <main class="container">
+      <div class="title" id="pagodaTitle">Loading...</div>
+
+      <div class="pagoda-section" id="pagodaSection">
+        <div class="pagoda-image">
+          <img id="pagodaImage" src="" alt="Pagoda photo" loading="lazy" />
+        </div>
+        <div class="pagoda-description">
+          <h2>| Pagoda Information</h2>
+          <p id="pagodaDescription">Loading pagoda information...</p>
+          <a id="exploreDetailBtn" class="read-more" href="#">Explore Detail</a>
+        </div>
+      </div>
+
+      <section class="map-section" aria-label="Pagoda Location">
+        <h2>| Pagoda Location</h2>
+        <div
+          id="pagodaMap"
+          aria-label="Interactive map showing pagoda location"
+        ></div>
+      </section>
+
+      <section class="recommend-section" aria-labelledby="nearest-heading">
+        <h2 id="nearest-heading">| Nearest Pagodas</h2>
+        <div id="nearest-pagodas" class="recommend-grid" aria-live="polite">
+          <!-- JS will render nearest pagodas here -->
+        </div>
+      </section>
+    </main>
+
+    <footer>&copy; 2025 Baganetic. Guiding Your Sacred Journey 🛕</footer>
+
+    <!-- Load pagoda data management system -->
+    <script src="assets/data/pagodas.js?v=__BUILD_TIME__"></script>
+    <script src="assets/js/pagoda-manager.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script src="assets/js/pagoda-details.js"></script>
+    <script src="./assets/js/script.js"></script>
+    
+    
+    <!-- Floating Chatbot -->
+    <script src="assets/js/floating-chatbot.js"></script>
+    <script>
+      // Initialize chatbot when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for other scripts to load
+        setTimeout(() => {
+          if (typeof initializeChatbot === 'function') {
+            initializeChatbot();
+          } else if (typeof window.FloatingChatbotWidget === 'function') {
+            // Fallback: create chatbot directly
+            window.baganeticChatbot = new window.FloatingChatbotWidget();
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

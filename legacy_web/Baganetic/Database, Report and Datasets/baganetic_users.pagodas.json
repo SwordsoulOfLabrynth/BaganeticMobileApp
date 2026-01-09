@@ -1,0 +1,1996 @@
+[{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352cd"
+  },
+  "id": "ananda",
+  "name": "Ananda Temple",
+  "shortName": "Ananda",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.170806,
+      "lng": 94.867856
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Ananda Temple/ananda-temple-4899166_1280.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Ananda Temple/4c22367f6cb8817335af727fc457d8e6.jpg",
+      "./assets/images/pagodas/Ananda Temple/Ananda-Temple-in-Bagan-1000x565.jpg",
+      "./assets/images/pagodas/Ananda Temple/e0122f8fcc8e7b0de1b14a20795e86a5.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Ananda Temple/ananda-temple-4899166_1280.jpg"
+  },
+  "description": {
+    "short": "One of the finest, largest, best preserved and most revered of the Bagan temples.",
+    "long": "The Ananda Temple is a Buddhist temple located in Bagan, Myanmar. Built in 1105 AD during the reign of King Kyanzittha of the Pagan Dynasty, it is one of four surviving temples in Bagan. The temple layout is cruciform with several terraces leading to a small pagoda at the top covered by an umbrella known as hti, which is the name of the umbrella-like structure found on top of pagodas in Myanmar."
+  },
+  "history": {
+    "built": "1105 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Kyanzittha",
+    "architect": "Unknown",
+    "renovations": [
+      "1990",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Mon-influenced Pagan architecture",
+    "height": "51 meters",
+    "structure": "Cruciform layout",
+    "materials": [
+      "Brick",
+      "Stucco",
+      "Teak wood"
+    ],
+    "features": [
+      "Four standing Buddha statues",
+      "Glazed tiles",
+      "Stone sculptures"
+    ]
+  },
+  "religious": {
+    "significance": "One of the most revered temples in Bagan",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": [
+      "Ananda Temple Festival (December/January)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Early morning or late afternoon",
+    "duration": "1-2 hours",
+    "accessibility": "Partially accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "architecture",
+    "bagan",
+    "must-visit"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "thatbinnyu": 0.6,
+    "htilominlo": 1.4,
+    "shwezigon": 2.9,
+    "alodawpyae": 1.4,
+    "dhammayangyi": 0.9,
+    "sulamani": 1.3,
+    "manuha": 1.7,
+    "lawkananda": 3.7,
+    "thambula": 2.9,
+    "izagawna": 3.5,
+    "bupaya": 1,
+    "pyathetgyi": 1.9,
+    "gubyaukgyi": 1.5,
+    "seinnyetnyiama": 2.5,
+    "gawdawpalin": 1.1,
+    "shwegugyi": 0.4,
+    "mahazedi": 0.5,
+    "dhammayazaka": 2.4
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-10-10T13:38:31.394Z"
+  },
+  "detailPage": "",
+  "nameMm": "အာနန္ဒာဘုရား",
+  "shortNameMm": "အာနန္ဒာ",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352ce"
+  },
+  "id": "dhammayangyi",
+  "name": "Dhammayangyi Temple",
+  "shortName": "Dhammayangyi",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.161975,
+      "lng": 94.872919
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Dhammayangyi Temple/Dhammayangyi_Temple_at_Bagan,Myanmar.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Dhammayangyi Temple/4ab2ec43f3f2d08b50729cb10996ceb7.jpg",
+      "./assets/images/pagodas/Dhammayangyi Temple/9e807d4da601404ff01e6790208424d5.jpg",
+      "./assets/images/pagodas/Dhammayangyi Temple/68849e94e745de8b002956704ebeede9.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Dhammayangyi Temple/Dhammayangyi_Temple_at_Bagan,Myanmar.jpg"
+  },
+  "description": {
+    "short": "The largest of all the temples in Bagan, known for its impressive brickwork.",
+    "long": "Dhammayangyi Temple is a Buddhist temple located in Bagan, Myanmar. Largest of all the temples in Bagan, the Dhammayangyi is built in a plan similar to that of Ananda Temple. The temple was built during the reign of King Narathu (1167-1170). Narathu, who came to the throne by assassinating his father Alaungsithu and his brother, built this largest temple to atone for his sins."
+  },
+  "history": {
+    "built": "1167-1170 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Narathu",
+    "architect": "Unknown",
+    "renovations": [
+      "1975",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Pagan architecture",
+    "height": "61 meters",
+    "structure": "Pyramid-like structure",
+    "materials": [
+      "Brick",
+      "Mortar"
+    ],
+    "features": [
+      "Massive walls",
+      "Narrow corridors",
+      "Sealed inner chambers"
+    ]
+  },
+  "religious": {
+    "significance": "Built for atonement of sins",
+    "buddha_statues": 2,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Sunset viewing",
+    "duration": "45 minutes - 1 hour",
+    "accessibility": "Limited accessibility"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "largest",
+    "bagan",
+    "sunset"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 0.9,
+    "thatbinnyu": 1.1,
+    "htilominlo": 2.3,
+    "shwezigon": 3.5,
+    "alodawpyae": 1.8,
+    "sulamani": 1,
+    "manuha": 2.1,
+    "lawkananda": 4.1,
+    "thambula": 2.7,
+    "izagawna": 3.2,
+    "bupaya": 2.1,
+    "pyathetgyi": 1.6,
+    "gubyaukgyi": 1.9,
+    "seinnyetnyiama": 2.9,
+    "gawdawpalin": 1.9,
+    "shwegugyi": 1.3,
+    "mahazedi": 1.4,
+    "dhammayazaka": 1.7
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-10-06T21:25:14.042Z"
+  },
+  "detailPage": "",
+  "nameMm": "ဓမ္မရံကြီးဘုရား",
+  "shortNameMm": "ဓမ္မရံကြီး",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352cf"
+  },
+  "id": "shwezigon",
+  "name": "Shwezigon Pagoda",
+  "shortName": "Shwezigon",
+  "type": "Pagoda",
+  "location": {
+    "city": "Nyaung-U",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.195278,
+      "lng": 94.893889
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Shwezigon Pagoda/1a1afe376333f59c9bb72dbf35c2e9c9.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Shwezigon Pagoda/8b6ac09e42d80632daee5e1e859e6000.jpg",
+      "./assets/images/pagodas/Shwezigon Pagoda/554d48e8ef6872ac2d7ab2b86b6c3ad3.jpg",
+      "./assets/images/pagodas/Shwezigon Pagoda/b24f40b7d21a7eace6ac017abfe2529c.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Shwezigon Pagoda/1a1afe376333f59c9bb72dbf35c2e9c9.jpg"
+  },
+  "description": {
+    "short": "A Buddhist temple built during the reign of King Anawrahta and completed by King Kyansittha.",
+    "long": "The Shwezigon Pagoda is a Buddhist stupa located in Nyaung-U, a town near Bagan in Myanmar. A prototype of Burmese stupas, it consists of a circular gold leaf-gilded stupa surrounded by smaller temples and shrines. Construction of the pagoda began during the reign of King Anawrahta (1044–1077), the founder of the Pagan Empire, in 1059–1060 and was completed in 1102, during the reign of his son King Kyansittha."
+  },
+  "history": {
+    "built": "1059-1102 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Anawrahta & King Kyansittha",
+    "architect": "Unknown",
+    "renovations": [
+      "1086",
+      "1597",
+      "1763",
+      "1904"
+    ]
+  },
+  "architecture": {
+    "style": "Prototype Burmese stupa",
+    "height": "40 meters",
+    "structure": "Bell-shaped stupa",
+    "materials": [
+      "Brick",
+      "Gold leaf",
+      "Marble"
+    ],
+    "features": [
+      "Golden stupa",
+      "Surrounding shrines",
+      "Marble terraces"
+    ]
+  },
+  "religious": {
+    "significance": "Prototype of Burmese stupas",
+    "buddha_statues": 0,
+    "main_deity": "Buddha relics",
+    "festivals": [
+      "Shwezigon Festival (November/December)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "5:00 AM - 9:00 PM",
+    "best_time": "Early morning or evening",
+    "duration": "1 hour",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "golden",
+    "prototype",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 2.9,
+    "thatbinnyu": 3.2,
+    "htilominlo": 1.7,
+    "alodawpyae": 1.7,
+    "dhammayangyi": 3.5,
+    "sulamani": 3.9,
+    "manuha": 4.3,
+    "lawkananda": 6.3,
+    "thambula": 4.8,
+    "izagawna": 4.2,
+    "bupaya": 3.3,
+    "pyathetgyi": 4.5,
+    "gubyaukgyi": 4.1,
+    "seinnyetnyiama": 5.1,
+    "gawdawpalin": 3.4,
+    "shwegugyi": 2.9,
+    "mahazedi": 3.1,
+    "dhammayazaka": 6.9
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-10-06T21:21:55.166Z"
+  },
+  "detailPage": "",
+  "nameMm": "ရွှေစည်းခုံဘုရား",
+  "shortNameMm": "ရွှေစည်းခုံ",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d0"
+  },
+  "id": "sulamani",
+  "name": "Sulamani Temple",
+  "shortName": "Sulamani",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.1649,
+      "lng": 94.8814
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Sulamani Temple/7e5692c46b129496fc9c5a5e966b4621.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Sulamani Temple/f8c78d47d5b874f6e2791396bdc5d436.jpg",
+      "./assets/images/pagodas/Sulamani Temple/late-afternoon-sun-shines-on-260nw-406636576.webp",
+      "./assets/images/pagodas/Sulamani Temple/sulamani-temple-bagan-myanmar-sunset-asia-82328684.webp"
+    ],
+    "thumbnail": "./assets/images/pagodas/Sulamani Temple/7e5692c46b129496fc9c5a5e966b4621.jpg"
+  },
+  "description": {
+    "short": "Built in 1183 by King Narapatisithu, featuring beautiful murals and architecture.",
+    "long": "Sulamani Temple is a Buddhist temple located in the Bagan Archaeological Zone in Myanmar. Built in 1183 by King Narapatisithu, Sulamani Temple is one of the most visited temples in Bagan. The temple is known for its beautiful frescoes and architectural details."
+  },
+  "history": {
+    "built": "1183 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Narapatisithu",
+    "architect": "Unknown",
+    "renovations": [
+      "1994",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Late Pagan architecture",
+    "height": "45 meters",
+    "structure": "Two-story temple",
+    "materials": [
+      "Brick",
+      "Stucco",
+      "Plaster"
+    ],
+    "features": [
+      "Beautiful frescoes",
+      "Intricate carvings",
+      "Multiple terraces"
+    ]
+  },
+  "religious": {
+    "significance": "Known for beautiful murals",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Late afternoon for murals",
+    "duration": "1-1.5 hours",
+    "accessibility": "Partially accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "murals",
+    "architecture",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 1.3,
+    "thatbinnyu": 1.6,
+    "htilominlo": 2.6,
+    "shwezigon": 4.7,
+    "alodawpyae": 2.2,
+    "dhammayangyi": 1,
+    "manuha": 2.5,
+    "lawkananda": 4.5,
+    "thambula": 2,
+    "izagawna": 2.6,
+    "bupaya": 2.5,
+    "pyathetgyi": 0.9,
+    "gubyaukgyi": 2.3,
+    "seinnyetnyiama": 3.4,
+    "gawdawpalin": 2.3,
+    "shwegugyi": 1.7,
+    "mahazedi": 1.8,
+    "dhammayazaka": 2.1
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "စူဠာမဏိဘုရား",
+  "shortNameMm": "စူဠာမဏိ",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d1"
+  },
+  "id": "thatbinnyu",
+  "name": "Thatbyinnyu Temple",
+  "shortName": "Thatbyinnyu",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.16875,
+      "lng": 94.86295
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Thatbyinnyu Temple/04b3e46839edfdca218c2cce107f5587.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Thatbyinnyu Temple/1f1ce06e7352fa7895d920c25aa69217.jpg",
+      "./assets/images/pagodas/Thatbyinnyu Temple/73f2dda8c9b643491943b7770863113c.jpg",
+      "./assets/images/pagodas/Thatbyinnyu Temple/9983f9bab2e9725fbc8b30d3f10ffd5d.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Thatbyinnyu Temple/1f1ce06e7352fa7895d920c25aa69217.jpg"
+  },
+  "description": {
+    "short": "The tallest temple in Bagan, standing at 61 meters high.",
+    "long": "Thatbyinnyu Temple is a Buddhist temple in Bagan, Myanmar. It is the tallest temple in Bagan, standing at 61 meters (200 feet). The temple was built in the mid-12th century during the reign of King Alaungsithu. The name means 'omniscience' in reference to the Buddha's all-seeing knowledge."
+  },
+  "history": {
+    "built": "1150 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Alaungsithu",
+    "architect": "Unknown",
+    "renovations": [
+      "1980",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Transitional Pagan architecture",
+    "height": "61 meters",
+    "structure": "Multi-story temple",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Tallest temple",
+      "Multiple levels",
+      "Panoramic views"
+    ]
+  },
+  "religious": {
+    "significance": "Represents Buddha's omniscience",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning for views",
+    "duration": "45 minutes",
+    "accessibility": "Not accessible (climbing restricted)"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "tallest",
+    "views",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 0.6,
+    "htilominlo": 1.7,
+    "shwezigon": 3.2,
+    "alodawpyae": 1.7,
+    "dhammayangyi": 1.1,
+    "sulamani": 1.6,
+    "manuha": 1.3,
+    "lawkananda": 3.3,
+    "thambula": 3.3,
+    "izagawna": 6.3,
+    "bupaya": 1.3,
+    "pyathetgyi": 2.2,
+    "gubyaukgyi": 1.1,
+    "seinnyetnyiama": 2.1,
+    "gawdawpalin": 1.1,
+    "shwegugyi": 0.3,
+    "mahazedi": 0.4,
+    "dhammayazaka": 2.8
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "သဗ္ဗညုဘုရား",
+  "shortNameMm": "သဗ္ဗညု",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d2"
+  },
+  "id": "gawdawpalin",
+  "name": "Gawdawpalin Temple",
+  "shortName": "Gawdawpalin",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.17,
+      "lng": 94.856667
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Gawdawpalin Temple/31922c378893074a240e3f07913b4d18.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Gawdawpalin Temple/a1097ee0b3e8a893a5a5cda8d6abd179.jpg",
+      "./assets/images/pagodas/Gawdawpalin Temple/c99d79b76c44edea7f389650567fbc14.jpg",
+      "./assets/images/pagodas/Gawdawpalin Temple/istockphoto-479621119-612x612.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Gawdawpalin Temple/31922c378893074a240e3f07913b4d18.jpg"
+  },
+  "description": {
+    "short": "One of the largest and most impressive temples in Bagan, built in the 12th century.",
+    "long": "Gawdawpalin Temple is one of the largest and most impressive temples in Bagan, Myanmar. Built in the late 12th century during the reign of King Narapatisithu, the temple is known for its imposing structure and beautiful architecture."
+  },
+  "history": {
+    "built": "1174-1211 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Narapatisithu",
+    "architect": "Unknown",
+    "renovations": [
+      "1975",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Late Pagan architecture",
+    "height": "55 meters",
+    "structure": "Hollow temple",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Imposing structure",
+      "White walls",
+      "Golden spires"
+    ]
+  },
+  "religious": {
+    "significance": "One of the largest temples",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Afternoon",
+    "duration": "1 hour",
+    "accessibility": "Partially accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "large",
+    "impressive",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 1.1,
+    "thatbinnyu": 0.6,
+    "htilominlo": 2.1,
+    "shwezigon": 3.5,
+    "alodawpyae": 2.4,
+    "dhammayangyi": 1.9,
+    "sulamani": 2.3,
+    "manuha": 1.3,
+    "lawkananda": 3.4,
+    "thambula": 4,
+    "izagawna": 7,
+    "bupaya": 0.6,
+    "pyathetgyi": 3,
+    "gubyaukgyi": 1.2,
+    "seinnyetnyiama": 2.2,
+    "shwegugyi": 0.7,
+    "mahazedi": 0.5,
+    "dhammayazaka": 3.5
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "ဂေါဝါပလင်ဘုရား",
+  "shortNameMm": "ဂေါဝါပလင်",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d3"
+  },
+  "id": "htilominlo",
+  "name": "Htilominlo Temple",
+  "shortName": "Htilominlo",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.178531,
+      "lng": 94.879398
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Htilominlo Temple/0d1d7fa8c86705fdd1a404749b0d200c.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Htilominlo Temple/8f2f27db2e013baa142a74a15f67eac0.jpg",
+      "./assets/images/pagodas/Htilominlo Temple/22e84597c74e80b981d1e58f5b33f339.jpg",
+      "./assets/images/pagodas/Htilominlo Temple/bd1e3ba807c0ce68a65a7d1243778136.jpg",
+      "./assets/images/pagodas/Htilominlo Temple/dee6e00eeb4074ee20f833988c05180f.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Htilominlo Temple/0d1d7fa8c86705fdd1a404749b0d200c.jpg"
+  },
+  "description": {
+    "short": "Built in 1218 by King Htilominlo, known for its fine plaster carvings and glazed sandstone decorations.",
+    "long": "Htilominlo Temple is a Buddhist temple located in Bagan, Myanmar, built in 1218 during the reign of King Htilominlo (Nandaungmya). The temple is known for its fine plaster carvings and glazed sandstone decorations. It represents the last of the great temple building periods in Bagan."
+  },
+  "history": {
+    "built": "1218 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Htilominlo (Nandaungmya)",
+    "architect": "Unknown",
+    "renovations": [
+      "1994",
+      "2017"
+    ]
+  },
+  "architecture": {
+    "style": "Late Pagan architecture",
+    "height": "46 meters",
+    "structure": "Three-story temple",
+    "materials": [
+      "Brick",
+      "Stucco",
+      "Glazed sandstone"
+    ],
+    "features": [
+      "Fine plaster carvings",
+      "Glazed decorations",
+      "Original murals"
+    ]
+  },
+  "religious": {
+    "significance": "Last great temple of Bagan period",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning for photography",
+    "duration": "1 hour",
+    "accessibility": "Partially accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "carvings",
+    "glazed",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 1.4,
+    "thatbinnyu": 1.7,
+    "shwezigon": 1.8,
+    "alodawpyae": 0.5,
+    "dhammayangyi": 2.3,
+    "sulamani": 2.6,
+    "manuha": 2.9,
+    "lawkananda": 4.9,
+    "thambula": 5.8,
+    "izagawna": 5.2,
+    "bupaya": 1.8,
+    "pyathetgyi": 3.3,
+    "gubyaukgyi": 2.7,
+    "seinnyetnyiama": 3.7,
+    "gawdawpalin": 2,
+    "shwegugyi": 1.4,
+    "mahazedi": 1.6,
+    "dhammayazaka": 3.8
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d4"
+  },
+  "id": "alodawpyae",
+  "name": "Alodawpyae Pagoda",
+  "shortName": "Alodawpyae",
+  "type": "Pagoda",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.176739,
+      "lng": 94.882814
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Alodawpyae Pagoda/39489811900_af8c87eee6_b.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Alodawpyae Pagoda/A_Lo_Daw_Pyi.JPG",
+      "./assets/images/pagodas/Alodawpyae Pagoda/Alodawpyi_Pagoda.jpg",
+      "./assets/images/pagodas/Alodawpyae Pagoda/the-ancient-alo-daw-pyi-pagoda-bagan-myanmar-700-239905453.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Alodawpyae Pagoda/39489811900_af8c87eee6_b.jpg"
+  },
+  "description": {
+    "short": "An ancient pagoda built in 1137 AD, known for its unique architectural style and historical significance.",
+    "long": "Alodawpyae Pagoda, also known as Alo Daw Pyi Pagoda, is an ancient Buddhist pagoda located in Bagan, Myanmar. Built in 1137 AD during the Pagan period, it represents the early architectural style of Bagan pagodas with its distinctive bell-shaped structure."
+  },
+  "history": {
+    "built": "1137 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Alaungsithu",
+    "architect": "Unknown",
+    "renovations": [
+      "1990",
+      "2010"
+    ]
+  },
+  "architecture": {
+    "style": "Early Pagan architecture",
+    "height": "35 meters",
+    "structure": "Bell-shaped stupa",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Ancient brickwork",
+      "Traditional design",
+      "Surrounding shrines"
+    ]
+  },
+  "religious": {
+    "significance": "Early Pagan period pagoda",
+    "buddha_statues": 0,
+    "main_deity": "Buddha relics",
+    "festivals": [
+      "Local pagoda festival (March)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Early morning",
+    "duration": "30-45 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "ancient",
+    "early-pagan",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 1.4,
+    "thatbinnyu": 1.7,
+    "htilominlo": 0.4,
+    "shwezigon": 1.8,
+    "dhammayangyi": 1.8,
+    "sulamani": 2.2,
+    "manuha": 2.6,
+    "lawkananda": 4.6,
+    "thambula": 5.3,
+    "izagawna": 4.6,
+    "bupaya": 2.6,
+    "pyathetgyi": 2.8,
+    "gubyaukgyi": 2.4,
+    "seinnyetnyiama": 3.5,
+    "gawdawpalin": 2.4,
+    "shwegugyi": 1.8,
+    "mahazedi": 1.9,
+    "dhammayazaka": 3.4
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-10-06T21:27:21.309Z"
+  },
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d5"
+  },
+  "id": "manuha",
+  "name": "Manuha Temple",
+  "shortName": "Manuha",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.153408,
+      "lng": 94.859152
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Manuha/67397682-manuha-temple-bagan-myanmar.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Manuha/Manuha-Paya-1.jpg",
+      "./assets/images/pagodas/Manuha/Manuha-Temple-2.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Manuha/67397682-manuha-temple-bagan-myanmar.jpg"
+  },
+  "description": {
+    "short": "Built in 1059 by the captive Mon King Manuha, featuring three seated and one reclining Buddha.",
+    "long": "Manuha Temple was built in 1059 by King Manuha, the captive Mon king from Thaton. The temple is famous for its cramped interior space containing three seated Buddha images and one reclining Buddha, symbolizing the king's suffering in captivity."
+  },
+  "history": {
+    "built": "1059 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Manuha (Mon King)",
+    "architect": "Unknown",
+    "renovations": [
+      "1982",
+      "2015"
+    ]
+  },
+  "architecture": {
+    "style": "Mon-influenced Pagan architecture",
+    "height": "30 meters",
+    "structure": "Rectangular temple",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Cramped interior",
+      "Large Buddha statues",
+      "Symbolic design"
+    ]
+  },
+  "religious": {
+    "significance": "Symbol of suffering and captivity",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning",
+    "duration": "30-45 minutes",
+    "accessibility": "Limited accessibility"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "mon-architecture",
+    "symbolic",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 1.7,
+    "thatbinnyu": 1.3,
+    "htilominlo": 2.9,
+    "shwezigon": 4.3,
+    "alodawpyae": 2.6,
+    "dhammayangyi": 2,
+    "sulamani": 2.5,
+    "lawkananda": 2,
+    "thambula": 4.2,
+    "izagawna": 7.1,
+    "bupaya": 1.6,
+    "pyathetgyi": 3.1,
+    "gubyaukgyi": 0.3,
+    "seinnyetnyiama": 0.9,
+    "gawdawpalin": 1.3,
+    "shwegugyi": 1.5,
+    "mahazedi": 1.4,
+    "dhammayazaka": 4
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d6"
+  },
+  "id": "lawkananda",
+  "name": "Lawkananda Pagoda",
+  "shortName": "Lawkananda",
+  "type": "Pagoda",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.127222,
+      "lng": 94.850556
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Lawkananda Pagoda/302dde16fdd87aabd4a91c5033cfc7d5.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Lawkananda Pagoda/20102959715_e7e032d5af_b.jpg",
+      "./assets/images/pagodas/Lawkananda Pagoda/dbae0ac1f0ec53e986ca8770610630f7.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Lawkananda Pagoda/302dde16fdd87aabd4a91c5033cfc7d5.jpg"
+  },
+  "description": {
+    "short": "Built by King Anawrahta in 1059, strategically located by the Irrawaddy River for sunset views.",
+    "long": "Lawkananda Pagoda was built in 1059 by King Anawrahta, the founder of the Pagan Empire. Located on the banks of the Irrawaddy River, it offers spectacular sunset views and was strategically positioned to guard the river approach to Bagan."
+  },
+  "history": {
+    "built": "1059 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Anawrahta",
+    "architect": "Unknown",
+    "renovations": [
+      "1995",
+      "2018"
+    ]
+  },
+  "architecture": {
+    "style": "Early Pagan architecture",
+    "height": "60 meters",
+    "structure": "Bell-shaped stupa",
+    "materials": [
+      "Brick",
+      "Gold leaf",
+      "Marble"
+    ],
+    "features": [
+      "Riverside location",
+      "Golden stupa",
+      "Panoramic views"
+    ]
+  },
+  "religious": {
+    "significance": "Guardian pagoda of Bagan",
+    "buddha_statues": 0,
+    "main_deity": "Buddha relics",
+    "festivals": [
+      "Lawkananda Festival (February)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "5:00 AM - 9:00 PM",
+    "best_time": "Sunset",
+    "duration": "1 hour",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "riverside",
+    "sunset",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 3.7,
+    "thatbinnyu": 3.3,
+    "htilominlo": 4.9,
+    "shwezigon": 6.3,
+    "alodawpyae": 4.6,
+    "dhammayangyi": 4.1,
+    "sulamani": 4.5,
+    "manuha": 2,
+    "thambula": 5.1,
+    "izagawna": 6,
+    "bupaya": 3.6,
+    "pyathetgyi": 4.3,
+    "gubyaukgyi": 2.4,
+    "seinnyetnyiama": 1.2,
+    "gawdawpalin": 3.4,
+    "shwegugyi": 3.7,
+    "mahazedi": 3.4,
+    "dhammayazaka": 2.9
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d7"
+  },
+  "id": "thambula",
+  "name": "Thambula Temple",
+  "shortName": "Thambula",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.162594,
+      "lng": 94.903672
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Thambula/istockphoto-90658155-612x612.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Thambula/istockphoto-180775378-612x612.jpg",
+      "./assets/images/pagodas/Thambula/istockphoto-486732962-612x612.jpg",
+      "./assets/images/pagodas/Thambula/thambula-temple.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Thambula/istockphoto-90658155-612x612.jpg"
+  },
+  "description": {
+    "short": "A 13th-century temple known for its well-preserved murals and traditional Bagan architecture.",
+    "long": "Thambula Temple is a Buddhist temple built in the 13th century during the late Pagan period. The temple is renowned for its well-preserved interior murals depicting Buddhist Jataka tales and traditional Bagan architectural features."
+  },
+  "history": {
+    "built": "1255 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Uzana",
+    "architect": "Unknown",
+    "renovations": [
+      "1998",
+      "2019"
+    ]
+  },
+  "architecture": {
+    "style": "Late Pagan architecture",
+    "height": "35 meters",
+    "structure": "Square-based temple",
+    "materials": [
+      "Brick",
+      "Stucco",
+      "Natural pigments"
+    ],
+    "features": [
+      "Well-preserved murals",
+      "Jataka paintings",
+      "Traditional design"
+    ]
+  },
+  "religious": {
+    "significance": "Repository of Buddhist art",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning for mural viewing",
+    "duration": "45 minutes",
+    "accessibility": "Partially accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "murals",
+    "jataka",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 2.9,
+    "thatbinnyu": 3.3,
+    "htilominlo": 5.8,
+    "shwezigon": 5,
+    "alodawpyae": 5.3,
+    "dhammayangyi": 2.7,
+    "sulamani": 2,
+    "manuha": 6.1,
+    "lawkananda": 5.1,
+    "izagawna": 0.7,
+    "bupaya": 4.2,
+    "pyathetgyi": 1.9,
+    "gubyaukgyi": 4,
+    "seinnyetnyiama": 5.2,
+    "gawdawpalin": 4,
+    "shwegugyi": 3.4,
+    "mahazedi": 3.5,
+    "dhammayazaka": 2.7
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d8"
+  },
+  "id": "izagawna",
+  "name": "Iza Gawna Pagoda",
+  "shortName": "Iza Gawna",
+  "type": "Pagoda",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.17025,
+      "lng": 94.90586
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Iza Gawna Pagoda/80iza-gawna-pagoda-bagan-thesanetravel.com-1610395.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Iza Gawna Pagoda/normal_iza_gawna_pagoda__bagan.jpg",
+      "./assets/images/pagodas/Iza Gawna Pagoda/shin-izza-gawna-temple.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Iza Gawna Pagoda/80iza-gawna-pagoda-bagan-thesanetravel.com-1610395.jpg"
+  },
+  "description": {
+    "short": "A unique pagoda built in the 11th century, featuring distinctive architectural elements and peaceful surroundings.",
+    "long": "Iza Gawna Pagoda, also known as Shin Izza Gawna Temple, is a Buddhist pagoda built in the 11th century. It features unique architectural elements that distinguish it from other Bagan monuments and is surrounded by peaceful rural landscapes."
+  },
+  "history": {
+    "built": "1093 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Kyansittha",
+    "architect": "Unknown",
+    "renovations": [
+      "1985",
+      "2012"
+    ]
+  },
+  "architecture": {
+    "style": "Early Pagan architecture",
+    "height": "25 meters",
+    "structure": "Unique design",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Distinctive architecture",
+      "Rural setting",
+      "Original elements"
+    ]
+  },
+  "religious": {
+    "significance": "Unique architectural example",
+    "buddha_statues": 1,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Afternoon",
+    "duration": "30 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "unique",
+    "rural",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 3.5,
+    "thatbinnyu": 6.3,
+    "htilominlo": 5.1,
+    "shwezigon": 4.4,
+    "alodawpyae": 4.7,
+    "dhammayangyi": 3.2,
+    "sulamani": 2.6,
+    "manuha": 7,
+    "lawkananda": 6,
+    "thambula": 0.7,
+    "bupaya": 7.3,
+    "pyathetgyi": 2.5,
+    "gubyaukgyi": 7.4,
+    "seinnyetnyiama": 6.2,
+    "gawdawpalin": 7,
+    "shwegugyi": 6.5,
+    "mahazedi": 6.6,
+    "dhammayazaka": 3.6
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352d9"
+  },
+  "id": "bupaya",
+  "name": "BuPaya Pagoda",
+  "shortName": "BuPaya",
+  "type": "Pagoda",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.1763128,
+      "lng": 94.857903
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/BuPaya/7bc85ea7a772af61a22eecd6da564d84_cleanup.jpg",
+    "gallery": [
+      "./assets/images/pagodas/BuPaya/7bc85ea7a772af61a22eecd6da564d84.jpg",
+      "./assets/images/pagodas/BuPaya/b72920bc44bbbd1c8691dc5a8ef61c62.jpg",
+      "./assets/images/pagodas/BuPaya/Bhu-paya.jpg",
+      "./assets/images/pagodas/BuPaya/Bupaya-Pagoda-and-Irrawaddy-in-the-back.jpg",
+      "./assets/images/pagodas/BuPaya/cf844129be4bfbf3074279197ea38c6d.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/BuPaya/7bc85ea7a772af61a22eecd6da564d84_cleanup.jpg"
+  },
+  "description": {
+    "short": "One of the oldest pagodas in Bagan, built in the 3rd century, offering stunning river views.",
+    "long": "BuPaya Pagoda is believed to be one of the oldest pagodas in Bagan, traditionally dated to the 3rd century. Located on the banks of the Irrawaddy River, it offers spectacular views and is said to have been built to ward off evil spirits."
+  },
+  "history": {
+    "built": "3rd century (traditional), 11th century (current structure)",
+    "dynasty": "Pre-Pagan/Pagan Dynasty",
+    "king": "King Pyusawhti (traditional)",
+    "architect": "Unknown",
+    "renovations": [
+      "1975",
+      "1990",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Ancient Pagan architecture",
+    "height": "20 meters",
+    "structure": "Cylindrical pagoda",
+    "materials": [
+      "Brick",
+      "Gold leaf"
+    ],
+    "features": [
+      "Riverside location",
+      "Ancient design",
+      "River views"
+    ]
+  },
+  "religious": {
+    "significance": "Oldest pagoda in Bagan (traditional)",
+    "buddha_statues": 0,
+    "main_deity": "Buddha relics",
+    "festivals": [
+      "BuPaya Festival (April)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "5:00 AM - 9:00 PM",
+    "best_time": "Sunset",
+    "duration": "45 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "oldest",
+    "riverside",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 1,
+    "thatbinnyu": 0.9,
+    "htilominlo": 2,
+    "shwezigon": 3.5,
+    "alodawpyae": 2.7,
+    "dhammayangyi": 2.1,
+    "sulamani": 2.6,
+    "manuha": 1.6,
+    "lawkananda": 3.6,
+    "thambula": 4.2,
+    "izagawna": 7.2,
+    "pyathetgyi": 3.2,
+    "gubyaukgyi": 1.4,
+    "seinnyetnyiama": 2.4,
+    "gawdawpalin": 0.6,
+    "shwegugyi": 0.4,
+    "mahazedi": 0.9,
+    "dhammayazaka": 3.7
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "ဗုပါးဘုရား",
+  "shortNameMm": "ဗုပါး",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352da"
+  },
+  "id": "pyathetgyi",
+  "name": "Pyathetgyi Temple",
+  "shortName": "Pyathetgyi",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.15829,
+      "lng": 94.88957
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Pyathetgyi/2244810100_e0d8d158d5_b.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Pyathetgyi/19143645858_a8d4458a88_z.jpg",
+      "./assets/images/pagodas/Pyathetgyi/images.jpg",
+      "./assets/images/pagodas/Pyathetgyi/payahtaung-temple_BIG.jpg",
+      "./assets/images/pagodas/Pyathetgyi/Pyathadar-Pyathatgyi-Temple.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Pyathetgyi/2244810100_e0d8d158d5_b.jpg"
+  },
+  "description": {
+    "short": "A 13th-century temple known for its impressive size and well-preserved structure.",
+    "long": "Pyathetgyi Temple, also known as Pyathadar Temple, is a Buddhist temple built in the 13th century during the late Pagan period. The temple is notable for its impressive size and well-preserved architectural features."
+  },
+  "history": {
+    "built": "1250 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Uzana",
+    "architect": "Unknown",
+    "renovations": [
+      "1992",
+      "2014"
+    ]
+  },
+  "architecture": {
+    "style": "Late Pagan architecture",
+    "height": "40 meters",
+    "structure": "Large temple complex",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Impressive size",
+      "Well-preserved",
+      "Multiple chambers"
+    ]
+  },
+  "religious": {
+    "significance": "Late Pagan period temple",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning",
+    "duration": "1 hour",
+    "accessibility": "Partially accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "large",
+    "late-pagan",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 1.9,
+    "thatbinnyu": 2.2,
+    "htilominlo": 3.2,
+    "shwezigon": 5.3,
+    "alodawpyae": 2.8,
+    "dhammayangyi": 1.6,
+    "sulamani": 0.9,
+    "manuha": 3.1,
+    "lawkananda": 4.3,
+    "thambula": 1.9,
+    "izagawna": 2.5,
+    "bupaya": 3.2,
+    "gubyaukgyi": 3,
+    "seinnyetnyiama": 4,
+    "gawdawpalin": 2.9,
+    "shwegugyi": 2.1,
+    "mahazedi": 2.2,
+    "dhammayazaka": 2
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352db"
+  },
+  "id": "gubyaukgyi",
+  "name": "Gu Byauk Gyi Pagoda",
+  "shortName": "Gu Byauk Gyi",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.157222,
+      "lng": 94.860833
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Gu Byauk Gyi Pagoda/6b50c877-94fe-462b-a833-13e77977d711.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Gu Byauk Gyi Pagoda/Gubyaukgyi-Bagan-Myanmar-02-gje.jpg",
+      "./assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple.jpg",
+      "./assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple1.jpg",
+      "./assets/images/pagodas/Gu Byauk Gyi Pagoda/le-merite-de-ce-temple.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Gu Byauk Gyi Pagoda/6b50c877-94fe-462b-a833-13e77977d711.jpg"
+  },
+  "description": {
+    "short": "Built in 1113, famous for its exceptional murals depicting Buddhist Jataka tales.",
+    "long": "Gu Byauk Gyi Temple was built in 1113 during the reign of King Kyanzittha. The temple is renowned for its exceptional interior murals that depict Buddhist Jataka tales and represent some of the finest examples of Pagan period art."
+  },
+  "history": {
+    "built": "1113 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Kyanzittha",
+    "architect": "Unknown",
+    "renovations": [
+      "1996",
+      "2020"
+    ]
+  },
+  "architecture": {
+    "style": "Early Pagan architecture",
+    "height": "30 meters",
+    "structure": "Square temple",
+    "materials": [
+      "Brick",
+      "Stucco",
+      "Natural pigments"
+    ],
+    "features": [
+      "Exceptional murals",
+      "Jataka paintings",
+      "Original artwork"
+    ]
+  },
+  "religious": {
+    "significance": "Finest Pagan period murals",
+    "buddha_statues": 4,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning for mural viewing",
+    "duration": "1 hour",
+    "accessibility": "Limited accessibility"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "murals",
+    "jataka",
+    "art",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 1.5,
+    "thatbinnyu": 1.1,
+    "htilominlo": 2.8,
+    "shwezigon": 4.3,
+    "alodawpyae": 2.4,
+    "dhammayangyi": 1.9,
+    "sulamani": 2.3,
+    "manuha": 0.4,
+    "lawkananda": 2.4,
+    "thambula": 4,
+    "izagawna": 7,
+    "bupaya": 1.4,
+    "pyathetgyi": 2.9,
+    "seinnyetnyiama": 1.2,
+    "gawdawpalin": 1.2,
+    "shwegugyi": 1.5,
+    "mahazedi": 1.2,
+    "dhammayazaka": 3.5
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352dc"
+  },
+  "id": "seinnyetnyiama",
+  "name": "Sein Nyet NyiAma Gu Phaya",
+  "shortName": "Sein Nyet NyiAma",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.14151,
+      "lng": 94.85896
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Sein Nyet NyiAma Gu Phaya/69sein-nyet-temple-bagan-thesanetravel.com-1610978.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Sein Nyet NyiAma Gu Phaya/sein-nyet-ama01.jpg",
+      "./assets/images/pagodas/Sein Nyet NyiAma Gu Phaya/seinnyet-ama-temple-Bagan-Myanmar.jpg",
+      "./assets/images/pagodas/Sein Nyet NyiAma Gu Phaya/Seinnyet-Nyima-Seinnyet-Ama-Paya-Bagan-Myanmar.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Sein Nyet NyiAma Gu Phaya/69sein-nyet-temple-bagan-thesanetravel.com-1610978.jpg"
+  },
+  "description": {
+    "short": "Twin pagodas built in the 11th century, known for their elegant architecture and historical significance.",
+    "long": "Sein Nyet NyiAma Gu Phaya consists of twin pagodas built in the 11th century. The pagodas are known for their elegant architecture and historical significance in the Bagan region. The larger pagoda stands at 50 feet tall, while the smaller one is 35 feet tall."
+  },
+  "history": {
+    "built": "11th century",
+    "dynasty": "Pagan Dynasty",
+    "king": "Unknown",
+    "architect": "Unknown",
+    "renovations": [
+      "1990",
+      "2015"
+    ]
+  },
+  "architecture": {
+    "style": "Early Pagan architecture",
+    "height": "50 feet (larger pagoda)",
+    "structure": "Twin pagodas",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Elegant design",
+      "Well-preserved",
+      "Symmetrical layout"
+    ]
+  },
+  "religious": {
+    "significance": "Twin pagodas representing spiritual harmony",
+    "buddha_statues": 2,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Late afternoon",
+    "duration": "45 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "twin",
+    "architecture",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 2.5,
+    "thatbinnyu": 2.1,
+    "htilominlo": 3.9,
+    "shwezigon": 5.3,
+    "alodawpyae": 3.4,
+    "dhammayangyi": 2.9,
+    "sulamani": 3.3,
+    "manuha": 0.9,
+    "lawkananda": 1.2,
+    "thambula": 5.3,
+    "izagawna": 6.2,
+    "bupaya": 2.4,
+    "pyathetgyi": 4,
+    "gubyaukgyi": 1.2,
+    "gawdawpalin": 2.2,
+    "shwegugyi": 2.5,
+    "mahazedi": 2.2,
+    "dhammayazaka": 3.1
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352dd"
+  },
+  "id": "shwegugyi",
+  "name": "Shwe Gu Gyi",
+  "shortName": "Shwe Gu Gyi",
+  "type": "Temple",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.170744,
+      "lng": 94.862406
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-1-600x400.jpg",
+    "gallery": [
+      "./assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-2-600x400.jpg",
+      "./assets/images/pagodas/Shwe Gu Gyi/White_Temple_(8404485009).jpg",
+      "./assets/images/pagodas/Shwe Gu Gyi/4.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-1-600x400.jpg"
+  },
+  "description": {
+    "short": "A historic temple built in the 12th century, known for its elegant proportions and fine brickwork.",
+    "long": "Shwe Gu Gyi Temple is a Buddhist temple in Bagan, Myanmar. Built in 1131 AD during the reign of King Alaungsithu, it is considered one of the finest examples of middle-period Bagan architecture. The temple features a single-story structure with elegant proportions and intricate brickwork."
+  },
+  "history": {
+    "built": "1131 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Alaungsithu",
+    "architect": "Unknown",
+    "renovations": [
+      "1988",
+      "2015"
+    ]
+  },
+  "architecture": {
+    "style": "Middle Period Bagan Architecture",
+    "height": "35 meters",
+    "structure": "Single-story temple",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Elegant proportions",
+      "Fine brickwork",
+      "Arched portals"
+    ]
+  },
+  "religious": {
+    "significance": "Fine example of middle-period architecture",
+    "buddha_statues": 1,
+    "main_deity": "Buddha",
+    "festivals": []
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Morning",
+    "duration": "30 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "temple",
+    "buddhist",
+    "historic",
+    "architecture",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 0.4,
+    "thatbinnyu": 0.3,
+    "htilominlo": 1.5,
+    "shwezigon": 3,
+    "alodawpyae": 1.8,
+    "dhammayangyi": 1.3,
+    "sulamani": 1.5,
+    "manuha": 1.5,
+    "lawkananda": 3.5,
+    "thambula": 3.2,
+    "izagawna": 3.8,
+    "bupaya": 0.6,
+    "pyathetgyi": 2.1,
+    "gubyaukgyi": 1.3,
+    "seinnyetnyiama": 2.5,
+    "gawdawpalin": 0.7,
+    "mahazedi": 0.2,
+    "dhammayazaka": 2.8
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352de"
+  },
+  "id": "mahazedi",
+  "name": "Mahazedi Pagoda",
+  "shortName": "Mahazedi",
+  "type": "Pagoda",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.1645,
+      "lng": 94.86229
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Mahezedi Pagoda/Mahazedi_Pagoda_(Bagan).jpg",
+    "gallery": [
+      "./assets/images/pagodas/Mahezedi Pagoda/16 Mahazedi pagoda.jpg",
+      "./assets/images/pagodas/Mahezedi Pagoda/124599073.UhyLcm4U.Bagan1000.jpg",
+      "./assets/images/pagodas/Mahezedi Pagoda/DSC_2878-1.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Mahezedi Pagoda/Mahazedi_Pagoda_(Bagan).jpg"
+  },
+  "description": {
+    "short": "A significant pagoda built in the 16th century, known for its historical importance and golden spire.",
+    "long": "Mahazedi Pagoda is a Buddhist pagoda located in Bagan, Myanmar. Originally built in the 16th century during the reign of King Bayinnaung, it was reconstructed after earthquake damage. The pagoda is historically significant as it once enshrined a replica of the Buddha's tooth relic."
+  },
+  "history": {
+    "built": "1560 AD",
+    "dynasty": "Toungoo Dynasty",
+    "king": "King Bayinnaung",
+    "architect": "Unknown",
+    "renovations": [
+      "1583",
+      "1975",
+      "2016"
+    ]
+  },
+  "architecture": {
+    "style": "Toungoo architecture",
+    "height": "45 meters",
+    "structure": "Bell-shaped stupa",
+    "materials": [
+      "Brick",
+      "Gold leaf"
+    ],
+    "features": [
+      "Golden spire",
+      "Ornate terraces",
+      "Guardian lions"
+    ]
+  },
+  "religious": {
+    "significance": "Housed replica of Buddha's tooth relic",
+    "buddha_statues": 0,
+    "main_deity": "Buddha relics",
+    "festivals": [
+      "Mahazedi Festival (March)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Early morning",
+    "duration": "30 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "golden",
+    "relic",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": false,
+  "distances": {
+    "ananda": 0.5,
+    "thatbinnyu": 0.4,
+    "htilominlo": 1.7,
+    "shwezigon": 3.2,
+    "alodawpyae": 1.9,
+    "dhammayangyi": 1.4,
+    "sulamani": 1.6,
+    "manuha": 1.5,
+    "lawkananda": 3.6,
+    "thambula": 3.3,
+    "izagawna": 3.9,
+    "bupaya": 0.7,
+    "pyathetgyi": 2.2,
+    "gubyaukgyi": 1.4,
+    "seinnyetnyiama": 2.4,
+    "gawdawpalin": 0.5,
+    "shwegugyi": 0.2,
+    "dhammayazaka": 2.9
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+},
+{
+  "_id": {
+    "$oid": "68e3b210599b40491c3352df"
+  },
+  "id": "dhammayazaka",
+  "name": "Dhammayazaka Pagoda",
+  "shortName": "Dhammayazaka",
+  "type": "Pagoda",
+  "location": {
+    "city": "Bagan",
+    "region": "Mandalay Region",
+    "country": "Myanmar",
+    "coordinates": {
+      "lat": 21.145071,
+      "lng": 94.883451
+    }
+  },
+  "images": {
+    "main": "./assets/images/pagodas/Dhammayazaka/Dhamma-Yazaka.JPG",
+    "gallery": [
+      "./assets/images/pagodas/Dhammayazaka/0131c03dca6c301f2f042a32ab601c77.jpg",
+      "./assets/images/pagodas/Dhammayazaka/29283936522_b9a860e2bc_b.jpg",
+      "./assets/images/pagodas/Dhammayazaka/dhammayazika-pagoda-l.jpg"
+    ],
+    "thumbnail": "./assets/images/pagodas/Dhammayazaka/Dhamma-Yazaka.JPG"
+  },
+  "description": {
+    "short": "A unique pentagonal pagoda built in 1196, featuring five Buddha images.",
+    "long": "Dhammayazaka Pagoda is a Buddhist pagoda located in Bagan, Myanmar. Built in 1196 during the reign of King Narapatisithu, it is unique for its pentagonal design which features five shrines, each housing a Buddha image representing the four Buddhas of the current kalpa and the future Buddha Maitreya."
+  },
+  "history": {
+    "built": "1196 AD",
+    "dynasty": "Pagan Dynasty",
+    "king": "King Narapatisithu",
+    "architect": "Unknown",
+    "renovations": [
+      "1985",
+      "2018"
+    ]
+  },
+  "architecture": {
+    "style": "Late Pagan architecture",
+    "height": "40 meters",
+    "structure": "Pentagonal stupa",
+    "materials": [
+      "Brick",
+      "Stucco"
+    ],
+    "features": [
+      "Pentagonal design",
+      "Five Buddha shrines",
+      "Terraced base"
+    ]
+  },
+  "religious": {
+    "significance": "Represents five Buddhas",
+    "buddha_statues": 5,
+    "main_deity": "Buddha",
+    "festivals": [
+      "Dhammayazaka Festival (November)"
+    ]
+  },
+  "visiting": {
+    "entrance_fee": "Free",
+    "opening_hours": "6:00 AM - 6:00 PM",
+    "best_time": "Late afternoon",
+    "duration": "45 minutes",
+    "accessibility": "Accessible"
+  },
+  "tags": [
+    "pagoda",
+    "buddhist",
+    "historic",
+    "unique",
+    "pentagonal",
+    "bagan"
+  ],
+  "status": "active",
+  "featured": true,
+  "distances": {
+    "ananda": 2.4,
+    "thatbinnyu": 2.8,
+    "shwezigon": 6.9,
+    "htilominlo": 3.8,
+    "alodawpyae": 3.4,
+    "dhammayangyi": 1.7,
+    "sulamani": 2.1,
+    "manuha": 4,
+    "lawkananda": 2.9,
+    "thambula": 2.7,
+    "izagawna": 3.6,
+    "bupaya": 3.7,
+    "pyathetgyi": 2,
+    "gubyaukgyi": 3.5,
+    "seinnyetnyiama": 3.1,
+    "gawdawpalin": 3.5,
+    "shwegugyi": 2.8,
+    "mahazedi": 2.9
+  },
+  "__v": 0,
+  "detailPage": "",
+  "nameMm": "",
+  "shortNameMm": "",
+  "detailPageMm": ""
+}]

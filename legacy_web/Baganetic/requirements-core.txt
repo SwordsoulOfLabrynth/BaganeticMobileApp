@@ -1,0 +1,21 @@
+# Baganetic Core Requirements
+# Essential packages for basic functionality (fallback mode)
+
+# Flask and web framework
+flask>=2.0.0
+flask-cors>=3.0.0
+
+# HTTP requests
+requests>=2.25.0
+
+# Authentication
+PyJWT>=2.0.0
+
+# Database (optional - will use fallback if not available)
+pymongo>=4.6.0
+
+# Basic utilities
+python-dotenv>=0.19.0
+
+# NOTE: For full chatbot functionality, install requirements.txt
+# which includes nltk, scikit-learn, numpy, pandas, fuzzywuzzy, etc.

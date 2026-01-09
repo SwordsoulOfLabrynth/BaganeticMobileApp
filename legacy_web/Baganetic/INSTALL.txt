@@ -1,0 +1,125 @@
+🏛️ BAGANETIC - ONE-CLICK INSTALLATION GUIDE
+===============================================
+
+Welcome to Baganetic! This guide will help you get started in just a few clicks.
+
+QUICK START (Recommended)
+========================
+
+1. Double-click "setup.bat" and follow the prompts
+2. Wait for automatic installation to complete
+3. Double-click "START.bat" to launch the application
+4. Open your browser to http://localhost:5000
+
+That's it! The installer will automatically:
+• Install Python packages
+• Install Node.js and npm packages  
+• Install and configure MongoDB
+• Set up the database with sample data
+• Configure all environment settings
+
+WHAT YOU GET
+============
+
+🏛️ Main Application (Port 5000)
+• Interactive map of Bagan pagodas
+• Detailed pagoda information
+• Route planning with A* algorithm
+• User authentication system
+
+🔧 Admin Dashboard (Port 5002)
+• Complete content management
+• User management
+• System monitoring
+• Login: admin / baganetic2025!
+
+🤖 AI Chatbot (Port 5001)
+• Intelligent tour guide assistant
+• Natural language processing
+• Route recommendations
+
+MANUAL INSTALLATION (Advanced)
+==============================
+
+If the automatic installer doesn't work:
+
+1. Install Python 3.8+ from https://python.org
+2. Install Node.js from https://nodejs.org
+3. Install MongoDB from https://mongodb.com
+4. Run: pip install -r requirements.txt
+5. Run: npm install
+6. Copy env.template to .env and configure
+7. Run: python scripts/start_all.py
+
+SYSTEM REQUIREMENTS
+===================
+
+• Windows 10 or later
+• 4GB RAM minimum (8GB recommended)
+• 2GB free disk space
+• Internet connection for initial setup
+
+TROUBLESHOOTING
+===============
+
+❌ "Python not found"
+• Install Python 3.8+ and make sure it's in your PATH
+• Or run the installer as administrator
+
+❌ "MongoDB failed to start"
+• The app will run in fallback mode (limited features)
+• Install MongoDB manually for full functionality
+
+❌ "Port already in use"
+• Close other applications using ports 5000, 5001, 5002
+• Or restart your computer
+
+❌ "Permission denied"
+• Run setup.bat as administrator
+• Check antivirus software isn't blocking the installation
+
+FEATURES
+========
+
+✅ Interactive Map & Navigation
+✅ Comprehensive Pagoda Database  
+✅ User Authentication & Profiles
+✅ AI Chatbot Assistant
+✅ Admin Dashboard
+✅ Route Planning (A* Algorithm)
+✅ Mobile-Responsive Design
+✅ Multi-language Support (English/Myanmar)
+
+FALLBACK MODE
+=============
+
+If MongoDB installation fails, the app runs in fallback mode:
+• Pagoda data loads from JSON files
+• No user authentication
+• No admin features
+• Read-only mode
+
+To enable full features, install MongoDB manually.
+
+UNINSTALL
+=========
+
+To remove Baganetic:
+1. Double-click "uninstall.bat"
+2. Choose what to remove
+3. Confirm deletion
+
+SUPPORT
+=======
+
+If you encounter issues:
+1. Check this INSTALL.txt file
+2. Look at the console output for error messages
+3. Try running setup.bat as administrator
+4. Check Windows Event Viewer for system errors
+
+For more help, check the docs/ folder for detailed documentation.
+
+===============================================
+Made with ❤️ for exploring the ancient wonders of Bagan
+===============================================

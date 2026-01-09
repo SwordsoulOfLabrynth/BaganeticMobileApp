@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baganetic - Map</title>
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Open+Sans&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Leaflet Markercluster CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"
+    />
+
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+    <link rel="stylesheet" href="./assets/css/login-popup.css" />
+    <link rel="stylesheet" href="assets/css/floating-chatbot.css" />
+    <script src="assets/js/site-layout.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+    />
+    <!-- Load pagoda data management system -->
+    <script src="assets/data/pagodas.js?v=__BUILD_TIME__"></script>
+    <script src="assets/js/api-client.js"></script>
+    <script src="assets/js/pagoda-manager.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <style>
+      #map {
+        height: 70vh;
+        width: 900px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        margin: 20px 0;
+        position: relative;
+        z-index: 1;
+        background-color: #f0f0f0;
+        min-height: 500px;
+      }
+      .map-title {
+        text-align: center;
+        color: #aa7739;
+        margin: 30px 0 20px 0;
+      }
+
+      /* Pathfinding Controls */
+      .pathfinder-controls {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin: 20px auto;
+        max-width: 800px;
+        border-left: 4px solid #aa7739;
+      }
+
+      .pathfinder-title {
+        color: #8d6e63;
+        text-align: center;
+        margin-bottom: 20px;
+        font-family: "Playfair Display", serif;
+        font-size: 1.5em;
+      }
+
+      .controls-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: end;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 150px;
+      }
+
+      .control-group label {
+        font-weight: bold;
+        color: #8d6e63;
+        font-size: 14px;
+      }
+
+      .pathfinder-select,
+      .pathfinder-btn {
+        padding: 10px 12px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .pathfinder-select:focus {
+        outline: none;
+        border-color: #aa7739;
+        box-shadow: 0 0 0 3px rgba(170, 119, 57, 0.1);
+      }
+
+      .pathfinder-btn {
+        background: linear-gradient(135deg, #aa7739, #8d6e63);
+        color: white;
+        cursor: pointer;
+        border: none;
+        font-weight: bold;
+        min-width: 120px;
+      }
+
+      .pathfinder-btn:hover {
+        background: linear-gradient(135deg, #8d6e63, #aa7739);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(170, 119, 57, 0.3);
+      }
+
+      .pathfinder-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .path-results {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        display: none;
+      }
+
+      .path-info {
+        background: linear-gradient(135deg, #aa7739, #8d6e63);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      .path-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .path-step {
+        background: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        border-left: 3px solid #aa7739;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .path-step.start {
+        background: #e8f5e8;
+        border-left-color: #4caf50;
+      }
+
+      .path-step.end {
+        background: #fff3e0;
+        border-left-color: #ff9800;
+      }
+
+      @media (max-width: 768px) {
+        .controls-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .control-group {
+          min-width: auto;
+        }
+      }
+      main {
+        padding: 0 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <!-- Hamburger Menu Button -->
+      <button
+        class="hamburger"
+        id="hamburger"
+        aria-label="Toggle side menu"
+        aria-expanded="false"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="logo">
+        <h1>Baganetic</h1>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="navSearch" placeholder="Search pagodas..." />
+        <button id="navSearchButton" aria-label="Search">🔍</button>
+      </div>
+      <!-- Inline Navigation (visible on desktop) -->
+      <nav class="nav-inline" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="pagodas.html">Pagodas</a>
+
+        <div class="login-popup-container">
+          <button class="login-trigger" id="loginTrigger">Login</button>
+
+          <div class="login-popup" id="loginPopup">
+            <div class="popup-content">
+              <span class="close-popup" id="closePopup">&times;</span>
+
+              <div class="form-toggle">
+                <button
+                  type="button"
+                  class="toggle-btn active"
+                  data-form="login"
+                >
+                  Login
+                </button>
+                <button type="button" class="toggle-btn" data-form="signup">
+                  Sign Up
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form id="popupLoginForm" class="login-form active">
+                <h3>Login to Baganetic</h3>
+                <div class="form-group">
+                  <label for="popupUsername">Username or Email</label>
+                  <input
+                    type="text"
+                    id="popupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="popupPassword">Password</label>
+                  <input
+                    type="password"
+                    id="popupPassword"
+                    name="password"
+                    required
+                  />
+                </div>
+                <button type="submit" class="auth-button">Login</button>
+                <p class="popup-error" id="popupErrorMessage">
+                  Invalid username or password.
+                </p>
+                <p class="popup-success" id="popupSuccessMessage">
+                  Login successful!
+                </p>
+              </form>
+
+              <!-- Signup Form -->
+              <form id="popupSignupForm" class="signup-form">
+                <h3>Create Account</h3>
+                <div class="form-group">
+                  <label for="signupFullName">Full Name</label>
+                  <input
+                    type="text"
+                    id="signupFullName"
+                    name="fullName"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupEmail">Email Address</label>
+                  <input type="email" id="signupEmail" name="email" required />
+                </div>
+                <div class="form-group">
+                  <label for="signupUsername">Username</label>
+                  <input
+                    type="text"
+                    id="signupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupPassword">Password</label>
+                  <input
+                    type="password"
+                    id="signupPassword"
+                    name="password"
+                    required
+                    minlength="6"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupConfirmPassword">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="signupConfirmPassword"
+                    name="confirmPassword"
+                    required
+                    minlength="6"
+                  />
+                </div>
+                <button type="submit" class="auth-button">
+                  Create Account
+                </button>
+                <p class="popup-error" id="signupErrorMessage">
+                  Please fill in all fields correctly.
+                </p>
+                <p class="popup-success" id="signupSuccessMessage">
+                  Account created successfully!
+                </p>
+              </form>
+
+              <div class="popup-links">
+                <a href="#" class="toggle-link" data-form="login"
+                  >Already have an account? Login</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="signup"
+                  style="display: none"
+                  >Don't have an account? Sign up</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-content"></div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+        <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+    <aside class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <!-- Header Section -->
+      <div class="nav-drawer-header">
+        <h2>Menu</h2>
+        <button class="close-nav" id="closeNav" aria-label="Close navigation">
+          ×
+        </button>
+      </div>
+
+      <!-- Navigation Links Section -->
+      <div class="nav-drawer-section">
+        <h3>Navigation</h3>
+        <nav class="nav-drawer-nav" aria-label="Mobile navigation">
+          <a href="index.html" class="nav-drawer-link">
+            <span class="nav-icon">🏠</span>
+            Home
+          </a>
+          <a href="map.html" class="nav-drawer-link">
+            <span class="nav-icon">🗺️</span>
+            Map
+          </a>
+          <a href="pagodas.html" class="nav-drawer-link">
+            <span class="nav-icon">🏛️</span>
+            Pagodas
+          </a>
+        </nav>
+      </div>
+
+      <!-- Language Section -->
+      <div class="nav-drawer-section nav-drawer-language">
+        <h3>Language</h3>
+        <button class="mobile-lang-toggle" id="mobileLangToggle">
+          <span class="nav-icon">🌐</span>
+          <span class="lang-text">MM</span>
+        </button>
+      </div>
+
+      <!-- Login Section -->
+      <div class="nav-drawer-section">
+        <h3>Account</h3>
+        <div class="nav-drawer-login">
+          <button class="login-trigger nav-drawer-login-btn" id="mobileLoginTrigger">
+            <span class="nav-icon">👤</span>
+            Login / Sign Up
+          </button>
+        </div>
+      </div>
+    </aside>
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span> / </span>
+      <span id="currentPageBreadcrumb">Map</span>
+    </div>
+    <main>
+      <h2 class="map-title">Explore Pagodas on the Map</h2>
+
+      <!-- Pathfinding Controls -->
+      <div class="pathfinder-controls">
+        <h3 class="pathfinder-title">🗺️ Find Shortest Route Between Pagodas</h3>
+
+        <div class="controls-row">
+          <div class="control-group">
+            <label for="startPagoda">Starting Pagoda</label>
+            <select id="startPagoda" class="pathfinder-select">
+              <option value="">Select starting pagoda</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="endPagoda">Destination Pagoda</label>
+            <select id="endPagoda" class="pathfinder-select">
+              <option value="">Select destination pagoda</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button id="findPathBtn" class="pathfinder-btn">Find Path</button>
+          </div>
+
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button id="clearPathBtn" class="pathfinder-btn">Clear Path</button>
+          </div>
+        </div>
+
+        <div id="pathResults" class="path-results">
+          <div id="pathInfo" class="path-info"></div>
+          <div id="pathSteps" class="path-steps"></div>
+        </div>
+      </div>
+
+      <div id="map" aria-label="Interactive map of Bagan pagodas"></div>
+    </main>
+
+    <footer>&copy; 2025 Baganetic. All rights reserved.</footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Leaflet Markercluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="./assets/js/script.js"></script>
+    <script src="./assets/js/map-page.js"></script>
+    
+
+    <!-- Pathfinding JavaScript -->
+    <script>
+      // Pathfinding functionality
+      let pathMarkers = [];
+      let pathPolyline = null;
+      let availablePagodas = [];
+
+      // Fancy alert modal
+      function showNiceAlert(message) {
+        // If one already exists, remove it first
+        const existing = document.getElementById('nice-alert-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'nice-alert-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0,0,0,0.35)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '2000';
+
+        const modal = document.createElement('div');
+        modal.style.width = 'min(420px, 92vw)';
+        modal.style.background = 'white';
+        modal.style.borderRadius = '14px';
+        modal.style.boxShadow = '0 20px 60px rgba(0,0,0,0.25)';
+        modal.style.border = '1px solid rgba(170,119,57,0.15)';
+        modal.style.overflow = 'hidden';
+        modal.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+        const header = document.createElement('div');
+        header.style.background = 'linear-gradient(135deg, #aa7739, #8b5a2b)';
+        header.style.color = 'white';
+        header.style.padding = '14px 18px';
+        header.style.fontWeight = '600';
+        header.textContent = 'Notice';
+
+        const body = document.createElement('div');
+        body.style.padding = '18px';
+        body.style.color = '#333';
+        body.style.lineHeight = '1.5';
+        body.innerHTML = `<div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:22px">⚠️</div>
+            <div style="font-size:15px;">${message}</div>
+          </div>`;
+
+        const footer = document.createElement('div');
+        footer.style.display = 'flex';
+        footer.style.justifyContent = 'flex-end';
+        footer.style.gap = '10px';
+        footer.style.padding = '0 18px 16px 18px';
+
+        const okBtn = document.createElement('button');
+        okBtn.textContent = 'OK';
+        okBtn.style.padding = '10px 16px';
+        okBtn.style.border = 'none';
+        okBtn.style.borderRadius = '10px';
+        okBtn.style.cursor = 'pointer';
+        okBtn.style.color = 'white';
+        okBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+        okBtn.style.boxShadow = '0 6px 16px rgba(39,174,96,0.35)';
+        okBtn.addEventListener('click', () => overlay.remove());
+
+        footer.appendChild(okBtn);
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+      }
+
+      // Load available pagodas from Flask backend
+      async function loadPathfinderPagodas() {
+        try {
+          // Use the API client to get pathfinder pagodas
+          if (window.apiClient) {
+            const pagodas = await window.apiClient.getPathfinderPagodas();
+            if (pagodas && pagodas.length > 0) {
+              availablePagodas = pagodas.map((p) => p.name || p);
+              populatePathfinderSelects();
+              return;
+            }
+          }
+
+          // Fallback: try direct API call
+          const response = await fetch("/api/pathfinder/pagodas");
+          const data = await response.json();
+
+          if (data.success) {
+            availablePagodas = data.data.map((p) => p.name || p);
+            populatePathfinderSelects();
+          } else {
+            console.error("Failed to load pagodas:", data.error);
+            loadFallbackPagodas();
+          }
+        } catch (error) {
+          console.error("Error loading pagodas:", error);
+          loadFallbackPagodas();
+        }
+      }
+
+      function loadFallbackPagodas() {
+        // Fallback to static list if backend is not available
+        availablePagodas = [
+          "Sulamani",
+          "Ananda",
+          "Thatbyinnyu",
+          "Dhammayangyi",
+          "Shwezigon",
+          "Bupaya",
+          "Htilominlo",
+          "Gawdawpalin",
+          "Shwe Gu Gyi",
+          "Mahazedi",
+        ];
+        populatePathfinderSelects();
+      }
+
+      function populatePathfinderSelects() {
+        const startSelect = document.getElementById("startPagoda");
+        const endSelect = document.getElementById("endPagoda");
+
+        // Clear existing options
+        startSelect.innerHTML =
+          '<option value="">Select starting pagoda</option>';
+        endSelect.innerHTML =
+          '<option value="">Select destination pagoda</option>';
+
+        // Sort and add pagodas to both selects
+        const sorted = [...availablePagodas].sort((a, b) => a.localeCompare(b));
+        sorted.forEach((pagoda) => {
+          const option1 = new Option(pagoda, pagoda);
+          const option2 = new Option(pagoda, pagoda);
+          startSelect.add(option1);
+          endSelect.add(option2);
+        });
+      }
+
+      // Find path button handler
+      document
+        .getElementById("findPathBtn")
+        .addEventListener("click", async () => {
+          // Check authentication first
+          const token = localStorage.getItem('authToken');
+          if (!token) {
+            showNiceAlert("Please log in to use the pathfinding feature. Click the Login button in the top navigation to access this feature.");
+            return;
+          }
+
+          // Wait for map to be ready
+          if (!window.globalMap) {
+            showNiceAlert("Map is still loading. Please wait a moment and try again.");
+            return;
+          }
+
+          const start = document.getElementById("startPagoda").value;
+          const end = document.getElementById("endPagoda").value;
+
+          if (!start || !end) {
+            showNiceAlert("Please select both start and end pagodas.");
+            return;
+          }
+
+          if (start === end) {
+            showNiceAlert("Start and end pagodas must be different.");
+            return;
+          }
+
+          const findBtn = document.getElementById("findPathBtn");
+          findBtn.disabled = true;
+          findBtn.textContent = "Finding Road Route...";
+
+          try {
+            let data;
+
+            // Use API client if available
+            if (window.apiClient) {
+              data = await window.apiClient.findPath(start, end);
+            } else {
+              // Fallback: direct API call with authentication
+              const response = await fetch("/api/pathfinder/find-path", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({ start, end }),
+              });
+              data = await response.json();
+            }
+
+            if (data.success) {
+              displayPathOnMap(data.data);
+              showPathResults(data.data);
+            } else {
+              // Check if it's an authentication error
+              if (data.error && data.error.includes('Authentication')) {
+                showNiceAlert("Your session has expired. Please log in again to use the pathfinding feature.");
+                // Clear invalid token
+                localStorage.removeItem('authToken');
+                // Refresh auth state
+                if (window.authManager) {
+                  window.authManager.updateAuthState();
+                }
+              } else {
+                showPathError(data.error || "Failed to find path");
+              }
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            showPathError(
+              "Failed to find path. Please make sure the Flask backend is running on port 5000."
+            );
+          } finally {
+            findBtn.disabled = false;
+            findBtn.textContent = "Find Path";
+          }
+        });
+
+      // Clear path button handler
+      document.getElementById("clearPathBtn").addEventListener("click", () => {
+        clearPathFromMap();
+        hidePathResults();
+      });
+
+      function displayPathOnMap(data) {
+        // Check if map is initialized
+        if (!window.globalMap) {
+          console.error("Map not initialized yet. Please wait for map to load.");
+          showPathError("Map not ready. Please wait for map to load and try again.");
+          return;
+        }
+
+        // Clear previous path
+        clearPathFromMap();
+
+        if (!data.coordinates || data.coordinates.length === 0) {
+          return;
+        }
+
+        // Draw the path on the map with road-like styling
+        const latlngs = data.coordinates.map((coord) => [coord.lat, coord.lng]);
+
+        // Snap polyline endpoints to exact pagoda coordinates when available
+        if (Array.isArray(data.path) && data.path.length >= 2 && window.pagodaManager && typeof window.pagodaManager.getAllPagodas === 'function') {
+          const allPagodas = window.pagodaManager.getAllPagodas();
+          const resolve = (name) => {
+            const p = allPagodas.find(pg => pg.name === name);
+            const c = p?.location?.coordinates || p?.location;
+            return (c && typeof c.lat === 'number' && typeof c.lng === 'number') ? [c.lat, c.lng] : null;
+          };
+          const startSnap = resolve(data.path[0]);
+          const endSnap = resolve(data.path[data.path.length - 1]);
+          if (startSnap) latlngs[0] = startSnap;
+          if (endSnap) latlngs[latlngs.length - 1] = endSnap;
+        }
+
+        pathPolyline = L.polyline(latlngs, {
+          color: "#aa7739",
+          weight: 6,
+          opacity: 0.9,
+          lineCap: 'round',
+          lineJoin: 'round',
+          dashArray: '0, 0', // Solid line for road
+        }).addTo(window.globalMap);
+
+        // Add start and end markers using path names to ensure exact coords
+        if (Array.isArray(data.path) && data.path.length >= 2) {
+          const startName = data.path[0];
+          const endName = data.path[data.path.length - 1];
+
+          let startLatLng = latlngs[0];
+          let endLatLng = latlngs[latlngs.length - 1];
+
+          if (window.pagodaManager && typeof window.pagodaManager.getAllPagodas === 'function') {
+            const allPagodas = window.pagodaManager.getAllPagodas();
+            const resolve = (name) => {
+              const p = allPagodas.find(pg => pg.name === name);
+              const c = p?.location?.coordinates || p?.location;
+              return (c && typeof c.lat === 'number' && typeof c.lng === 'number') ? [c.lat, c.lng] : null;
+            };
+            startLatLng = resolve(startName) || startLatLng;
+            endLatLng = resolve(endName) || endLatLng;
+          }
+
+          const startMarker = L.circleMarker(startLatLng, {
+            radius: 18,
+            fillColor: "#4caf50",
+            color: "#fff",
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.9,
+          }).addTo(window.globalMap);
+          startMarker.bindPopup(`
+            <div style="text-align: center;">
+              <strong>${startName}</strong><br>
+              <small>Start</small>
+            </div>
+          `);
+          pathMarkers.push(startMarker);
+
+          if (endLatLng && (endLatLng[0] !== startLatLng[0] || endLatLng[1] !== startLatLng[1])) {
+            const endMarker = L.circleMarker(endLatLng, {
+              radius: 18,
+              fillColor: "#ff9800",
+              color: "#fff",
+              weight: 3,
+              opacity: 1,
+              fillOpacity: 0.9,
+            }).addTo(window.globalMap);
+            endMarker.bindPopup(`
+              <div style="text-align: center;">
+                <strong>${endName}</strong><br>
+                <small>Destination</small>
+              </div>
+            `);
+            pathMarkers.push(endMarker);
+          }
+        }
+
+        // Fit map to show the entire route
+        if (pathPolyline) {
+          window.globalMap.fitBounds(pathPolyline.getBounds(), { padding: [20, 20] });
+        }
+      }
+
+      function clearPathFromMap() {
+        // Check if map is initialized
+        if (!window.globalMap) {
+          console.warn("Map not initialized, cannot clear path");
+          return;
+        }
+
+        // Remove all path markers
+        pathMarkers.forEach((marker) => window.globalMap.removeLayer(marker));
+        pathMarkers = [];
+
+        // Remove polyline
+        if (pathPolyline) {
+          window.globalMap.removeLayer(pathPolyline);
+          pathPolyline = null;
+        }
+      }
+
+      function showPathResults(data) {
+        const pathResults = document.getElementById("pathResults");
+        const pathInfo = document.getElementById("pathInfo");
+        const pathSteps = document.getElementById("pathSteps");
+
+        // Show distance information
+        const distance = data.distanceKm || data.distance;
+        const distanceMiles = distance * 0.621371; // Convert km to miles
+        pathInfo.innerHTML = `
+          <div>Distance: ${distance.toFixed(1)} km (${distanceMiles.toFixed(1)} miles)</div>
+          <div style="font-size: 14px; margin-top: 5px;">Route: ${data.path.length} pagodas</div>
+        `;
+
+        // Show path steps
+        pathSteps.innerHTML = "";
+        data.path.forEach((pagoda, index) => {
+          const stepDiv = document.createElement("div");
+          stepDiv.className = "path-step";
+          if (index === 0) stepDiv.classList.add("start");
+          if (index === data.path.length - 1) stepDiv.classList.add("end");
+          stepDiv.textContent = `${index + 1}. ${pagoda}`;
+          pathSteps.appendChild(stepDiv);
+        });
+
+        pathResults.style.display = "block";
+      }
+
+      function hidePathResults() {
+        const pathResults = document.getElementById("pathResults");
+        pathResults.style.display = "none";
+      }
+
+      function showPathError(message) {
+        const pathResults = document.getElementById("pathResults");
+        const pathInfo = document.getElementById("pathInfo");
+
+        pathInfo.innerHTML = `<div style="color: #c62828;">Error: ${message}</div>`;
+        pathResults.style.display = "block";
+      }
+
+      // Function to update pathfinding button state
+      function updatePathfindingButtonState() {
+        const findBtn = document.getElementById("findPathBtn");
+        const clearBtn = document.getElementById("clearPathBtn");
+        
+        if (window.globalMap) {
+          findBtn.disabled = false;
+          clearBtn.disabled = false;
+          findBtn.textContent = "Find Path";
+        } else {
+          findBtn.disabled = true;
+          clearBtn.disabled = true;
+          findBtn.textContent = "Map Loading...";
+        }
+      }
+
+      // Check map readiness periodically
+      function checkMapReadiness() {
+        updatePathfindingButtonState();
+        if (!window.globalMap) {
+          setTimeout(checkMapReadiness, 500); // Check every 500ms
+        }
+      }
+
+      // Listen for map ready event
+      window.addEventListener('map-ready', function() {
+        updatePathfindingButtonState();
+        console.log("Map is ready for pathfinding!");
+      });
+
+      // Initialize pathfinding when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadPathfinderPagodas();
+        checkMapReadiness();
+      });
+    </script>
+    
+    <!-- Floating Chatbot -->
+    <script src="assets/js/floating-chatbot.js"></script>
+    <script>
+      // Initialize chatbot when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for other scripts to load
+        setTimeout(() => {
+          if (typeof initializeChatbot === 'function') {
+            initializeChatbot();
+          } else if (typeof window.FloatingChatbotWidget === 'function') {
+            // Fallback: create chatbot directly
+            window.baganeticChatbot = new window.FloatingChatbotWidget();
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

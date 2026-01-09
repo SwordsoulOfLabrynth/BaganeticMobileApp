@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="my">
+  <head>
+    <base href="../" />
+    <link rel="icon" href="assets/images/placeholder-pagoda.svg" type="image/svg+xml" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Baganetic - ပုဂံစေတီများ လမ်းညွှန်၊ မြေပုံနှင့် အမြန်ဆုံးလမ်းကြောင်းများ</title>
+    <meta
+      name="description"
+      content="Baganetic ဖြင့် ပုဂံစေတီများကို ရှာဖွေလေ့လာပါ- အသေးစိတ် သမိုင်းကြောင်းများ၊ ထင်ရှားသော စေတီများ၊ အင်တာရက်တစ် မြေပုံနှင့် အမြန်ဆုံးလမ်းကြောင်း စီစဉ်ခြင်း။"
+    />
+    <meta name="theme-color" content="#aa7739" />
+    <meta name="robots" content="index, follow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Open+Sans&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="preload" href="assets/data/pagodas.js?v=__BUILD_TIME__" as="script" />
+    <link rel="preload" href="assets/js/pagoda-manager.js" as="script" />
+    <link rel="stylesheet" href="assets/css/login-popup.css" />
+    <link rel="stylesheet" href="assets/css/floating-chatbot.css" />
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/site-layout.js"></script>
+    <style>
+      /* Additional styles to fix the famous pagodas section */
+      .featured-card {
+        position: relative;
+        height: 100%;
+        min-height: 380px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+      }
+
+      .featured-card img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .featured-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.2) 0%,
+          rgba(0, 0, 0, 0.7) 100%
+        );
+      }
+
+      .featured-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 24px 28px;
+        color: #fff;
+        z-index: 2;
+      }
+
+      .featured-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #ffb347, #ff6b35);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+      }
+
+      .featured-title {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 8px;
+      }
+
+      .featured-meta {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 10px;
+      }
+
+      .featured-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        max-width: 720px;
+        margin-bottom: 14px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .featured-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .featured-actions .cta-button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+
+      .image-error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        background: linear-gradient(135deg, #aa7739 0%, #8d5e2f 100%);
+        color: white;
+        font-size: 1.5rem;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <header>
+      <button id="hamburger" class="hamburger" aria-label="မီနူးဖွင့်ရန်">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="logo">
+        <h1>Baganetic</h1>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="navSearch" placeholder="စေတီများ ရှာဖွေရန်..." />
+        <button id="navSearchButton">🔍</button>
+      </div>
+
+      <!-- Inline Navigation (visible on desktop) -->
+      <nav class="nav-inline" aria-label="Primary">
+        <a href="mmversion/indexmm.html">ပင်မစာမျက်နှာ</a>
+        <a href="mmversion/mapmm.html">မြေပုံ</a>
+        <a href="mmversion/pagodasmm.html">စေတီများ</a>
+        <div class="login-popup-container">
+          <button class="login-trigger" id="loginTrigger">အကောင့်ဝင်ရန်</button>
+          <div class="login-popup" id="loginPopup">
+            <div class="popup-content">
+              <span class="close-popup" id="closePopup">&times;</span>
+
+              <div class="form-toggle">
+                <button
+                  type="button"
+                  class="toggle-btn active"
+                  data-form="login"
+                >
+                  အကောင့်ဝင်ရန်
+                </button>
+                <button type="button" class="toggle-btn" data-form="signup">
+                  အကောင့်ဖွင့်ရန်
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form id="popupLoginForm" class="login-form active">
+                <h3>Baganetic သို့ ဝင်ရောက်ရန်</h3>
+                <div class="form-group">
+                  <label for="popupUsername">အသုံးပြုသူအမည် သို့မဟုတ် အီးမေးလ်</label>
+                  <input
+                    type="text"
+                    id="popupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="popupPassword">လျှို့ဝှက်နံပါတ်</label>
+                  <input
+                    type="password"
+                    id="popupPassword"
+                    name="password"
+                    required
+                  />
+                </div>
+                <button type="submit" class="auth-button">အကောင့်ဝင်ရန်</button>
+                <p class="popup-error" id="popupErrorMessage">
+                  အသုံးပြုသူအမည် သို့မဟုတ် လျှို့ဝှက်နံပါတ် မှားယွင်းနေပါသည်။
+                </p>
+                <p class="popup-success" id="popupSuccessMessage">
+                  အကောင့်ဝင်ခြင်း အောင်မြင်ပါသည်!
+                </p>
+              </form>
+
+              <!-- Signup Form -->
+              <form id="popupSignupForm" class="signup-form">
+                <h3>အကောင့်အသစ်ဖွင့်ရန်</h3>
+                <div class="form-group">
+                  <label for="signupFullName">အမည်အပြည့်အစုံ</label>
+                  <input
+                    type="text"
+                    id="signupFullName"
+                    name="fullName"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupEmail">အီးမေးလ်လိပ်စာ</label>
+                  <input type="email" id="signupEmail" name="email" required />
+                </div>
+                <div class="form-group">
+                  <label for="signupUsername">အသုံးပြုသူအမည်</label>
+                  <input
+                    type="text"
+                    id="signupUsername"
+                    name="username"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="signupPassword">လျှို့ဝှက်နံပါတ်</label>
+                  <input
+                    type="password"
+                    id="signupPassword"
+                    name="password"
+                    required
+                    minlength="8"
+                    placeholder="အနည်းဆုံး ၈ လုံးပါဝင်ပြီး စာကြီး၊ စာသေး၊ ဂဏန်းနှင့် အထူးစာလုံးများ ပါဝင်ရန်"
+                  />
+                  <div
+                    id="passwordStrength"
+                    class="password-strength-container"
+                  ></div>
+                  <div class="password-requirements">
+                    <small>လျှို့ဝှက်နံပါတ်တွင် အောက်ပါတို့ ပါဝင်ရမည်:</small>
+                    <ul>
+                      <li id="req-length">• အနည်းဆုံး ၈ လုံး</li>
+                      <li id="req-uppercase">• စာကြီး တစ်လုံး</li>
+                      <li id="req-lowercase">• စာသေး တစ်လုံး</li>
+                      <li id="req-number">• ဂဏန်း တစ်လုံး</li>
+                      <li id="req-special">• အထူးစာလုံး တစ်လုံး</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="signupConfirmPassword">လျှို့ဝှက်နံပါတ် အတည်ပြုရန်</label>
+                  <input
+                    type="password"
+                    id="signupConfirmPassword"
+                    name="confirmPassword"
+                    required
+                    minlength="8"
+                    placeholder="လျှို့ဝှက်နံပါတ်ကို နောက်တကြိမ် ရိုက်ထည့်ပါ"
+                  />
+                  <div
+                    id="passwordMatch"
+                    class="password-match-indicator"
+                  ></div>
+                </div>
+                <button type="submit" class="auth-button">
+                  အကောင့်ဖွင့်ရန်
+                </button>
+                <p class="popup-error" id="signupErrorMessage">
+                  ကျေးဇူးပြု၍ အကုန်လုံးကို မှန်ကန်စွာ ဖြည့်စွက်ပါ။
+                </p>
+                <p class="popup-success" id="signupSuccessMessage">
+                  အကောင့်ဖွင့်ခြင်း အောင်မြင်ပါသည်!
+                </p>
+              </form>
+
+              <!-- Forgot Password Form -->
+              <form id="popupForgotPasswordForm" class="forgot-password-form">
+                <h3>လျှို့ဝှက်နံပါတ် ပြန်လည်သတ်မှတ်ရန်</h3>
+                <div class="form-group">
+                  <label for="forgotEmail">အီးမေးလ်လိပ်စာ</label>
+                  <input
+                    type="email"
+                    id="forgotEmail"
+                    name="email"
+                    required
+                    placeholder="သင့်အီးမေးလ်လိပ်စာကို ရိုက်ထည့်ပါ"
+                  />
+                </div>
+                <button type="submit" class="auth-button">
+                  ပြန်လည်သတ်မှတ်ရန် လင့်ခ် ပို့ရန်
+                </button>
+                <p class="popup-error" id="forgotErrorMessage">
+                  ကျေးဇူးပြု၍ မှန်ကန်သော အီးမေးလ်လိပ်စာကို ရိုက်ထည့်ပါ။
+                </p>
+                <p class="popup-success" id="forgotSuccessMessage">
+                  ပြန်လည်သတ်မှတ်ရန် လင့်ခ် ပို့ခြင်း အောင်မြင်ပါသည်!
+                </p>
+              </form>
+
+              <div class="popup-links">
+                <a href="#" class="toggle-link" data-form="login"
+                  >အကောင့်ရှိပြီးသားလား? ဝင်ရောက်ရန်</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="signup"
+                  style="display: none"
+                  >အကောင့်မရှိသေးဘူးလား? အကောင့်ဖွင့်ရန်</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="forgot-password"
+                  id="forgotPasswordLink"
+                  >လျှို့ဝှက်နံပါတ် မေ့နေပါသလား?</a
+                >
+                <a
+                  href="#"
+                  class="toggle-link"
+                  data-form="login"
+                  id="backToLoginLink"
+                  style="display: none"
+                  >အကောင့်ဝင်ရန် ပြန်သွားရန်</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-content"></div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Navigation Drawer (hidden by default, shown when hamburger is clicked) -->
+    <aside class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <!-- Header Section -->
+      <div class="nav-drawer-header">
+        <h2>မီနူး</h2>
+        <button class="close-nav" id="closeNav" aria-label="မီနူးပိတ်ရန်">
+          ×
+        </button>
+      </div>
+
+      <!-- Navigation Links Section -->
+      <div class="nav-drawer-section">
+        <h3>လမ်းညွှန်မှု</h3>
+        <nav class="nav-drawer-nav" aria-label="Mobile navigation">
+          <a href="mmversion/indexmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🏠</span>
+            ပင်မစာမျက်နှာ
+          </a>
+          <a href="mmversion/mapmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🗺️</span>
+            မြေပုံ
+          </a>
+          <a href="mmversion/pagodasmm.html" class="nav-drawer-link">
+            <span class="nav-icon">🏛️</span>
+            စေတီများ
+          </a>
+        </nav>
+      </div>
+
+      <!-- Language Section -->
+      <div class="nav-drawer-section nav-drawer-language">
+        <h3>ဘာသာစကား</h3>
+        <button class="mobile-lang-toggle" id="mobileLangToggle">
+          <span class="nav-icon">🌐</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+
+      <!-- Login Section -->
+      <div class="nav-drawer-section">
+        <h3>အကောင့်</h3>
+        <div class="nav-drawer-login">
+          <button class="login-trigger nav-drawer-login-btn" id="mobileLoginTrigger">
+            <span class="nav-icon">👤</span>
+            အကောင့်ဝင်ရန် / အကောင့်ဖွင့်ရန်
+          </button>
+        </div>
+      </div>
+    </aside>
+    <!-- /Navbar -->
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span>ခရီးသွားလမ်းညွှန်</span>
+        <h1 class="hero-title">ပုဂံ၏ ရှေးဟောင်းအံ့ဖွယ်ရာများကို စူးစမ်းလေ့လာပါ</h1>
+        <p class="hero-description">
+          မြန်မာပြည်ရှိ ရှေးဟောင်းစေတီပုထိုးများ၏ အမွေအနှစ်များကို  အတိုဆုံးလမ်းကြောင်းရှာဖွေမှုဖြင့် လေ့လာလိုက်ပါ။
+        </p>
+        <div class="hero-buttons">
+          <a href="mmversion/pagodasmm.html" class="cta-button primary">စေတီများ ရှာဖွေရန်</a>
+          <a href="mmversion/mapmm.html" class="cta-button secondary">မြေပုံကြည့်ရန်</a>
+        </div>
+      </div>
+    </div>
+    <!-- /Hero Section -->
+
+    <!-- About Us Section -->
+    <section class="about-us" id="about">
+      <div class="container">
+        <div class="about-content">
+          <div class="about-image">
+            <img
+              src="assets/images/pagodas/Thambula/istockphoto-486732962-612x612.jpg"
+              class="w-100 rounded"
+              alt="စေတီများဖြင့် ပုဂံမြင်ကွင်း"
+            />
+          </div>
+          <div class="about-text">
+            <span>ကျွန်ုပ်တို့အကြောင်း</span>
+            <h2>သင့်ဘတ်ဂျက်အတွင်း အကောင်းဆုံး ခရီးသွားလမ်းညွှန်မှုကို ပေးပါသည်</h2>
+            <p>
+              Baganetic သည် ပုဂံ၏ ရှေးဟောင်းစေတီပုထိုးများကို လွယ်ကူချောမွေ့စွာ
+              သွားလာနိုင်ရန် ဒီဇိုင်းထုတ်ထားသော ဒီဂျစ်တယ် ခရီးသွားအကူအညီတစ်ခုဖြစ်သည်။
+              အမြန်ဆုံးလမ်းကြောင်း အယ်လ်ဂိုရီသမ်များကို အသုံးပြု၍ ကျွန်ုပ်တို့၏စနစ်သည်
+              တည်နေရာ၊ အကွာအဝေးနှင့် အသုံးပြုသူ၏ နှစ်သက်မှုများအပေါ် အခြေခံ၍
+              အကောင်းဆုံးလမ်းကြောင်းများကို အကြံပြုပေးသည်။ သင်၌ အချိန်အကန့်အသတ်ရှိသော
+              ခရီးသွားတစ်ဦးဖြစ်စေ၊ ဗိသုကာကို လေ့လာနေသော သုတေသီတစ်ဦးဖြစ်စေ Baganetic သည်
+              အချိန်ကိုချွေတာပေးပြီး သင့်ခရီးစဉ်ကို မြှင့်တင်ပေးပါသည်။
+            </p>
+            <div class="about-btn pt-4">
+              <a href="mmversion/pagodasmm.html" class="cta-button primary">ယခုရှာဖွေရန်</a>
+            </div>
+          </div>
+        </div>
+        <div class="about-features-grid">
+          <div class="about-feature-item">
+            <div class="about-feature-icon">
+              <i class="ri-secure-payment-line"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold">အကောင်းဆုံးလမ်းကြောင်းများ</h5>
+              <p class="text-secondary">
+                စေတီများကြားတွင် အထိရောက်ဆုံးလမ်းကြောင်းများကို ရှာဖွေပြီး
+                အချိန်နှင့်အားစိုက်ထုတ်မှုကို ချွေတာပါ။
+              </p>
+            </div>
+          </div>
+          <div class="about-feature-item">
+            <div class="about-feature-icon"><i class="ri-award-fill"></i></div>
+            <div>
+              <h5 class="fw-bold">ကြွယ်ဝသော သမိုင်းကြောင်း</h5>
+              <p class="text-secondary">
+                နေရာတိုင်းအတွက် အသေးစိတ် သမိုင်းကြောင်းနှင့် ယဉ်ကျေးမှုဆိုင်ရာ
+                အချက်အလက်များကို ရယူပါ။
+              </p>
+            </div>
+          </div>
+          <div class="about-feature-item">
+            <div class="about-feature-icon"><i class="ri-robot-2-line"></i></div>
+            <div>
+              <h5 class="fw-bold">AI ခရီးသွားအကူအညီ</h5>
+              <p class="text-secondary">
+                မေးမြန်းချက်များကို ချက်ချင်း ဖြေဆိုပေးသော ဖလော့တိုးင်း chatbot နှင့်
+                ခရီးစဉ်ကို ပိုမိုလွယ်ကူစေပါသည်။
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /About Us Section -->
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how">
+      <div class="container">
+        <h2 class="section-title">အလုပ်လုပ်ပုံ</h2>
+        <p class="section-description">
+          နောက်ကွယ်တွင် Baganetic သည် ပုဂံရှိ စေတီပုထိုးရာချီကြားမှ အမြန်ဆုံး သို့မဟုတ်
+          အလှပဆုံးလမ်းကြောင်းများကို တွက်ချက်ရန် Dijkstra's သို့မဟုတ် A*
+          ကဲ့သို့သော အယ်လ်ဂိုရီသမ်များကို အသုံးပြုသည်။ သင်၏ စတင်မည့်နေရာနှင့်
+          ရောက်ရှိမည့်နေရာကို ထည့်သွင်းပါ - သို့မဟုတ် သင့်အတွက် ထိရောက်သော
+          ခရီးစဉ်အပြည့်အစုံကို စနစ်မှ ဖန်တီးပေးပါစေ။
+        </p>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-icon">🏛</div>
+            <h3>စေတီများ ရွေးချယ်ပါ</h3>
+            <p>
+              ကျွန်ုပ်တို့၏ စေတီစာရင်းအပြည့်အစုံ သို့မဟုတ် မြေပုံမှ သင်လည်ပတ်လိုသော
+              စေတီများကို ရွေးချယ်ပါ။
+            </p>
+          </div>
+          <div class="step-card">
+            <div class="step-icon">📍</div>
+            <h3>လမ်းကြောင်းတွက်ချက်ပါ</h3>
+            <p>
+              ကျွန်ုပ်တို့၏ ထက်မြက်သော စနစ်သည် သင့်ရွေးချယ်မှုများအပေါ် အခြေခံ၍
+              အထိရောက်ဆုံးလမ်းကြောင်းကို တွက်ချက်ပေးပါသည်။
+            </p>
+          </div>
+          <div class="step-card">
+            <div class="step-icon">📱</div>
+            <h3>လမ်းကြောင်းပြပြီး ရှာဖွေပါ</h3>
+            <p>
+              မြေပုံအခြေပြု လမ်းညွှန်မှုကို လိုက်နာပြီး နေရာတိုင်း၏ ကြွယ်ဝသော
+              သမိုင်းကြောင်းကို ရှာဖွေလေ့လာပါ။
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /How It Works Section -->
+
+    <!-- Famous Pagodas Section -->
+    <section class="famous-pagodas" id="famous-pagodas">
+      <div class="container">
+        <h2 class="section-title">ထင်ရှားသော စေတီများ</h2>
+        <p class="section-description">
+          ပုဂံ၏ အထင်ကရကျော်ကြားသော စေတီပုထိုးများနှင့် ၎င်းတို့၏ ကြွယ်ဝသော သမိုင်းကြောင်းကို ရှာဖွေလေ့လာပါ
+        </p>
+        <div class="famous-layout">
+          <div
+            class="featured-pagoda"
+            id="featuredPagoda"
+            style="display: none"
+          >
+            <div class="loading-placeholder">
+              <div class="loading-spinner"></div>
+              <p>ထင်ရှားသော စေတီတည်ဆောက်နေသည်...</p>
+            </div>
+          </div>
+          <div class="pagoda-grid" id="famousGrid">
+            <div class="loading-placeholder">
+              <div class="loading-spinner"></div>
+              <p>ထင်ရှားသော စေတီများ တည်ဆောက်နေသည်...</p>
+            </div>
+          </div>
+        </div>
+        <div class="pagodas-cta">
+          <a href="mmversion/pagodasmm.html" class="cta-button">စေတီအားလုံးကြည့်ရန်</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section (formerly Key Features) -->
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">ကျွန်ုပ်တို့ကို ရွေးချယ်ရသည့် အကြောင်းရင်း</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🗺</div>
+            <h3>အင်တာရက်တစ် မြေပုံ</h3>
+            <p>
+              ထင်ရှားသော စေတီပုထိုးအားလုံး၏ တိကျသော တည်နေရာများဖြင့်
+              အသေးစိတ် အင်တာရက်တစ် မြေပုံများကို ရှာဖွေလေ့လာပါ။
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>မြန်ဆန်သော လမ်းကြောင်းများ</h3>
+            <p>
+              ခေတ်မီသော လမ်းကြောင်းရှာဖွေရေး အယ်လ်ဂိုရီသမ်များကို အသုံးပြု၍
+              စက္ကန့်ပိုင်းအတွင်း အကောင်းဆုံးလမ်းကြောင်း အကြံပြုချက်များကို ရယူပါ။
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🧭</div>
+            <h3>ယဉ်ကျေးမှုဆိုင်ရာ သိမှတ်ဖွယ်ရာများ</h3>
+            <p>
+              စေတီတစ်ဆူစီအတွက် ကြွယ်ဝသော သမိုင်းကြောင်းနှင့် ယဉ်ကျေးမှုဆိုင်ရာ
+              အချက်အလက်များကို ရှာဖွေလေ့လာပါ။
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔁</div>
+            <h3>EN/MM ဘာသာ ပြောင်းလဲနိုင်မှု</h3>
+            <p>
+              စစ်တမ်းနှင့် စာမျက်နှာများကို အင်္ဂလိပ်/မြန်မာ ဘာသာပြန်လည်ပြောင်းလဲကာ
+              သင့်မူလစာမျက်နှာကို ဆက်လက် အသုံးပြုနိုင်ပါသည်။
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /Why Choose Us Section -->
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+      <div class="container">
+        <h2 class="section-title">ဆက်သွယ်ရန်နှင့် အသိအမှတ်ပြုခြင်း</h2>
+        <p>
+          တက္ကသိုလ် အထူးပရောဂျက်တစ်ခုအနေဖြင့် စိတ်အားထက်သန်သော ကျောင်းသားများမှ ဖန်တီးသည်။<br />
+          အီးမေးလ်: baganetic.project@gmail.com<br />
+          ကျွန်ုပ်တို့ကို လိုက်နာပါ: Facebook | GitHub | Instagram
+        </p>
+      </div>
+    </section>
+    <!-- /Contact Section -->
+
+    <!-- Footer Section -->
+    <footer>
+      <p>&copy; 2025 Baganetic. ချစ်ခြင်းမေတ္တာနှင့် ယုတ္တိတန်မှုဖြင့် ပြုလုပ်ထားသည် 🧠💛</p>
+    </footer>
+
+    <!-- Load pagoda data management system -->
+    <script src="assets/data/pagodas.js?v=__BUILD_TIME__"></script>
+    <script src="assets/data/pagodas-mm.js"></script>
+    <script src="assets/js/api-client.js"></script>
+    <script src="assets/js/pagoda-manager.js"></script>
+    <script src="assets/js/pagoda-manager-mm.js"></script>
+    <script src="assets/js/pagoda-loader.js"></script>
+    <script src="assets/js/script.js"></script>
+    
+    <!-- Floating Chatbot -->
+    <script src="assets/js/floating-chatbot.js"></script>
+    <script>
+      // Initialize chatbot when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for other scripts to load
+        setTimeout(() => {
+          if (typeof initializeChatbot === 'function') {
+            initializeChatbot();
+          } else if (typeof window.FloatingChatbotWidget === 'function') {
+            // Fallback: create chatbot directly
+            window.baganeticChatbot = new window.FloatingChatbotWidget();
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>
