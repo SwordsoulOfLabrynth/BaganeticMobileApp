@@ -9,7 +9,9 @@ import '../../../core/utils/helpers.dart';
 import '../../../core/utils/pathfinding.dart';
 
 class CreateTripScreen extends StatefulWidget {
-  const CreateTripScreen({super.key});
+  final Pagoda? initialPagoda;
+
+  const CreateTripScreen({super.key, this.initialPagoda});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -28,6 +30,14 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialPagoda != null) {
+      _selectedPagodas = [widget.initialPagoda!];
+    }
   }
   
   Future<void> _selectDate(BuildContext context) async {
@@ -138,10 +148,24 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         );
         
         if (path.isNotEmpty) {
-          setState(() {
-            _selectedPagodas = path;
-          });
-          Helpers.showSnackBar(context, 'Route optimized!');
+          final isSameOrder = path.length == _selectedPagodas.length &&
+              path.asMap().entries.every(
+                    (entry) => entry.value.id == _selectedPagodas[entry.key].id,
+                  );
+          if (isSameOrder) {
+            Helpers.showSnackBar(context, 'Route already optimal.');
+          } else {
+            setState(() {
+              _selectedPagodas = path;
+            });
+            Helpers.showSnackBar(context, 'Route optimized!');
+          }
+        } else {
+          Helpers.showSnackBar(
+            context,
+            'No route found between selected pagodas.',
+            isError: true,
+          );
         }
       } else {
         // Simple nearest neighbor for multiple pagodas

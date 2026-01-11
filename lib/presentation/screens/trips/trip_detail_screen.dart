@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../core/services/offline_route_service.dart';
 
 class TripDetailScreen extends StatefulWidget {
   final Trip trip;
@@ -20,6 +21,16 @@ class TripDetailScreen extends StatefulWidget {
 class _TripDetailScreenState extends State<TripDetailScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
   bool _isExporting = false;
+  late final Future<List<LatLng>> _routeFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final points = widget.trip.stops
+        .map((stop) => LatLng(stop.latitude, stop.longitude))
+        .toList();
+    _routeFuture = OfflineRouteService.instance.buildRouteForPoints(points);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,82 +85,84 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   
   Widget _buildMap() {
     if (widget.trip.stops.isEmpty) return const SizedBox.shrink();
-    
-    // Calculate bounds
-    double minLat = widget.trip.stops[0].latitude;
-    double maxLat = widget.trip.stops[0].latitude;
-    double minLng = widget.trip.stops[0].longitude;
-    double maxLng = widget.trip.stops[0].longitude;
-    
-    for (var stop in widget.trip.stops) {
-      if (stop.latitude < minLat) minLat = stop.latitude;
-      if (stop.latitude > maxLat) maxLat = stop.latitude;
-      if (stop.longitude < minLng) minLng = stop.longitude;
-      if (stop.longitude > maxLng) maxLng = stop.longitude;
-    }
-    
-    final center = LatLng(
-      (minLat + maxLat) / 2,
-      (minLng + maxLng) / 2,
-    );
-    
-    return SizedBox(
-      height: 300,
-      child: FlutterMap(
-        options: MapOptions(
-          initialCenter: center,
-          initialZoom: 12.0,
-        ),
-        children: [
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.baganetic.app',
-          ),
-          PolylineLayer(
-            polylines: [
-              Polyline(
-                points: widget.trip.stops
-                    .map((stop) => LatLng(stop.latitude, stop.longitude))
-                    .toList(),
-                color: const Color(0xFFD4AF37),
-                strokeWidth: 4,
+
+    return FutureBuilder<List<LatLng>>(
+      future: _routeFuture,
+      builder: (context, snapshot) {
+        final stopPoints = widget.trip.stops
+            .map((stop) => LatLng(stop.latitude, stop.longitude))
+            .toList();
+        final routePoints =
+            snapshot.hasData && snapshot.data!.isNotEmpty ? snapshot.data! : stopPoints;
+        final bounds = LatLngBounds.fromPoints(routePoints);
+
+        return SizedBox(
+          height: 300,
+          child: FlutterMap(
+            options: MapOptions(
+              initialCameraFit: CameraFit.bounds(
+                bounds: bounds,
+                padding: const EdgeInsets.all(28),
+              ),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.baganetic.app',
+              ),
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: routePoints,
+                    color: const Color(0xFFD4AF37),
+                    strokeWidth: 5,
+                    borderStrokeWidth: 3,
+                    borderColor: Colors.black.withOpacity(0.25),
+                    gradientColors: const [
+                      Colors.green,
+                      Color(0xFFD4AF37),
+                      Colors.red,
+                    ],
+                    colorsStop: const [0.0, 0.5, 1.0],
+                  ),
+                ],
+              ),
+              MarkerLayer(
+                markers: widget.trip.stops.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final stop = entry.value;
+
+                  return Marker(
+                    point: LatLng(stop.latitude, stop.longitude),
+                    width: 40,
+                    height: 40,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: index == 0
+                            ? Colors.green
+                            : index == widget.trip.stops.length - 1
+                                ? Colors.red
+                                : const Color(0xFFD4AF37),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
-          MarkerLayer(
-            markers: widget.trip.stops.asMap().entries.map((entry) {
-              final index = entry.key;
-              final stop = entry.value;
-              
-              return Marker(
-                point: LatLng(stop.latitude, stop.longitude),
-                width: 40,
-                height: 40,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: index == 0
-                        ? Colors.green
-                        : index == widget.trip.stops.length - 1
-                            ? Colors.red
-                            : const Color(0xFFD4AF37),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
   

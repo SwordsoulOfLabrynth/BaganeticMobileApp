@@ -89,7 +89,29 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/images/pagodas/
+    - assets/data/offline_graph.json
+    - assets/images/pagodas/Alodawpyae Pagoda/
+    - assets/images/pagodas/Ananda Temple/
+    - assets/images/pagodas/BuPaya/
+    - assets/images/pagodas/Dhammayangyi Temple/
+    - assets/images/pagodas/Dhammayazaka/
+    - assets/images/pagodas/Gawdawpalin Temple/
+    - assets/images/pagodas/Gu Byauk Gyi Pagoda/
+    - assets/images/pagodas/Htilominlo Temple/
+    - assets/images/pagodas/Iza Gawna Pagoda/
+    - assets/images/pagodas/Lawkananda Pagoda/
+    - assets/images/pagodas/Mahezedi Pagoda/
+    - assets/images/pagodas/Manuha/
+    - assets/images/pagodas/Pyathetgyi/
+    - assets/images/pagodas/Sein Nyet NyiAma Gu Phaya/
+    - assets/images/pagodas/Shwe Gu Gyi/
+    - assets/images/pagodas/Shwezigon Pagoda/
+    - assets/images/pagodas/Sulamani Temple/
+    - assets/images/pagodas/test/
+    - assets/images/pagodas/Test Myanmar Pagoda/
+    - assets/images/pagodas/test1/
+    - assets/images/pagodas/Thambula/
+    - assets/images/pagodas/Thatbyinnyu Temple/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

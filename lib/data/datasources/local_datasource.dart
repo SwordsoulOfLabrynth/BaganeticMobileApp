@@ -85,6 +85,113 @@ class DatabaseService {
       
       print('Database upgrade: Normalized $fixedCount image paths.');
     }
+
+    if (oldVersion < 5) {
+      final pagodas = await db.query(
+        AppConstants.tablePagodas,
+        columns: ['id', 'latitude', 'longitude'],
+      );
+      for (final pagoda in pagodas) {
+        final lat = (pagoda['latitude'] as num).toDouble();
+        final lon = (pagoda['longitude'] as num).toDouble();
+        if (lat.abs() > 90 && lon.abs() <= 90) {
+          await db.update(
+            AppConstants.tablePagodas,
+            {'latitude': lon, 'longitude': lat},
+            where: 'id = ?',
+            whereArgs: [pagoda['id']],
+          );
+        }
+      }
+
+      final tripStops = await db.query(
+        AppConstants.tableTripStops,
+        columns: ['id', 'latitude', 'longitude'],
+      );
+      for (final stop in tripStops) {
+        final lat = (stop['latitude'] as num).toDouble();
+        final lon = (stop['longitude'] as num).toDouble();
+        if (lat.abs() > 90 && lon.abs() <= 90) {
+          await db.update(
+            AppConstants.tableTripStops,
+            {'latitude': lon, 'longitude': lat},
+            where: 'id = ?',
+            whereArgs: [stop['id']],
+          );
+        }
+      }
+    }
+
+    if (oldVersion < 6) {
+      final idRenames = <String, String>{
+        'thatbyinnyu': 'thatbinnyu',
+        'mahezedi': 'mahazedi',
+      };
+
+      for (final entry in idRenames.entries) {
+        await db.update(
+          AppConstants.tablePagodas,
+          {'id': entry.value},
+          where: 'id = ?',
+          whereArgs: [entry.key],
+        );
+        await db.update(
+          AppConstants.tableTripStops,
+          {'pagodaId': entry.value},
+          where: 'pagodaId = ?',
+          whereArgs: [entry.key],
+        );
+        await db.update(
+          AppConstants.tableFavorites,
+          {'pagodaId': entry.value},
+          where: 'pagodaId = ?',
+          whereArgs: [entry.key],
+        );
+      }
+
+      final coordMap = <String, List<double>>{
+        'alodawpyae': [21.176739, 94.882814],
+        'ananda': [21.170806, 94.867856],
+        'bupaya': [21.1763128, 94.857903],
+        'dhammayangyi': [21.161975, 94.872919],
+        'dhammayazaka': [21.145071, 94.883451],
+        'gawdawpalin': [21.17, 94.856667],
+        'gubyaukgyi': [21.157222, 94.860833],
+        'htilominlo': [21.178531, 94.879398],
+        'izagawna': [21.17025, 94.90586],
+        'lawkananda': [21.127222, 94.850556],
+        'mahazedi': [21.1645, 94.86229],
+        'manuha': [21.153408, 94.859152],
+        'pyathetgyi': [21.15829, 94.88957],
+        'seinnyetnyiama': [21.14151, 94.85896],
+        'shwegugyi': [21.170744, 94.862406],
+        'shwezigon': [21.195278, 94.893889],
+        'sulamani': [21.1649, 94.8814],
+        'thambula': [21.162594, 94.903672],
+        'thatbinnyu': [21.16875, 94.86295],
+      };
+
+      for (final entry in coordMap.entries) {
+        await db.update(
+          AppConstants.tablePagodas,
+          {
+            'latitude': entry.value[0],
+            'longitude': entry.value[1],
+          },
+          where: 'id = ?',
+          whereArgs: [entry.key],
+        );
+        await db.update(
+          AppConstants.tableTripStops,
+          {
+            'latitude': entry.value[0],
+            'longitude': entry.value[1],
+          },
+          where: 'pagodaId = ?',
+          whereArgs: [entry.key],
+        );
+      }
+    }
   }
   
   Future<void> _onCreate(Database db, int version) async {
@@ -363,8 +470,21 @@ class DatabaseService {
     
     await db.insert(
       AppConstants.tableTrips,
-      trip.toJson(),
+      {
+        'id': trip.id,
+        'name': trip.name,
+        'description': trip.description,
+        'date': trip.date.toIso8601String(),
+        'createdAt': trip.createdAt.toIso8601String(),
+        'updatedAt': trip.updatedAt.toIso8601String(),
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    
+    await db.delete(
+      AppConstants.tableTripStops,
+      where: 'tripId = ?',
+      whereArgs: [trip.id],
     );
     
     // Insert stops

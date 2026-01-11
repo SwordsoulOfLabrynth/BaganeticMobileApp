@@ -18,10 +18,17 @@ class PathNode {
 }
 
 class PathfindingService {
+  static const double _defaultNeighborRadiusKm = 5.0;
+  static const int _fallbackNeighborCount = 3;
+
   static List<Pagoda> findPath(
     Pagoda start,
     Pagoda goal,
     List<Pagoda> allPagodas,
+    {
+    double neighborRadiusKm = _defaultNeighborRadiusKm,
+    int fallbackNeighborCount = _fallbackNeighborCount,
+    }
   ) {
     // Create nodes map
     Map<String, PathNode> nodes = {};
@@ -56,7 +63,13 @@ class PathfindingService {
       closedSet.add(current.pagoda.id);
       
       // Get neighbors (pagodas within 5km)
-      var neighbors = _getNeighbors(current.pagoda, allPagodas, nodes);
+      var neighbors = _getNeighbors(
+        current.pagoda,
+        allPagodas,
+        nodes,
+        neighborRadiusKm: neighborRadiusKm,
+        fallbackNeighborCount: fallbackNeighborCount,
+      );
       
       for (var neighbor in neighbors) {
         if (closedSet.contains(neighbor.pagoda.id)) continue;
@@ -82,6 +95,8 @@ class PathfindingService {
           
           if (!openSet.contains(neighbor)) {
             openSet.add(neighbor);
+          } else {
+            openSet.resort();
           }
         }
       }
@@ -95,8 +110,13 @@ class PathfindingService {
     Pagoda current,
     List<Pagoda> allPagodas,
     Map<String, PathNode> nodes,
+    {
+    double neighborRadiusKm = _defaultNeighborRadiusKm,
+    int fallbackNeighborCount = _fallbackNeighborCount,
+    }
   ) {
     List<PathNode> neighbors = [];
+    List<MapEntry<Pagoda, double>> candidates = [];
     
     for (var pagoda in allPagodas) {
       if (pagoda.id == current.id) continue;
@@ -109,8 +129,17 @@ class PathfindingService {
       );
       
       // Only consider pagodas within 5km as neighbors
-      if (distance <= 5.0) {
+      if (distance <= neighborRadiusKm) {
         neighbors.add(nodes[pagoda.id]!);
+      }
+
+      candidates.add(MapEntry(pagoda, distance));
+    }
+
+    if (neighbors.isEmpty && fallbackNeighborCount > 0) {
+      candidates.sort((a, b) => a.value.compareTo(b.value));
+      for (final entry in candidates.take(fallbackNeighborCount)) {
+        neighbors.add(nodes[entry.key.id]!);
       }
     }
     
@@ -155,6 +184,10 @@ class PriorityQueue<T> {
   
   void add(T item) {
     _items.add(item);
+    _items.sort(_comparator);
+  }
+
+  void resort() {
     _items.sort(_comparator);
   }
   

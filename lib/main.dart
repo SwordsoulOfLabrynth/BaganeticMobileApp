@@ -9,6 +9,7 @@ import 'presentation/providers/trip_provider.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'core/services/offline_route_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() async {
     print('Firebase initialization failed: $e');
   }
 
+  OfflineRouteService.instance.startBackgroundSync();
   runApp(const MyApp());
 }
 

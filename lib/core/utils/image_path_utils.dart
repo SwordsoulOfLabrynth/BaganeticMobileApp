@@ -5,17 +5,23 @@ class ImagePathUtils {
   static String normalizeImagePath(String path) {
     if (path.isEmpty) return path;
     
+    // Normalize separators early so prefix checks are reliable.
+    String normalized = path.replaceAll('\\', '/');
+
+    // Remove any leading slashes that can break asset lookups.
+    normalized = normalized.replaceAll(RegExp(r'^/+'), '');
+
     // Remove duplicate "pagodas/pagodas/" pattern
-    String normalized = path.replaceAll('pagodas/pagodas/', 'pagodas/');
-    
-    // Ensure path starts with "assets/" if it's an asset path
-    if (normalized.startsWith('assets/')) {
-      // Remove any leading slashes that might cause issues
-      normalized = normalized.replaceAll(RegExp(r'^/+'), '');
+    normalized = normalized.replaceAll('pagodas/pagodas/', 'pagodas/');
+
+    // Add assets prefix for common relative forms.
+    if (!normalized.startsWith('assets/')) {
+      if (normalized.startsWith('images/')) {
+        normalized = 'assets/$normalized';
+      } else if (normalized.startsWith('pagodas/')) {
+        normalized = 'assets/images/$normalized';
+      }
     }
-    
-    // Fix Windows-style backslashes to forward slashes
-    normalized = normalized.replaceAll('\\', '/');
     
     // Remove any duplicate slashes
     normalized = normalized.replaceAll(RegExp(r'/+'), '/');

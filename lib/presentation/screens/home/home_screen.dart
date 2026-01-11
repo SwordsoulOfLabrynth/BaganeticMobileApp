@@ -5,8 +5,17 @@ import '../map/map_screen.dart';
 import '../trips/trips_screen.dart';
 import '../profile/profile_screen.dart';
 
+import '../../../data/models/pagoda_model.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+  final Pagoda? initialMapPagoda;
+
+  const HomeScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.initialMapPagoda,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -21,10 +30,17 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    final index = widget.initialIndex;
+    _currentIndex = index < 0 ? 0 : (index > 4 ? 4 : index);
+  }
+
   List<Widget> get _screens => [
     HomeContentScreen(onNavigateToTab: _onNavigateToTab),
     const PagodasListScreen(),
-    const MapScreen(),
+    MapScreen(initialPagoda: widget.initialMapPagoda),
     const TripsScreen(),
     const ProfileScreen(),
   ];
