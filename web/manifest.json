@@ -1,6 +1,6 @@
 {
-    "name": "baganetic_mobile",
-    "short_name": "baganetic_mobile",
+    "name": "Baganetic",
+    "short_name": "Baganetic",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
