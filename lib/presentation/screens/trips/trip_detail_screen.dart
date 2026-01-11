@@ -40,14 +40,25 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         appBar: AppBar(
           title: Text(widget.trip.name),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: _shareTrip,
-            ),
-            IconButton(
-              icon: const Icon(Icons.download),
-              onPressed: _exportTrip,
-            ),
+            if (_isExporting)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else ...[
+              IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: _shareTrip,
+              ),
+              IconButton(
+                icon: const Icon(Icons.download),
+                onPressed: _exportTrip,
+              ),
+            ],
           ],
         ),
         body: SingleChildScrollView(
@@ -92,73 +103,103 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         final stopPoints = widget.trip.stops
             .map((stop) => LatLng(stop.latitude, stop.longitude))
             .toList();
-        final routePoints =
-            snapshot.hasData && snapshot.data!.isNotEmpty ? snapshot.data! : stopPoints;
+        final isFallbackRoute = !snapshot.hasData || snapshot.data!.isEmpty;
+        final routePoints = isFallbackRoute ? stopPoints : snapshot.data!;
         final bounds = LatLngBounds.fromPoints(routePoints);
 
         return SizedBox(
           height: 300,
-          child: FlutterMap(
-            options: MapOptions(
-              initialCameraFit: CameraFit.bounds(
-                bounds: bounds,
-                padding: const EdgeInsets.all(28),
-              ),
-            ),
+          child: Stack(
             children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.baganetic.app',
-              ),
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: routePoints,
-                    color: const Color(0xFFD4AF37),
-                    strokeWidth: 5,
-                    borderStrokeWidth: 3,
-                    borderColor: Colors.black.withOpacity(0.25),
-                    gradientColors: const [
-                      Colors.green,
-                      Color(0xFFD4AF37),
-                      Colors.red,
+              FlutterMap(
+                options: MapOptions(
+                  initialCameraFit: CameraFit.bounds(
+                    bounds: bounds,
+                    padding: const EdgeInsets.all(28),
+                  ),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.baganetic.app',
+                  ),
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: routePoints,
+                        color: const Color(0xFFD4AF37),
+                        strokeWidth: 5,
+                        borderStrokeWidth: 3,
+                        borderColor: Colors.black.withOpacity(0.25),
+                        gradientColors: const [
+                          Colors.green,
+                          Color(0xFFD4AF37),
+                          Colors.red,
+                        ],
+                        colorsStop: const [0.0, 0.5, 1.0],
+                      ),
                     ],
-                    colorsStop: const [0.0, 0.5, 1.0],
+                  ),
+                  MarkerLayer(
+                    markers: widget.trip.stops.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final stop = entry.value;
+
+                      return Marker(
+                        point: LatLng(stop.latitude, stop.longitude),
+                        width: 40,
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: index == 0
+                                ? Colors.green
+                                : index == widget.trip.stops.length - 1
+                                    ? Colors.red
+                                    : const Color(0xFFD4AF37),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ],
               ),
-              MarkerLayer(
-                markers: widget.trip.stops.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final stop = entry.value;
-
-                  return Marker(
-                    point: LatLng(stop.latitude, stop.longitude),
-                    width: 40,
-                    height: 40,
+              if (isFallbackRoute)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: IgnorePointer(
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: index == 0
-                            ? Colors.green
-                            : index == widget.trip.stops.length - 1
-                                ? Colors.red
-                                : const Color(0xFFD4AF37),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      child: Center(
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.55),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Using straight-line fallback route',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                ),
             ],
           ),
         );
@@ -359,6 +400,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   }
   
   Future<void> _shareTrip() async {
+    if (_isExporting) return;
     setState(() {
       _isExporting = true;
     });
@@ -390,6 +432,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   }
   
   Future<void> _exportTrip() async {
+    if (_isExporting) return;
     setState(() {
       _isExporting = true;
     });

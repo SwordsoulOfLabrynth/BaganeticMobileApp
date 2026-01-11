@@ -137,7 +137,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     
     try {
       final provider = context.read<PagodaProvider>();
-      final allPagodas = provider.pagodas;
+      final allPagodas = provider.allPagodas;
       
       if (_selectedPagodas.length == 2) {
         // Use A* for 2 pagodas
@@ -355,7 +355,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   
   Future<void> _showPagodaSelector(BuildContext context) async {
     final provider = context.read<PagodaProvider>();
-    final allPagodas = provider.pagodas;
+    final allPagodas = provider.allPagodas;
     
     await showModalBottomSheet(
       context: context,
@@ -363,60 +363,75 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        expand: false,
-        builder: (context, scrollController) => Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Select Pagodas',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.9,
+          minChildSize: 0.5,
+          expand: false,
+          builder: (context, scrollController) => Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: allPagodas.length,
-                itemBuilder: (context, index) {
-                  final pagoda = allPagodas[index];
-                  final isSelected = _selectedPagodas.any((p) => p.id == pagoda.id);
-                  
-                  return CheckboxListTile(
-                    value: isSelected,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedPagodas.add(pagoda);
-                        } else {
-                          _selectedPagodas.removeWhere((p) => p.id == pagoda.id);
-                        }
-                      });
-                      Navigator.pop(context);
-                    },
-                    title: Text(pagoda.name),
-                    subtitle: Text(pagoda.category),
-                    secondary: const Icon(Icons.temple_buddhist),
-                  );
-                },
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Select Pagodas',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Done'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: allPagodas.length,
+                  itemBuilder: (context, index) {
+                    final pagoda = allPagodas[index];
+                    final isSelected = _selectedPagodas.any((p) => p.id == pagoda.id);
+
+                    return CheckboxListTile(
+                      value: isSelected,
+                      onChanged: (value) {
+                        setModalState(() {
+                          if (value == true) {
+                            _selectedPagodas.add(pagoda);
+                          } else {
+                            _selectedPagodas.removeWhere((p) => p.id == pagoda.id);
+                          }
+                        });
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
+                      title: Text(pagoda.name),
+                      subtitle: Text(pagoda.category),
+                      secondary: const Icon(Icons.temple_buddhist),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

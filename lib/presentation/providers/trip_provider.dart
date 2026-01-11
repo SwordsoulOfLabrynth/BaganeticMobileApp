@@ -21,10 +21,9 @@ class TripProvider with ChangeNotifier {
     
     try {
       _trips = await _db.getAllTrips();
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
       print('Error loading trips: $e');
+    } finally {
       _isLoading = false;
       notifyListeners();
     }

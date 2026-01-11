@@ -467,43 +467,45 @@ class DatabaseService {
   // Trip CRUD operations
   Future<String> insertTrip(Trip trip) async {
     final db = await database;
-    
-    await db.insert(
-      AppConstants.tableTrips,
-      {
-        'id': trip.id,
-        'name': trip.name,
-        'description': trip.description,
-        'date': trip.date.toIso8601String(),
-        'createdAt': trip.createdAt.toIso8601String(),
-        'updatedAt': trip.updatedAt.toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    
-    await db.delete(
-      AppConstants.tableTripStops,
-      where: 'tripId = ?',
-      whereArgs: [trip.id],
-    );
-    
-    // Insert stops
-    for (var stop in trip.stops) {
-      await db.insert(
-        AppConstants.tableTripStops,
+
+    await db.transaction((txn) async {
+      await txn.insert(
+        AppConstants.tableTrips,
         {
-          'tripId': trip.id,
-          'pagodaId': stop.pagodaId,
-          'pagodaName': stop.pagodaName,
-          'latitude': stop.latitude,
-          'longitude': stop.longitude,
-          'orderIndex': stop.order,
-          'notes': stop.notes,
-          'distanceToNext': stop.distanceToNext,
+          'id': trip.id,
+          'name': trip.name,
+          'description': trip.description,
+          'date': trip.date.toIso8601String(),
+          'createdAt': trip.createdAt.toIso8601String(),
+          'updatedAt': trip.updatedAt.toIso8601String(),
         },
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
-    }
-    
+
+      await txn.delete(
+        AppConstants.tableTripStops,
+        where: 'tripId = ?',
+        whereArgs: [trip.id],
+      );
+
+      // Insert stops
+      for (var stop in trip.stops) {
+        await txn.insert(
+          AppConstants.tableTripStops,
+          {
+            'tripId': trip.id,
+            'pagodaId': stop.pagodaId,
+            'pagodaName': stop.pagodaName,
+            'latitude': stop.latitude,
+            'longitude': stop.longitude,
+            'orderIndex': stop.order,
+            'notes': stop.notes,
+            'distanceToNext': stop.distanceToNext,
+          },
+        );
+      }
+    });
+
     return trip.id;
   }
   
@@ -514,18 +516,28 @@ class DatabaseService {
       orderBy: 'date DESC',
     );
     
-    List<Trip> trips = [];
-    for (var tripMap in tripMaps) {
-      final List<Map<String, dynamic>> stopMaps = await db.query(
-        AppConstants.tableTripStops,
-        where: 'tripId = ?',
-        whereArgs: [tripMap['id']],
-        orderBy: 'orderIndex ASC',
-      );
-      
-      trips.add(Trip.fromJson({
+    if (tripMaps.isEmpty) return [];
+
+    final tripIds = tripMaps.map((map) => map['id'] as String).toList();
+    final placeholders = List.filled(tripIds.length, '?').join(',');
+    final stopMaps = await db.query(
+      AppConstants.tableTripStops,
+      where: 'tripId IN ($placeholders)',
+      whereArgs: tripIds,
+      orderBy: 'tripId ASC, orderIndex ASC',
+    );
+
+    final stopsByTripId = <String, List<Map<String, dynamic>>>{};
+    for (final stop in stopMaps) {
+      final tripId = stop['tripId'] as String;
+      stopsByTripId.putIfAbsent(tripId, () => []).add(stop);
+    }
+
+    return tripMaps.map((tripMap) {
+      final stops = stopsByTripId[tripMap['id']] ?? const [];
+      return Trip.fromJson({
         ...tripMap,
-        'stops': stopMaps.map((s) => {
+        'stops': stops.map((s) => {
           'pagodaId': s['pagodaId'],
           'pagodaName': s['pagodaName'],
           'latitude': s['latitude'],
@@ -534,10 +546,8 @@ class DatabaseService {
           'notes': s['notes'],
           'distanceToNext': s['distanceToNext'],
         }).toList(),
-      }));
-    }
-    
-    return trips;
+      });
+    }).toList();
   }
   
   Future<Trip?> getTripById(String id) async {

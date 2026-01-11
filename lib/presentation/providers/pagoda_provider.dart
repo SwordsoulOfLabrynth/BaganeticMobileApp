@@ -13,6 +13,7 @@ class PagodaProvider with ChangeNotifier {
   bool _isLoading = false;
   
   List<Pagoda> get pagodas => _filteredPagodas();
+  List<Pagoda> get allPagodas => List.unmodifiable(_pagodas);
   List<Pagoda> get favorites => _favorites;
   String get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;
@@ -43,10 +44,9 @@ class PagodaProvider with ChangeNotifier {
         }
       }
 
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
       print('Error loading pagodas: $e');
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
@@ -66,10 +66,9 @@ class PagodaProvider with ChangeNotifier {
       _pagodas = await _db.getAllPagodas();
       _favorites = await _db.getFavorites();
 
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
       print('Error reloading sample data: $e');
+    } finally {
       _isLoading = false;
       notifyListeners();
     }

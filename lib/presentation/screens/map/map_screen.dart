@@ -61,7 +61,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
             return const Center(child: CircularProgressIndicator());
           }
           
-          final pagodas = provider.pagodas;
+          final pagodas = provider.allPagodas;
           
           return Stack(
             children: [
@@ -101,28 +101,61 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   ),
                 ],
               ),
+              if (pagodas.isEmpty)
+                const Center(
+                  child: Text(
+                    'No pagodas available',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
               if (_selectedPagoda != null)
                 Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: _buildPagodaInfo(_selectedPagoda!),
+                  child: SafeArea(
+                    top: false,
+                    minimum: const EdgeInsets.only(bottom: 8),
+                    child: _buildPagodaInfo(_selectedPagoda!),
+                  ),
                 ),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _mapController.move(
-            LatLng(
-              AppConstants.baganLatitude,
-              AppConstants.baganLongitude,
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_selectedPagoda != null) ...[
+            FloatingActionButton.small(
+              heroTag: 'selected-pagoda',
+              onPressed: () {
+                final selected = _selectedPagoda;
+                if (selected == null) {
+                  return;
+                }
+                _mapController.move(
+                  LatLng(selected.latitude, selected.longitude),
+                  AppConstants.defaultZoom + 2,
+                );
+              },
+              child: const Icon(Icons.place),
             ),
-            AppConstants.defaultZoom,
-          );
-        },
-        child: const Icon(Icons.my_location),
+            const SizedBox(height: 12),
+          ],
+          FloatingActionButton(
+            onPressed: () {
+              _mapController.move(
+                LatLng(
+                  AppConstants.baganLatitude,
+                  AppConstants.baganLongitude,
+                ),
+                AppConstants.defaultZoom,
+              );
+            },
+            child: const Icon(Icons.my_location),
+          ),
+        ],
       ),
     );
   }
