@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/services/offline_route_service.dart';
@@ -123,6 +125,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     urlTemplate:
                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.baganetic.app',
+                    tileProvider: const FMTCStore(AppConstants.mapTileStore)
+                        .getTileProvider(),
                   ),
                   PolylineLayer(
                     polylines: [

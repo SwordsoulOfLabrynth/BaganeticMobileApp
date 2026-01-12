@@ -23,6 +23,7 @@ class AppConstants {
   static const double baganLatitude = 21.1717;
   static const double baganLongitude = 94.8589;
   static const double defaultZoom = 13.0;
+  static const String mapTileStore = 'baganetic_map_store';
 
   // Offline routing graph
   static const String offlineGraphUrl = '';

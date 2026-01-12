@@ -5,6 +5,7 @@ import '../../../data/models/pagoda_model.dart';
 import '../../../core/constants/app_constants.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 
 class MapScreen extends StatefulWidget {
@@ -78,6 +79,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.baganetic.app',
+                    tileProvider: const FMTCStore(AppConstants.mapTileStore)
+                        .getTileProvider(),
                   ),
                   MarkerLayer(
                     markers: pagodas.map((pagoda) {

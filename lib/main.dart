@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'firebase_options.dart';
+import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/pagoda_provider.dart';
@@ -21,6 +23,16 @@ void main() async {
     );
   } catch (e) {
     print('Firebase initialization failed: $e');
+  }
+
+  try {
+    await FMTCObjectBoxBackend().initialise();
+    const store = FMTCStore(AppConstants.mapTileStore);
+    if (!await store.manage.ready) {
+      await store.manage.create();
+    }
+  } catch (e) {
+    print('Map tile caching initialization failed: $e');
   }
 
   OfflineRouteService.instance.startBackgroundSync();
