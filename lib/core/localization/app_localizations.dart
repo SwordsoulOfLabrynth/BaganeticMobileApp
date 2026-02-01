@@ -96,6 +96,19 @@ class AppLocalizations {
         return category;
     }
   }
+
+  String discoveryCategoryLabel(String category) {
+    switch (category) {
+      case 'All':
+        return translate('discovery.category.all');
+      case 'Hotel':
+        return translate('discovery.category.hotel');
+      case 'Restaurant':
+        return translate('discovery.category.restaurant');
+      default:
+        return category;
+    }
+  }
 }
 
 class _AppLocalizationsDelegate

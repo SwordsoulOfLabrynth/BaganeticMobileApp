@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_content_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
+import '../discovery/discovery_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -34,12 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final index = widget.initialIndex;
-    _currentIndex = index < 0 ? 0 : (index > 3 ? 3 : index);
+    final maxIndex = _screens.length - 1;
+    _currentIndex = index < 0 ? 0 : (index > maxIndex ? maxIndex : index);
   }
 
   List<Widget> get _screens => [
     HomeContentScreen(onNavigateToTab: _onNavigateToTab),
     const PagodasListScreen(),
+    const DiscoveryScreen(),
     MapScreen(initialPagoda: widget.initialMapPagoda),
     const ProfileScreen(),
   ];
@@ -67,6 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.temple_buddhist),
             label: l10n.translate('nav.pagodas'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: l10n.translate('nav.discovery'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map_outlined),

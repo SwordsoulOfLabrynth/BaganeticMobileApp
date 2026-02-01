@@ -39,6 +39,12 @@ class AppConstants {
     'Stupa',
     'Monastery',
   ];
+
+  static const List<String> discoveryCategories = [
+    'All',
+    'Hotel',
+    'Restaurant',
+  ];
   
   // Assets
   static const String placeholderImage = 'assets/images/placeholder.png';

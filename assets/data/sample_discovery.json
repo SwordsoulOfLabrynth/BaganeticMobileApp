@@ -1,0 +1,98 @@
+[
+  {
+    "id": "irrawaddy_view_hotel",
+    "name": "Irrawaddy View Hotel",
+    "type": "Hotel",
+    "description": "Riverside stay with sunset terrace and bicycle rentals.",
+    "address": "Old Bagan, Riverside Road",
+    "rating": 4.6,
+    "priceRange": "$$$",
+    "openHours": "24/7",
+    "phone": "+95 9 123 456 789",
+    "tags": ["Sunset terrace", "Bike rental", "Pool"]
+  },
+  {
+    "id": "bagan_breeze_resort",
+    "name": "Bagan Breeze Resort",
+    "type": "Hotel",
+    "description": "Quiet garden resort with spacious rooms and local breakfast.",
+    "address": "New Bagan, Cherry Lane",
+    "rating": 4.3,
+    "priceRange": "$$",
+    "openHours": "24/7",
+    "phone": "+95 9 222 334 556",
+    "tags": ["Garden", "Breakfast", "Airport pickup"]
+  },
+  {
+    "id": "golden_temple_inn",
+    "name": "Golden Temple Inn",
+    "type": "Hotel",
+    "description": "Cozy mid-range inn near major pagoda routes.",
+    "address": "Nyaung-U, Shwe Gu Street",
+    "rating": 4.1,
+    "priceRange": "$$",
+    "openHours": "24/7",
+    "phone": "+95 9 555 667 889",
+    "tags": ["Family rooms", "Tour desk", "Wi-Fi"]
+  },
+  {
+    "id": "pagoda_view_guesthouse",
+    "name": "Pagoda View Guesthouse",
+    "type": "Hotel",
+    "description": "Budget-friendly stay with rooftop pagoda views.",
+    "address": "Old Bagan, Ananda Road",
+    "rating": 3.9,
+    "priceRange": "$",
+    "openHours": "24/7",
+    "phone": "+95 9 888 111 222",
+    "tags": ["Rooftop", "Budget", "Scooter rental"]
+  },
+  {
+    "id": "ananda_garden_cafe",
+    "name": "Ananda Garden Cafe",
+    "type": "Restaurant",
+    "description": "Fresh salads, rice bowls, and shaded garden seating.",
+    "address": "Old Bagan, near Ananda Temple",
+    "rating": 4.5,
+    "priceRange": "$$",
+    "openHours": "7:00 AM - 9:30 PM",
+    "phone": "+95 9 333 221 990",
+    "tags": ["Garden seating", "Vegetarian", "Coffee"]
+  },
+  {
+    "id": "riverbank_noodle_house",
+    "name": "Riverbank Noodle House",
+    "type": "Restaurant",
+    "description": "Local noodles and soup specialties with river breeze.",
+    "address": "Nyaung-U, River Market",
+    "rating": 4.2,
+    "priceRange": "$",
+    "openHours": "10:00 AM - 8:00 PM",
+    "phone": "+95 9 777 654 321",
+    "tags": ["Local cuisine", "Quick bites", "Family-friendly"]
+  },
+  {
+    "id": "sandstone_bistro",
+    "name": "Sandstone Bistro",
+    "type": "Restaurant",
+    "description": "Fusion dishes and sunset mocktails with pagoda views.",
+    "address": "New Bagan, Sunset Hill",
+    "rating": 4.4,
+    "priceRange": "$$$",
+    "openHours": "11:00 AM - 10:00 PM",
+    "phone": "+95 9 444 555 666",
+    "tags": ["Sunset view", "Fusion", "Mocktails"]
+  },
+  {
+    "id": "market_street_tea_house",
+    "name": "Market Street Tea House",
+    "type": "Restaurant",
+    "description": "All-day tea, light snacks, and traditional desserts.",
+    "address": "Nyaung-U, Market Street",
+    "rating": 4.0,
+    "priceRange": "$",
+    "openHours": "6:30 AM - 8:30 PM",
+    "phone": "+95 9 101 202 303",
+    "tags": ["Tea house", "Desserts", "Local favorites"]
+  }
+]

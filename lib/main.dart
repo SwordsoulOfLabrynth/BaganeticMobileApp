@@ -10,6 +10,7 @@ import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/discovery_provider.dart';
 import 'presentation/providers/language_provider.dart';
 import 'presentation/providers/pagoda_provider.dart';
 import 'presentation/providers/trip_provider.dart';
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => DiscoveryProvider()),
         ChangeNotifierProvider(create: (_) => PagodaProvider()),
         ChangeNotifierProvider(create: (_) => TripProvider()),
       ],

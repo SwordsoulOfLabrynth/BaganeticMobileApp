@@ -96,6 +96,7 @@ flutter:
     - assets/languages/
     - assets/data/offline_graph.json
     - assets/data/sample_pagodas.json
+    - assets/data/sample_discovery.json
     - assets/images/pagodas/Alodawpyae Pagoda/
     - assets/images/pagodas/Ananda Temple/
     - assets/images/pagodas/BuPaya/

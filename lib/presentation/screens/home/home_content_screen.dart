@@ -215,8 +215,8 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                l10n.translate('home.actionMap'),
-                Icons.map,
+                l10n.translate('home.actionDiscover'),
+                Icons.explore,
                 () {
                   onNavigateToTab(2);
                 },
@@ -230,10 +230,10 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                l10n.translate('home.actionPlan'),
-                Icons.route,
+                l10n.translate('home.actionMap'),
+                Icons.map,
                 () {
-                  onNavigateToTab(2);
+                  onNavigateToTab(3);
                 },
               ),
             ),
@@ -241,8 +241,8 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                l10n.translate('home.actionProfile'),
-                Icons.person,
+                l10n.translate('home.actionPlan'),
+                Icons.route,
                 () {
                   onNavigateToTab(3);
                 },

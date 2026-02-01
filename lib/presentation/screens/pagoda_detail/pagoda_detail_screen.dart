@@ -499,7 +499,7 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => HomeScreen(
-                              initialIndex: 2,
+                              initialIndex: 3,
                               initialMapPagoda: widget.pagoda,
                             ),
                           ),
