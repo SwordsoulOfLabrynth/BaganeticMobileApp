@@ -5,15 +5,17 @@ import '../../../data/models/trip_model.dart';
 import 'trip_detail_screen.dart';
 import 'create_trip_screen.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class TripsScreen extends StatelessWidget {
   const TripsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Trips'),
+        title: Text(l10n.translate('trips.title')),
         elevation: 0,
       ),
       body: Consumer<TripProvider>(
@@ -36,15 +38,15 @@ class TripsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No trips yet',
+                    l10n.translate('trips.emptyTitle'),
                     style: TextStyle(
                       fontSize: 20,
                       color: Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Create your first trip itinerary',
+                  Text(
+                    l10n.translate('trips.emptySubtitle'),
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 24),
@@ -58,7 +60,7 @@ class TripsScreen extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text('Create Trip'),
+                    label: Text(l10n.translate('trips.createTrip')),
                   ),
                 ],
               ),
@@ -84,12 +86,13 @@ class TripsScreen extends StatelessWidget {
           );
         },
         icon: const Icon(Icons.add),
-        label: const Text('Create Trip'),
+        label: Text(l10n.translate('trips.createTrip')),
       ),
     );
   }
   
   Widget _buildTripCard(BuildContext context, Trip trip) {
+    final l10n = context.l10n;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -124,21 +127,38 @@ class TripsScreen extends StatelessWidget {
                     ),
                   ),
                   IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateTripScreen(
+                            existingTrip: trip,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Delete Trip'),
-                          content: const Text('Are you sure you want to delete this trip?'),
+                          title: Text(l10n.translate('trips.deleteTitle')),
+                          content:
+                              Text(l10n.translate('trips.deleteConfirm')),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
+                              child: Text(l10n.translate('common.cancel')),
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                              child: Text(
+                                l10n.translate('common.delete'),
+                                style: const TextStyle(color: Colors.red),
+                              ),
                             ),
                           ],
                         ),
@@ -164,7 +184,10 @@ class TripsScreen extends StatelessWidget {
                   Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
                   const SizedBox(width: 8),
                   Text(
-                    '${trip.stops.length} stops',
+                    l10n.translate(
+                      'common.stopsCount',
+                      args: {'count': trip.stops.length.toString()},
+                    ),
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ],
@@ -184,11 +207,14 @@ class TripsScreen extends StatelessWidget {
                 children: [
                   _buildInfoChip(
                     Icons.straighten,
-                    Helpers.formatDistance(trip.getTotalDistance()),
+                    Helpers.formatDistance(
+                      context,
+                      trip.getTotalDistance(),
+                    ),
                   ),
                   _buildInfoChip(
                     Icons.access_time,
-                    '${trip.getEstimatedDuration()} min',
+                    '${trip.getEstimatedDuration()} ${l10n.translate('common.minutesShort')}',
                   ),
                 ],
               ),

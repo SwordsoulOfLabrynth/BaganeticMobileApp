@@ -4,6 +4,7 @@ import '../../providers/pagoda_provider.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../../widgets/pagoda_image_widget.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class HomeContentScreen extends StatelessWidget {
   final void Function(int) onNavigateToTab;
@@ -12,9 +13,10 @@ class HomeContentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Baganetic'),
+        title: Text(l10n.translate('app.title')),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -34,6 +36,7 @@ class HomeContentScreen extends StatelessWidget {
   }
 
   Widget _buildWelcomeSection(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -57,7 +60,7 @@ class HomeContentScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Welcome to Baganetic',
+                  l10n.translate('home.welcomeTitle'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -68,7 +71,7 @@ class HomeContentScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Explore the ancient wonders of Bagan. Discover pagodas, plan your trips, and create unforgettable memories.',
+            l10n.translate('home.welcomeBody'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.white.withValues(alpha: 0.9),
                 ),
@@ -79,11 +82,12 @@ class HomeContentScreen extends StatelessWidget {
   }
 
   Widget _buildFeaturedPagodas(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Featured Pagodas',
+          l10n.translate('home.featuredTitle'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -98,8 +102,8 @@ class HomeContentScreen extends StatelessWidget {
             final featuredPagodas = provider.pagodas.take(3).toList();
 
             if (featuredPagodas.isEmpty) {
-              return const Center(
-                child: Text('No featured pagodas available'),
+              return Center(
+                child: Text(l10n.translate('home.featuredEmpty')),
               );
             }
 
@@ -120,6 +124,7 @@ class HomeContentScreen extends StatelessWidget {
   }
 
   Widget _buildFeaturedPagodaCard(BuildContext context, Pagoda pagoda) {
+    final l10n = context.l10n;
     return Container(
       width: 160,
       margin: const EdgeInsets.only(right: 16),
@@ -156,7 +161,7 @@ class HomeContentScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      pagoda.name,
+                      l10n.pagodaName(pagoda.id, pagoda.name),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -166,7 +171,7 @@ class HomeContentScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      pagoda.category,
+                      l10n.categoryLabel(pagoda.category),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
@@ -183,11 +188,12 @@ class HomeContentScreen extends StatelessWidget {
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          l10n.translate('home.quickActions'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -198,7 +204,7 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                'Explore Pagodas',
+                l10n.translate('home.actionExplore'),
                 Icons.temple_buddhist,
                 () {
                   onNavigateToTab(1);
@@ -209,7 +215,7 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                'View Map',
+                l10n.translate('home.actionMap'),
                 Icons.map,
                 () {
                   onNavigateToTab(2);
@@ -224,10 +230,10 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                'Plan Trip',
+                l10n.translate('home.actionPlan'),
                 Icons.route,
                 () {
-                  onNavigateToTab(3);
+                  onNavigateToTab(2);
                 },
               ),
             ),
@@ -235,10 +241,10 @@ class HomeContentScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionCard(
                 context,
-                'Profile',
+                l10n.translate('home.actionProfile'),
                 Icons.person,
                 () {
-                  onNavigateToTab(4);
+                  onNavigateToTab(3);
                 },
               ),
             ),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'home_content_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
 import '../map/map_screen.dart';
-import '../trips/trips_screen.dart';
 import '../profile/profile_screen.dart';
+import '../../../core/localization/app_localizations.dart';
 
 import '../../../data/models/pagoda_model.dart';
 
@@ -34,19 +34,19 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final index = widget.initialIndex;
-    _currentIndex = index < 0 ? 0 : (index > 4 ? 4 : index);
+    _currentIndex = index < 0 ? 0 : (index > 3 ? 3 : index);
   }
 
   List<Widget> get _screens => [
     HomeContentScreen(onNavigateToTab: _onNavigateToTab),
     const PagodasListScreen(),
     MapScreen(initialPagoda: widget.initialMapPagoda),
-    const TripsScreen(),
     const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -59,26 +59,22 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFFD4AF37),
         unselectedItemColor: Colors.grey,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: l10n.translate('nav.home'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.temple_buddhist),
-            label: 'Pagodas',
+            label: l10n.translate('nav.pagodas'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.route),
-            label: 'Trips',
+            icon: Icon(Icons.map_outlined),
+            label: l10n.translate('nav.mapTrips'),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profile',
+            label: l10n.translate('nav.profile'),
           ),
         ],
       ),

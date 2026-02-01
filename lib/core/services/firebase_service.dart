@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user.dart';
+import 'logger.dart';
 
 class FirebaseService {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
@@ -11,7 +12,7 @@ class FirebaseService {
     try {
       return _auth.currentUser;
     } catch (e) {
-      print('FirebaseService: Firebase not initialized: $e');
+      Logger.error('FirebaseService: Firebase not initialized', e);
       return null;
     }
   }
@@ -20,7 +21,7 @@ class FirebaseService {
     try {
       return _auth.authStateChanges();
     } catch (e) {
-      print('FirebaseService: Firebase not initialized: $e');
+      Logger.error('FirebaseService: Firebase not initialized', e);
       return Stream.value(null);
     }
   }
@@ -88,7 +89,7 @@ class FirebaseService {
       if (!doc.exists) return null;
       return User.fromJson(doc.data()!);
     } catch (e) {
-      print('Error getting user data: $e');
+      Logger.error('Error getting user data', e);
       return null;
     }
   }
@@ -101,20 +102,20 @@ class FirebaseService {
     if (e is firebase_auth.FirebaseAuthException) {
       switch (e.code) {
         case 'user-not-found':
-          return 'No user found with this email.';
+          return 'auth.userNotFound';
         case 'wrong-password':
-          return 'Wrong password provided.';
+          return 'auth.wrongPassword';
         case 'email-already-in-use':
-          return 'An account already exists with this email.';
+          return 'auth.emailInUse';
         case 'invalid-email':
-          return 'Invalid email address.';
+          return 'auth.invalidEmail';
         case 'weak-password':
-          return 'Password is too weak. Use at least 6 characters.';
+          return 'auth.weakPassword';
         default:
-          return 'Authentication error: ${e.message}';
+          return 'auth.genericError';
       }
     }
-    return 'An unexpected error occurred.';
+    return 'auth.unexpectedError';
   }
   
   // Firestore sync methods

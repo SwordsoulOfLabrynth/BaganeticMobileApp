@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/trip_model.dart';
 import '../../data/datasources/local_datasource.dart';
+import '../../core/services/logger.dart';
 
 class TripProvider with ChangeNotifier {
   final DatabaseService _db = DatabaseService();
@@ -22,7 +23,7 @@ class TripProvider with ChangeNotifier {
     try {
       _trips = await _db.getAllTrips();
     } catch (e) {
-      print('Error loading trips: $e');
+      Logger.error('Error loading trips', e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -34,7 +35,7 @@ class TripProvider with ChangeNotifier {
       await _db.insertTrip(trip);
       await loadTrips();
     } catch (e) {
-      print('Error saving trip: $e');
+      Logger.error('Error saving trip', e);
       rethrow;
     }
   }
@@ -44,7 +45,7 @@ class TripProvider with ChangeNotifier {
       await _db.deleteTrip(id);
       await loadTrips();
     } catch (e) {
-      print('Error deleting trip: $e');
+      Logger.error('Error deleting trip', e);
       rethrow;
     }
   }

@@ -11,7 +11,7 @@ class AppConstants {
   
   // Database
   static const String dbName = 'baganetic.db';
-  static const int dbVersion = 6;
+  static const int dbVersion = 7;
   
   // Tables
   static const String tablePagodas = 'pagodas';
@@ -24,6 +24,8 @@ class AppConstants {
   static const double baganLongitude = 94.8589;
   static const double defaultZoom = 13.0;
   static const String mapTileStore = 'baganetic_map_store';
+  static const String mapTileUrlTemplate =
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   // Offline routing graph
   static const String offlineGraphUrl = '';

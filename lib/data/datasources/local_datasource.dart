@@ -1,9 +1,17 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/pagoda_model.dart';
 import '../models/trip_model.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/services/logger.dart';
 import '../../core/utils/image_path_utils.dart';
+import 'migrations/database_migration.dart';
+import 'migrations/migration_v4.dart';
+import 'migrations/migration_v5.dart';
+import 'migrations/migration_v6.dart';
+import 'migrations/migration_v7.dart';
 
 class DatabaseService {
   static Database? _database;
@@ -33,163 +41,18 @@ class DatabaseService {
   }
   
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // For versions < 4, fix image paths in existing data
-    if (oldVersion < 4) {
-      print('Database upgrade: Fixing image paths...');
-      
-      // Get all pagodas with incorrect paths
-      final List<Map<String, dynamic>> pagodas = await db.query(AppConstants.tablePagodas);
-      
-      int fixedCount = 0;
-      for (var pagoda in pagodas) {
-        final String? oldPath = pagoda['imageUrl'] as String?;
-        if (oldPath != null && oldPath.isNotEmpty) {
-          // Normalize all paths, not just those with duplicates
-          final String normalizedPath = ImagePathUtils.normalizeImagePath(oldPath);
-          
-          // Only update if path changed
-          if (normalizedPath != oldPath) {
-            await db.update(
-              AppConstants.tablePagodas,
-              {'imageUrl': normalizedPath},
-              where: 'id = ?',
-              whereArgs: [pagoda['id']],
-            );
-            
-            print('Fixed image path for ${pagoda['name']}: $oldPath -> $normalizedPath');
-            fixedCount++;
-          }
-        }
-        
-        // Also normalize images list if it exists
-        final String? imagesStr = pagoda['images'] as String?;
-        if (imagesStr != null && imagesStr.isNotEmpty) {
-          final List<String> imageList = imagesStr.split(',');
-          final List<String> normalizedImages = imageList
-              .where((img) => img.isNotEmpty)
-              .map((img) => ImagePathUtils.normalizeImagePath(img))
-              .toList();
-          
-          final String normalizedImagesStr = normalizedImages.join(',');
-          if (normalizedImagesStr != imagesStr) {
-            await db.update(
-              AppConstants.tablePagodas,
-              {'images': normalizedImagesStr},
-              where: 'id = ?',
-              whereArgs: [pagoda['id']],
-            );
-            fixedCount++;
-          }
-        }
-      }
-      
-      print('Database upgrade: Normalized $fixedCount image paths.');
-    }
+    final List<DatabaseMigration> migrations = [
+      MigrationToV4(),
+      MigrationToV5(),
+      MigrationToV6(),
+      MigrationToV7(),
+    ]..sort((a, b) => a.targetVersion.compareTo(b.targetVersion));
 
-    if (oldVersion < 5) {
-      final pagodas = await db.query(
-        AppConstants.tablePagodas,
-        columns: ['id', 'latitude', 'longitude'],
-      );
-      for (final pagoda in pagodas) {
-        final lat = (pagoda['latitude'] as num).toDouble();
-        final lon = (pagoda['longitude'] as num).toDouble();
-        if (lat.abs() > 90 && lon.abs() <= 90) {
-          await db.update(
-            AppConstants.tablePagodas,
-            {'latitude': lon, 'longitude': lat},
-            where: 'id = ?',
-            whereArgs: [pagoda['id']],
-          );
-        }
-      }
-
-      final tripStops = await db.query(
-        AppConstants.tableTripStops,
-        columns: ['id', 'latitude', 'longitude'],
-      );
-      for (final stop in tripStops) {
-        final lat = (stop['latitude'] as num).toDouble();
-        final lon = (stop['longitude'] as num).toDouble();
-        if (lat.abs() > 90 && lon.abs() <= 90) {
-          await db.update(
-            AppConstants.tableTripStops,
-            {'latitude': lon, 'longitude': lat},
-            where: 'id = ?',
-            whereArgs: [stop['id']],
-          );
-        }
-      }
-    }
-
-    if (oldVersion < 6) {
-      final idRenames = <String, String>{
-        'thatbyinnyu': 'thatbinnyu',
-        'mahezedi': 'mahazedi',
-      };
-
-      for (final entry in idRenames.entries) {
-        await db.update(
-          AppConstants.tablePagodas,
-          {'id': entry.value},
-          where: 'id = ?',
-          whereArgs: [entry.key],
-        );
-        await db.update(
-          AppConstants.tableTripStops,
-          {'pagodaId': entry.value},
-          where: 'pagodaId = ?',
-          whereArgs: [entry.key],
-        );
-        await db.update(
-          AppConstants.tableFavorites,
-          {'pagodaId': entry.value},
-          where: 'pagodaId = ?',
-          whereArgs: [entry.key],
-        );
-      }
-
-      final coordMap = <String, List<double>>{
-        'alodawpyae': [21.176739, 94.882814],
-        'ananda': [21.170806, 94.867856],
-        'bupaya': [21.1763128, 94.857903],
-        'dhammayangyi': [21.161975, 94.872919],
-        'dhammayazaka': [21.145071, 94.883451],
-        'gawdawpalin': [21.17, 94.856667],
-        'gubyaukgyi': [21.157222, 94.860833],
-        'htilominlo': [21.178531, 94.879398],
-        'izagawna': [21.17025, 94.90586],
-        'lawkananda': [21.127222, 94.850556],
-        'mahazedi': [21.1645, 94.86229],
-        'manuha': [21.153408, 94.859152],
-        'pyathetgyi': [21.15829, 94.88957],
-        'seinnyetnyiama': [21.14151, 94.85896],
-        'shwegugyi': [21.170744, 94.862406],
-        'shwezigon': [21.195278, 94.893889],
-        'sulamani': [21.1649, 94.8814],
-        'thambula': [21.162594, 94.903672],
-        'thatbinnyu': [21.16875, 94.86295],
-      };
-
-      for (final entry in coordMap.entries) {
-        await db.update(
-          AppConstants.tablePagodas,
-          {
-            'latitude': entry.value[0],
-            'longitude': entry.value[1],
-          },
-          where: 'id = ?',
-          whereArgs: [entry.key],
-        );
-        await db.update(
-          AppConstants.tableTripStops,
-          {
-            'latitude': entry.value[0],
-            'longitude': entry.value[1],
-          },
-          where: 'pagodaId = ?',
-          whereArgs: [entry.key],
-        );
+    for (final migration in migrations) {
+      if (oldVersion < migration.targetVersion &&
+          newVersion >= migration.targetVersion) {
+        Logger.info('Applying database migration v${migration.targetVersion}');
+        await migration.migrate(db);
       }
     }
   }
@@ -209,6 +72,18 @@ class DatabaseService {
         historicalInfo TEXT,
         architecturalStyle TEXT,
         yearBuilt INTEGER,
+        legends TEXT,
+        religiousImportance TEXT,
+        preservationInfo TEXT,
+        bestTimeToVisit TEXT,
+        visitorLocation TEXT,
+        openingHours TEXT,
+        dressCode TEXT,
+        entranceFee TEXT,
+        photographyRules TEXT,
+        height TEXT,
+        finalWords TEXT,
+        uniqueFeatures TEXT,
         isFavorite INTEGER DEFAULT 0
       )
     ''');
@@ -260,12 +135,17 @@ class DatabaseService {
         .map((img) => ImagePathUtils.normalizeImagePath(img))
         .toList();
     
+    final String uniqueFeaturesJson = jsonEncode(
+      pagoda.uniqueFeatures.map((feature) => feature.toJson()).toList(),
+    );
+
     return await db.insert(
       AppConstants.tablePagodas,
       {
         ...pagoda.toJson(),
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages.join(','),
+        'uniqueFeatures': uniqueFeaturesJson,
         'isFavorite': pagoda.isFavorite ? 1 : 0,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -289,11 +169,15 @@ class DatabaseService {
           .where((img) => img.isNotEmpty)
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
+
+      final List<dynamic> uniqueFeatures =
+          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
       
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
+        'uniqueFeatures': uniqueFeatures,
         'isFavorite': maps[i]['isFavorite'] == 1,
       });
     });
@@ -321,11 +205,15 @@ class DatabaseService {
         .where((img) => img.isNotEmpty)
         .map((img) => ImagePathUtils.normalizeImagePath(img))
         .toList();
+
+    final List<dynamic> uniqueFeatures =
+        _decodeUniqueFeatures(maps.first['uniqueFeatures'] as String?);
     
     return Pagoda.fromJson({
       ...maps.first,
       'imageUrl': normalizedImageUrl,
       'images': normalizedImages,
+      'uniqueFeatures': uniqueFeatures,
       'isFavorite': maps.first['isFavorite'] == 1,
     });
   }
@@ -351,11 +239,15 @@ class DatabaseService {
           .where((img) => img.isNotEmpty)
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
+
+      final List<dynamic> uniqueFeatures =
+          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
       
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
+        'uniqueFeatures': uniqueFeatures,
         'isFavorite': maps[i]['isFavorite'] == 1,
       });
     });
@@ -382,14 +274,31 @@ class DatabaseService {
           .where((img) => img.isNotEmpty)
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
+
+      final List<dynamic> uniqueFeatures =
+          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
       
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
+        'uniqueFeatures': uniqueFeatures,
         'isFavorite': maps[i]['isFavorite'] == 1,
       });
     });
+  }
+
+  List<dynamic> _decodeUniqueFeatures(String? raw) {
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded;
+      }
+    } catch (_) {
+      return const [];
+    }
+    return const [];
   }
   
   // Favorites
@@ -454,11 +363,15 @@ class DatabaseService {
           .where((img) => img.isNotEmpty)
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
+
+      final List<dynamic> uniqueFeatures =
+          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
       
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
+        'uniqueFeatures': uniqueFeatures,
         'isFavorite': true,
       });
     });

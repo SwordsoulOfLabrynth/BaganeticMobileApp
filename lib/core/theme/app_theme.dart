@@ -17,6 +17,7 @@ class AppTheme {
       primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundColor,
       fontFamily: 'Poppins',
+      fontFamilyFallback: const ['NotoSansMyanmar'],
       colorScheme: ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
@@ -32,6 +33,7 @@ class AppTheme {
           fontSize: 20,
           fontWeight: FontWeight.w600,
           fontFamily: 'Poppins',
+          fontFamilyFallback: const ['NotoSansMyanmar'],
         ),
       ),
       cardTheme: CardThemeData(

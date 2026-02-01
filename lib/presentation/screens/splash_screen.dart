@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/localization/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,6 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: const Color(0xFFD4AF37),
       body: Center(
@@ -37,8 +39,8 @@ class _SplashScreenState extends State<SplashScreen> {
               color: Colors.white,
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Baganetic',
+            Text(
+              l10n.translate('app.title'),
               style: TextStyle(
                 fontSize: 42,
                 fontWeight: FontWeight.bold,
@@ -47,8 +49,8 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Explore Ancient Wonders',
+            Text(
+              l10n.translate('app.tagline'),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.white70,

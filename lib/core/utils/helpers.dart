@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../localization/app_localizations.dart';
 
 class Helpers {
   // Calculate distance between two coordinates using Haversine formula
@@ -25,21 +26,23 @@ class Helpers {
   }
   
   // Format distance
-  static String formatDistance(double distanceKm) {
+  static String formatDistance(BuildContext context, double distanceKm) {
+    final l10n = AppLocalizations.of(context);
     if (distanceKm < 1) {
-      return '${(distanceKm * 1000).toStringAsFixed(0)} m';
+      final meters = (distanceKm * 1000).toStringAsFixed(0);
+      return '$meters ${l10n.translate('unit.meter')}';
     }
-    return '${distanceKm.toStringAsFixed(2)} km';
+    return '${distanceKm.toStringAsFixed(2)} ${l10n.translate('unit.kilometer')}';
   }
   
   // Format date
   static String formatDate(DateTime date) {
-    return DateFormat('MMM dd, yyyy').format(date);
+    return DateFormat.yMMMd(Intl.defaultLocale).format(date);
   }
   
   // Format time
   static String formatTime(DateTime time) {
-    return DateFormat('hh:mm a').format(time);
+    return DateFormat.jm(Intl.defaultLocale).format(time);
   }
   
   // Show snackbar

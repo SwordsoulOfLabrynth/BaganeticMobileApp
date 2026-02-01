@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -17,9 +18,15 @@ class OfflineRouteService {
 
   static const String _graphFileName = 'offline_route_graph.json';
   static const String _metaFileName = 'offline_route_meta.json';
+  Timer? _syncTimer;
 
   Future<void> startBackgroundSync() async {
-    _syncIfNeeded();
+    await _syncIfNeeded();
+    _syncTimer?.cancel();
+    _syncTimer = Timer.periodic(
+      AppConstants.offlineGraphSyncInterval,
+      (_) => _syncIfNeeded(),
+    );
   }
 
   Future<List<LatLng>> buildRouteForPoints(List<LatLng> points) async {

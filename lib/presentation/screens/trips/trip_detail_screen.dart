@@ -10,6 +10,8 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/services/offline_route_service.dart';
+import '../../../core/localization/app_localizations.dart';
+import 'create_trip_screen.dart';
 
 class TripDetailScreen extends StatefulWidget {
   final Trip trip;
@@ -23,12 +25,18 @@ class TripDetailScreen extends StatefulWidget {
 class _TripDetailScreenState extends State<TripDetailScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
   bool _isExporting = false;
-  late final Future<List<LatLng>> _routeFuture;
+  late Trip _trip;
+  late Future<List<LatLng>> _routeFuture;
 
   @override
   void initState() {
     super.initState();
-    final points = widget.trip.stops
+    _trip = widget.trip;
+    _refreshRoute();
+  }
+  
+  void _refreshRoute() {
+    final points = _trip.stops
         .map((stop) => LatLng(stop.latitude, stop.longitude))
         .toList();
     _routeFuture = OfflineRouteService.instance.buildRouteForPoints(points);
@@ -36,12 +44,17 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Screenshot(
       controller: _screenshotController,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.trip.name),
+          title: Text(_trip.name),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _editTrip,
+            ),
             if (_isExporting)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -77,9 +90,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     const SizedBox(height: 24),
                     _buildStats(),
                     const SizedBox(height: 24),
-                    const Text(
-                      'Itinerary',
-                      style: TextStyle(
+                    Text(
+                      l10n.translate('tripDetail.itinerary'),
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
@@ -97,12 +110,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   }
   
   Widget _buildMap() {
-    if (widget.trip.stops.isEmpty) return const SizedBox.shrink();
+    if (_trip.stops.isEmpty) return const SizedBox.shrink();
 
     return FutureBuilder<List<LatLng>>(
       future: _routeFuture,
       builder: (context, snapshot) {
-        final stopPoints = widget.trip.stops
+        final stopPoints = _trip.stops
             .map((stop) => LatLng(stop.latitude, stop.longitude))
             .toList();
         final isFallbackRoute = !snapshot.hasData || snapshot.data!.isEmpty;
@@ -122,8 +135,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: AppConstants.mapTileUrlTemplate,
                     userAgentPackageName: 'com.baganetic.app',
                     tileProvider: const FMTCStore(AppConstants.mapTileStore)
                         .getTileProvider(),
@@ -146,7 +158,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     ],
                   ),
                   MarkerLayer(
-                    markers: widget.trip.stops.asMap().entries.map((entry) {
+                    markers: _trip.stops.asMap().entries.map((entry) {
                       final index = entry.key;
                       final stop = entry.value;
 
@@ -158,7 +170,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                           decoration: BoxDecoration(
                             color: index == 0
                                 ? Colors.green
-                                : index == widget.trip.stops.length - 1
+                            : index == _trip.stops.length - 1
                                     ? Colors.red
                                     : const Color(0xFFD4AF37),
                             shape: BoxShape.circle,
@@ -193,9 +205,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         color: Colors.black.withOpacity(0.55),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'Using straight-line fallback route',
-                        style: TextStyle(
+                      child: Text(
+                        context.l10n.translate('route.fallback'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -216,7 +228,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.trip.name,
+          _trip.name,
           style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -228,7 +240,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
             const SizedBox(width: 8),
             Text(
-              Helpers.formatDate(widget.trip.date),
+              Helpers.formatDate(_trip.date),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -236,10 +248,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             ),
           ],
         ),
-        if (widget.trip.description != null) ...[
+        if (_trip.description != null) ...[
           const SizedBox(height: 12),
           Text(
-            widget.trip.description!,
+            _trip.description!,
             style: const TextStyle(fontSize: 16),
           ),
         ],
@@ -253,24 +265,28 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         Expanded(
           child: _buildStatCard(
             icon: Icons.location_on,
-            label: 'Stops',
-            value: '${widget.trip.stops.length}',
+            label: context.l10n.translate('tripDetail.stops'),
+            value: '${_trip.stops.length}',
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
             icon: Icons.straighten,
-            label: 'Distance',
-            value: Helpers.formatDistance(widget.trip.getTotalDistance()),
+            label: context.l10n.translate('tripDetail.distance'),
+            value: Helpers.formatDistance(
+              context,
+              _trip.getTotalDistance(),
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
             icon: Icons.access_time,
-            label: 'Duration',
-            value: '${widget.trip.getEstimatedDuration()} min',
+            label: context.l10n.translate('tripDetail.duration'),
+            value:
+                '${_trip.getEstimatedDuration()} ${context.l10n.translate('common.minutesShort')}',
           ),
         ),
       ],
@@ -314,10 +330,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.trip.stops.length,
+      itemCount: _trip.stops.length,
       itemBuilder: (context, index) {
-        final stop = widget.trip.stops[index];
-        final isLast = index == widget.trip.stops.length - 1;
+        final stop = _trip.stops[index];
+        final isLast = index == _trip.stops.length - 1;
         
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,7 +399,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                             Icon(Icons.arrow_downward, size: 14, color: Colors.grey[600]),
                             const SizedBox(width: 4),
                             Text(
-                              Helpers.formatDistance(stop.distanceToNext!),
+                              Helpers.formatDistance(
+                                context,
+                                stop.distanceToNext!,
+                              ),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -422,11 +441,18 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       
       await Share.shareXFiles(
         [XFile(imagePath)],
-        text: '${widget.trip.name} - ${Helpers.formatDate(widget.trip.date)}',
+        text: '${_trip.name} - ${Helpers.formatDate(_trip.date)}',
       );
     } catch (e) {
       if (mounted) {
-        Helpers.showSnackBar(context, 'Error sharing trip: $e', isError: true);
+        Helpers.showSnackBar(
+          context,
+          context.l10n.translate(
+            'tripDetail.shareError',
+            args: {'error': e.toString()},
+          ),
+          isError: true,
+        );
       }
     } finally {
       setState(() {
@@ -448,20 +474,51 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       }
       
       final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/trip_${widget.trip.id}.png';
+      final imagePath = '${directory.path}/trip_${_trip.id}.png';
       final imageFile = File(imagePath);
       await imageFile.writeAsBytes(image);
       
       if (mounted) {
-        Helpers.showSnackBar(context, 'Trip exported to: $imagePath');
+        Helpers.showSnackBar(
+          context,
+          context.l10n.translate(
+            'tripDetail.exportSuccess',
+            args: {'path': imagePath},
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        Helpers.showSnackBar(context, 'Error exporting trip: $e', isError: true);
+        Helpers.showSnackBar(
+          context,
+          context.l10n.translate(
+            'tripDetail.exportError',
+            args: {'error': e.toString()},
+          ),
+          isError: true,
+        );
       }
     } finally {
       setState(() {
         _isExporting = false;
+      });
+    }
+  }
+
+  Future<void> _editTrip() async {
+    if (_isExporting) return;
+    final updatedTrip = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateTripScreen(existingTrip: _trip),
+      ),
+    );
+
+    if (!mounted) return;
+    if (updatedTrip is Trip) {
+      setState(() {
+        _trip = updatedTrip;
+        _refreshRoute();
       });
     }
   }

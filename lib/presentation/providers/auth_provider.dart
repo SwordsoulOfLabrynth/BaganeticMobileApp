@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/services/firebase_service.dart';
+import '../../core/services/logger.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
   User? _user;
   bool _isLoading = false;
-  String? _error;
+  String? _errorKey;
   bool _isGuest = false;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
-  String? get error => _error;
+  String? get errorKey => _errorKey;
   bool get isGuest => _isGuest;
   bool get isAuthenticated => _user != null || _isGuest;
 
@@ -23,38 +24,41 @@ class AuthProvider with ChangeNotifier {
       });
     } catch (e) {
       // Firebase not initialized, user will be null (not authenticated)
-      print('AuthProvider: Firebase not available, treating as not authenticated: $e');
+      Logger.error(
+        'AuthProvider: Firebase not available, treating as not authenticated',
+        e,
+      );
     }
   }
 
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
-    _error = null;
+    _errorKey = null;
     notifyListeners();
 
     try {
       await _firebaseService.signInWithEmail(email, password);
       _isLoading = false;
-      _error = null;
+      _errorKey = null;
       notifyListeners();
       return true;
     } catch (e) {
       // Extract error message from Exception
       if (e is Exception) {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _errorKey = e.toString().replaceFirst('Exception: ', '');
       } else {
-        _error = 'Authentication failed. Please check your email and password.';
+        _errorKey = 'auth.failed';
       }
       _isLoading = false;
       notifyListeners();
-      print('Sign in error: $_error');
+      Logger.error('Sign in error: $_errorKey');
       return false;
     }
   }
 
   Future<bool> signUp(String email, String password) async {
     _isLoading = true;
-    _error = null;
+    _errorKey = null;
     notifyListeners();
 
     try {
@@ -63,9 +67,14 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      if (e is Exception) {
+        _errorKey = e.toString().replaceFirst('Exception: ', '');
+      } else {
+        _errorKey = 'auth.failed';
+      }
       _isLoading = false;
       notifyListeners();
+      Logger.error('Sign up error: $_errorKey');
       return false;
     }
   }
@@ -78,7 +87,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> resetPassword(String email) async {
     _isLoading = true;
-    _error = null;
+    _errorKey = null;
     notifyListeners();
 
     try {
@@ -86,9 +95,14 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      if (e is Exception) {
+        _errorKey = e.toString().replaceFirst('Exception: ', '');
+      } else {
+        _errorKey = 'auth.failed';
+      }
       _isLoading = false;
       notifyListeners();
+      Logger.error('Reset password error: $_errorKey');
     }
   }
 

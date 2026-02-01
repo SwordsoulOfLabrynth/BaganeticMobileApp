@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/image_path_utils.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../core/services/logger.dart';
 
 /// A widget that displays pagoda images with automatic path normalization and error handling
 class PagodaImageWidget extends StatelessWidget {
@@ -34,9 +36,11 @@ class PagodaImageWidget extends StatelessWidget {
       height: height,
       fit: fit,
       errorBuilder: (context, error, stackTrace) {
-        print('Image load error for path: $normalizedPath');
-        print('Original path: $imageUrl');
-        print('Error: $error');
+        Logger.error(
+          'Image load error for path: $normalizedPath (original: $imageUrl)',
+          error,
+          stackTrace,
+        );
         
         // Try alternative path variations
         final String altPath = _tryAlternativePath(normalizedPath);
@@ -76,7 +80,7 @@ class PagodaImageWidget extends StatelessWidget {
           const Icon(Icons.temple_buddhist, size: 60, color: Colors.grey),
           const SizedBox(height: 8),
           Text(
-            'Image not found',
+            context.l10n.translate('common.imageNotFound'),
             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
         ],

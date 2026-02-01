@@ -20,6 +20,7 @@ class PathNode {
 class PathfindingService {
   static const double _defaultNeighborRadiusKm = 5.0;
   static const int _fallbackNeighborCount = 3;
+  static const double _improvementEpsilonKm = 0.0005;
 
   static List<Pagoda> findPath(
     Pagoda start,
@@ -156,6 +157,114 @@ class PathfindingService {
     }
     
     return path;
+  }
+
+  static List<Pagoda> optimizeRouteOrder(
+    List<Pagoda> pagodas, {
+    bool keepFirst = true,
+    int maxIterations = 200,
+  }) {
+    if (pagodas.length <= 2) return pagodas;
+
+    final start = keepFirst ? pagodas.first : null;
+    final remaining = keepFirst ? pagodas.sublist(1) : List<Pagoda>.from(pagodas);
+    final initial = <Pagoda>[];
+    if (start != null) {
+      initial.add(start);
+    }
+    initial.addAll(_nearestNeighborOrder(
+      start ?? remaining.first,
+      remaining,
+    ));
+
+    final optimized = List<Pagoda>.from(initial);
+    final int n = optimized.length;
+    int iterations = 0;
+    bool improved = true;
+
+    while (improved && iterations < maxIterations) {
+      improved = false;
+      iterations += 1;
+      for (int i = 1; i < n - 1; i++) {
+        for (int k = i + 1; k < n; k++) {
+          final delta = _twoOptDelta(optimized, i, k);
+          if (delta < -_improvementEpsilonKm) {
+            _reverseSegment(optimized, i, k);
+            improved = true;
+          }
+        }
+      }
+    }
+
+    return optimized;
+  }
+
+  static List<Pagoda> _nearestNeighborOrder(
+    Pagoda start,
+    List<Pagoda> remaining,
+  ) {
+    final List<Pagoda> ordered = [start];
+    final List<Pagoda> pool = List<Pagoda>.from(remaining);
+
+    if (pool.isNotEmpty && pool.first.id == start.id) {
+      pool.removeAt(0);
+    }
+
+    while (pool.isNotEmpty) {
+      final current = ordered.last;
+      double minDistance = double.infinity;
+      Pagoda? nearest;
+      for (final pagoda in pool) {
+        final distance = Helpers.calculateDistance(
+          current.latitude,
+          current.longitude,
+          pagoda.latitude,
+          pagoda.longitude,
+        );
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearest = pagoda;
+        }
+      }
+      if (nearest == null) {
+        break;
+      }
+      ordered.add(nearest);
+      pool.remove(nearest);
+    }
+
+    return ordered;
+  }
+
+  static double _twoOptDelta(List<Pagoda> route, int i, int k) {
+    final Pagoda a = route[i - 1];
+    final Pagoda b = route[i];
+    final Pagoda c = route[k];
+    final Pagoda? d = (k + 1 < route.length) ? route[k + 1] : null;
+
+    final oldDistance = _distanceBetween(a, b) + (d == null ? 0.0 : _distanceBetween(c, d));
+    final newDistance = _distanceBetween(a, c) + (d == null ? 0.0 : _distanceBetween(b, d));
+
+    return newDistance - oldDistance;
+  }
+
+  static void _reverseSegment(List<Pagoda> route, int i, int k) {
+    while (i < k) {
+      final temp = route[i];
+      route[i] = route[k];
+      route[k] = temp;
+      i++;
+      k--;
+    }
+  }
+
+  static double _distanceBetween(Pagoda a, Pagoda b) {
+    return Helpers.calculateDistance(
+      a.latitude,
+      a.longitude,
+      b.latitude,
+      b.longitude,
+    );
   }
   
   static double calculatePathDistance(List<Pagoda> path) {

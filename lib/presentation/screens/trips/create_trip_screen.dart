@@ -7,11 +7,13 @@ import '../../../data/models/pagoda_model.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/pathfinding.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class CreateTripScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
+  final Trip? existingTrip;
 
-  const CreateTripScreen({super.key, this.initialPagoda});
+  const CreateTripScreen({super.key, this.initialPagoda, this.existingTrip});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -24,6 +26,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   DateTime _selectedDate = DateTime.now();
   List<Pagoda> _selectedPagodas = [];
   bool _isCalculatingRoute = false;
+  bool _loadedExistingStops = false;
   
   @override
   void dispose() {
@@ -35,17 +38,58 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialPagoda != null) {
+    if (widget.existingTrip != null) {
+      final trip = widget.existingTrip!;
+      _nameController.text = trip.name;
+      _descriptionController.text = trip.description ?? '';
+      _selectedDate = trip.date;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadExistingStops();
+      });
+    } else if (widget.initialPagoda != null) {
       _selectedPagodas = [widget.initialPagoda!];
     }
   }
   
+  void _loadExistingStops() {
+    if (_loadedExistingStops || widget.existingTrip == null) return;
+    final provider = context.read<PagodaProvider>();
+    final allPagodas = provider.allPagodas;
+    if (allPagodas.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _loadExistingStops();
+        }
+      });
+      return;
+    }
+
+    final byId = {for (final pagoda in allPagodas) pagoda.id: pagoda};
+    final ordered = <Pagoda>[];
+    for (final stop in widget.existingTrip!.stops) {
+      final match = byId[stop.pagodaId];
+      if (match != null) {
+        ordered.add(match);
+      }
+    }
+
+    setState(() {
+      _selectedPagodas = ordered;
+      _loadedExistingStops = true;
+    });
+  }
+  
   Future<void> _selectDate(BuildContext context) async {
+    final now = DateTime.now();
+    final firstDate = _selectedDate.isBefore(now) ? _selectedDate : now;
+    final lastDate = _selectedDate.isAfter(now.add(const Duration(days: 365)))
+        ? _selectedDate
+        : now.add(const Duration(days: 365));
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -57,7 +101,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedPagodas.isEmpty) {
-      Helpers.showSnackBar(context, 'Please select at least one pagoda', isError: true);
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('trip.selectAtLeastOne'),
+        isError: true,
+      );
       return;
     }
     
@@ -66,6 +114,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     });
     
     try {
+      final isEditing = widget.existingTrip != null;
       // Create trip stops
       List<TripStop> stops = [];
       for (int i = 0; i < _selectedPagodas.length; i++) {
@@ -92,27 +141,40 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         ));
       }
       
+      final now = DateTime.now();
       final trip = Trip(
-        id: const Uuid().v4(),
+        id: isEditing ? widget.existingTrip!.id : const Uuid().v4(),
         name: _nameController.text,
         description: _descriptionController.text.isEmpty
             ? null
             : _descriptionController.text,
         date: _selectedDate,
         stops: stops,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: isEditing ? widget.existingTrip!.createdAt : now,
+        updatedAt: now,
       );
       
       await context.read<TripProvider>().saveTrip(trip);
       
       if (mounted) {
-        Helpers.showSnackBar(context, 'Trip saved successfully!');
-        Navigator.pop(context);
+        Helpers.showSnackBar(
+          context,
+          context.l10n.translate(
+            isEditing ? 'trip.updateSuccess' : 'trip.saveSuccess',
+          ),
+        );
+        Navigator.pop(context, trip);
       }
     } catch (e) {
       if (mounted) {
-        Helpers.showSnackBar(context, 'Error saving trip: $e', isError: true);
+        Helpers.showSnackBar(
+          context,
+          context.l10n.translate(
+            widget.existingTrip != null ? 'trip.updateError' : 'trip.saveError',
+            args: {'error': e.toString()},
+          ),
+          isError: true,
+        );
       }
     } finally {
       setState(() {
@@ -125,7 +187,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     if (_selectedPagodas.length < 2) {
       Helpers.showSnackBar(
         context,
-        'Select at least 2 pagodas to optimize route',
+        context.l10n.translate('trip.selectAtLeastTwo'),
         isError: true,
       );
       return;
@@ -153,56 +215,61 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                     (entry) => entry.value.id == _selectedPagodas[entry.key].id,
                   );
           if (isSameOrder) {
-            Helpers.showSnackBar(context, 'Route already optimal.');
+            Helpers.showSnackBar(
+              context,
+              context.l10n.translate('trip.routeAlreadyOptimal'),
+            );
           } else {
             setState(() {
               _selectedPagodas = path;
             });
-            Helpers.showSnackBar(context, 'Route optimized!');
+            Helpers.showSnackBar(
+              context,
+              context.l10n.translate('trip.routeOptimized'),
+            );
           }
         } else {
           Helpers.showSnackBar(
             context,
-            'No route found between selected pagodas.',
+            context.l10n.translate('trip.noRouteFound'),
             isError: true,
           );
         }
       } else {
-        // Simple nearest neighbor for multiple pagodas
-        List<Pagoda> optimized = [_selectedPagodas[0]];
-        List<Pagoda> remaining = List.from(_selectedPagodas.sublist(1));
-        
-        while (remaining.isNotEmpty) {
-          final current = optimized.last;
-          double minDistance = double.infinity;
-          Pagoda? nearest;
-          
-          for (var pagoda in remaining) {
-            final distance = Helpers.calculateDistance(
-              current.latitude,
-              current.longitude,
-              pagoda.latitude,
-              pagoda.longitude,
-            );
-            if (distance < minDistance) {
-              minDistance = distance;
-              nearest = pagoda;
-            }
-          }
-          
-          if (nearest != null) {
-            optimized.add(nearest);
-            remaining.remove(nearest);
-          }
+        // Nearest neighbor + 2-opt improvement for multiple pagodas
+        final optimized = PathfindingService.optimizeRouteOrder(
+          _selectedPagodas,
+          keepFirst: true,
+        );
+
+        final isSameOrder = optimized.length == _selectedPagodas.length &&
+            optimized.asMap().entries.every(
+                  (entry) => entry.value.id == _selectedPagodas[entry.key].id,
+                );
+        if (isSameOrder) {
+          Helpers.showSnackBar(
+            context,
+            context.l10n.translate('trip.routeAlreadyOptimal'),
+          );
+        } else {
+          setState(() {
+            _selectedPagodas = optimized;
+          });
+          Helpers.showSnackBar(
+            context,
+            context.l10n.translate('trip.routeOptimized'),
+          );
         }
-        
-        setState(() {
-          _selectedPagodas = optimized;
-        });
-        Helpers.showSnackBar(context, 'Route optimized!');
       }
     } catch (e) {
-      Helpers.showSnackBar(context, 'Error optimizing route: $e', isError: true);
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate(
+          'trip.optimizeError',
+          args: {'error': e.toString()},
+        ),
+        isError: true,
+      );
     } finally {
       setState(() {
         _isCalculatingRoute = false;
@@ -212,9 +279,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final isEditing = widget.existingTrip != null;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Trip'),
+        title: Text(
+          l10n.translate(isEditing ? 'trip.editTitle' : 'trip.createTitle'),
+        ),
         actions: [
           if (_isCalculatingRoute)
             const Padding(
@@ -231,9 +302,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           else
             TextButton(
               onPressed: _saveTrip,
-              child: const Text(
-                'Save',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+              child: Text(
+                l10n.translate(isEditing ? 'common.update' : 'common.save'),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
         ],
@@ -245,13 +316,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Trip Name',
-                prefixIcon: Icon(Icons.title),
+              decoration: InputDecoration(
+                labelText: l10n.translate('trip.nameLabel'),
+                prefixIcon: const Icon(Icons.title),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a trip name';
+                  return l10n.translate('trip.nameRequired');
                 }
                 return null;
               },
@@ -259,9 +330,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                prefixIcon: Icon(Icons.description),
+              decoration: InputDecoration(
+                labelText: l10n.translate('trip.descriptionOptional'),
+                prefixIcon: const Icon(Icons.description),
               ),
               maxLines: 3,
             ),
@@ -269,7 +340,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today),
-              title: const Text('Date'),
+              title: Text(l10n.translate('trip.date')),
               subtitle: Text(Helpers.formatDate(_selectedDate)),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _selectDate(context),
@@ -278,9 +349,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Selected Pagodas',
-                  style: TextStyle(
+                Text(
+                  l10n.translate('trip.selectedPagodas'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -288,7 +359,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 TextButton.icon(
                   onPressed: _optimizeRoute,
                   icon: const Icon(Icons.route),
-                  label: const Text('Optimize'),
+                  label: Text(l10n.translate('trip.optimize')),
                 ),
               ],
             ),
@@ -298,7 +369,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Text(
-                    'No pagodas selected',
+                    l10n.translate('trip.noneSelected'),
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                 ),
@@ -327,8 +398,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                         backgroundColor: const Color(0xFFD4AF37),
                         child: Text('${index + 1}'),
                       ),
-                      title: Text(pagoda.name),
-                      subtitle: Text(pagoda.category),
+                      title: Text(l10n.pagodaName(pagoda.id, pagoda.name)),
+                      subtitle: Text(l10n.categoryLabel(pagoda.category)),
                       trailing: IconButton(
                         icon: const Icon(Icons.remove_circle, color: Colors.red),
                         onPressed: () {
@@ -345,7 +416,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             ElevatedButton.icon(
               onPressed: () => _showPagodaSelector(context),
               icon: const Icon(Icons.add),
-              label: const Text('Add Pagodas'),
+              label: Text(l10n.translate('trip.addPagodas')),
             ),
           ],
         ),
@@ -356,6 +427,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   Future<void> _showPagodaSelector(BuildContext context) async {
     final provider = context.read<PagodaProvider>();
     final allPagodas = provider.allPagodas;
+    final l10n = context.l10n;
     
     await showModalBottomSheet(
       context: context,
@@ -380,11 +452,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(16),
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Select Pagodas',
-                  style: TextStyle(
+                  l10n.translate('trip.selectPagodas'),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -396,7 +468,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Done'),
+                    child: Text(l10n.translate('common.done')),
                   ),
                 ),
               ),
@@ -423,8 +495,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                           setState(() {});
                         }
                       },
-                      title: Text(pagoda.name),
-                      subtitle: Text(pagoda.category),
+                      title: Text(l10n.pagodaName(pagoda.id, pagoda.name)),
+                      subtitle: Text(l10n.categoryLabel(pagoda.category)),
                       secondary: const Icon(Icons.temple_buddhist),
                     );
                   },

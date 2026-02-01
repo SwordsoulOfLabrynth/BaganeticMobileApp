@@ -5,15 +5,17 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../../widgets/pagoda_image_widget.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class PagodasListScreen extends StatelessWidget {
   const PagodasListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pagodas'),
+        title: Text(l10n.translate('pagodas.title')),
         elevation: 0,
       ),
       body: Column(
@@ -30,8 +32,8 @@ class PagodasListScreen extends StatelessWidget {
                 final pagodas = provider.pagodas;
                 
                 if (pagodas.isEmpty) {
-                  return const Center(
-                    child: Text('No pagodas found'),
+                  return Center(
+                    child: Text(l10n.translate('pagodas.empty')),
                   );
                 }
                 
@@ -51,11 +53,12 @@ class PagodasListScreen extends StatelessWidget {
   }
   
   Widget _buildSearchBar(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: TextField(
         decoration: InputDecoration(
-          hintText: 'Search pagodas...',
+          hintText: l10n.translate('pagodas.searchHint'),
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: Colors.grey[100],
@@ -72,6 +75,7 @@ class PagodasListScreen extends StatelessWidget {
   }
   
   Widget _buildCategoryFilter(BuildContext context) {
+    final l10n = context.l10n;
     return Consumer<PagodaProvider>(
       builder: (context, provider, _) {
         return SizedBox(
@@ -87,7 +91,7 @@ class PagodasListScreen extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
-                  label: Text(category),
+                  label: Text(l10n.categoryLabel(category)),
                   selected: isSelected,
                   onSelected: (_) {
                     provider.setCategory(category);
@@ -106,6 +110,7 @@ class PagodasListScreen extends StatelessWidget {
   }
   
   Widget _buildPagodaCard(BuildContext context, Pagoda pagoda) {
+    final l10n = context.l10n;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -144,7 +149,7 @@ class PagodasListScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          pagoda.name,
+                          l10n.pagodaName(pagoda.id, pagoda.name),
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -171,13 +176,13 @@ class PagodasListScreen extends StatelessWidget {
                       border: Border.all(color: const Color(0xFFB8860B), width: 1),
                     ),
                     child: Text(
-                      pagoda.category,
+                      l10n.categoryLabel(pagoda.category),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    pagoda.description,
+                    l10n.pagodaDescription(pagoda.id, pagoda.description),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.grey[600]),
