@@ -1,5 +1,9 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
+import '../../core/constants/app_constants.dart';
 import '../../core/services/logger.dart';
 import '../../core/services/pagoda_search_service.dart';
 import '../../data/models/pagoda_model.dart';
@@ -9,37 +13,58 @@ class PagodaUIProvider with ChangeNotifier {
   PagodaUIProvider({
     PagodaDataService? dataService,
     PagodaSearchService? searchService,
-  })  : _dataService = dataService ?? PagodaDataService(),
-        _searchService = searchService ?? PagodaSearchService() {
+  }) : _dataService = dataService ?? PagodaDataService(),
+       _searchService = searchService ?? PagodaSearchService() {
+    _currentOwnerId = _resolveOwnerId(_auth.currentUser);
+    _authSub = _auth.authStateChanges().listen((user) async {
+      final nextOwnerId = _resolveOwnerId(user);
+      if (nextOwnerId == _currentOwnerId) {
+        return;
+      }
+      _currentOwnerId = nextOwnerId;
+      await loadPagodas();
+      await loadFavorites();
+    });
     loadPagodas();
     loadFavorites();
   }
 
   final PagodaDataService _dataService;
   final PagodaSearchService _searchService;
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
 
   List<Pagoda> _pagodas = [];
   List<Pagoda> _favorites = [];
   String _selectedCategory = 'All';
   String _searchQuery = '';
   bool _isLoading = false;
+  String _currentOwnerId = AppConstants.guestOwnerId;
+  StreamSubscription<firebase_auth.User?>? _authSub;
 
   List<Pagoda> get pagodas => _searchService.filterPagodas(
-        pagodas: _pagodas,
-        selectedCategory: _selectedCategory,
-        searchQuery: _searchQuery,
-      );
+    pagodas: _pagodas,
+    selectedCategory: _selectedCategory,
+    searchQuery: _searchQuery,
+  );
   List<Pagoda> get allPagodas => List.unmodifiable(_pagodas);
   List<Pagoda> get favorites => _favorites;
   String get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;
+  bool get canManageFavorites => _currentOwnerId != AppConstants.guestOwnerId;
+  String get currentOwnerId => _currentOwnerId;
+
+  String _resolveOwnerId(firebase_auth.User? user) {
+    return user?.uid ?? AppConstants.guestOwnerId;
+  }
 
   Future<void> loadPagodas() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      _pagodas = await _dataService.loadPagodas();
+      _pagodas = await _dataService.loadPagodas(
+        ownerUserId: canManageFavorites ? _currentOwnerId : null,
+      );
     } catch (e, stackTrace) {
       Logger.error('Error loading pagodas', e, stackTrace);
     } finally {
@@ -48,25 +73,15 @@ class PagodaUIProvider with ChangeNotifier {
     }
   }
 
-  Future<void> reloadSampleData() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _dataService.reloadSampleData();
-      _pagodas = await _dataService.loadPagodas();
-      _favorites = await _dataService.getFavorites();
-    } catch (e, stackTrace) {
-      Logger.error('Error reloading sample data', e, stackTrace);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
   Future<void> loadFavorites() async {
     try {
-      _favorites = await _dataService.getFavorites();
+      if (!canManageFavorites) {
+        _favorites = [];
+      } else {
+        _favorites = await _dataService.getFavorites(
+          ownerUserId: _currentOwnerId,
+        );
+      }
       notifyListeners();
     } catch (e, stackTrace) {
       Logger.error('Error loading favorites', e, stackTrace);
@@ -74,11 +89,36 @@ class PagodaUIProvider with ChangeNotifier {
   }
 
   Future<void> toggleFavorite(String pagodaId) async {
+    if (!canManageFavorites) return;
+
+    final index = _pagodas.indexWhere((pagoda) => pagoda.id == pagodaId);
+    if (index == -1) return;
+
+    final previousPagoda = _pagodas[index];
+    final nextPagoda = previousPagoda.copyWith(
+      isFavorite: !previousPagoda.isFavorite,
+    );
+    _pagodas[index] = nextPagoda;
+
+    if (nextPagoda.isFavorite) {
+      _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
+      _favorites.insert(0, nextPagoda);
+    } else {
+      _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
+    }
+    notifyListeners();
+
     try {
-      await _dataService.toggleFavorite(pagodaId);
-      await loadPagodas();
-      await loadFavorites();
+      await _dataService.toggleFavorite(pagodaId, ownerUserId: _currentOwnerId);
     } catch (e, stackTrace) {
+      _pagodas[index] = previousPagoda;
+      if (previousPagoda.isFavorite) {
+        _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
+        _favorites.insert(0, previousPagoda);
+      } else {
+        _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
+      }
+      notifyListeners();
       Logger.error('Error toggling favorite', e, stackTrace);
     }
   }
@@ -94,13 +134,19 @@ class PagodaUIProvider with ChangeNotifier {
   }
 
   Future<Pagoda?> getPagodaById(String id) {
-    return _dataService.getPagodaById(id);
+    return _dataService.getPagodaById(
+      id,
+      ownerUserId: canManageFavorites ? _currentOwnerId : null,
+    );
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
   }
 }
 
 class PagodaProvider extends PagodaUIProvider {
-  PagodaProvider({
-    PagodaDataService? dataService,
-    PagodaSearchService? searchService,
-  }) : super(dataService: dataService, searchService: searchService);
+  PagodaProvider({super.dataService, super.searchService});
 }

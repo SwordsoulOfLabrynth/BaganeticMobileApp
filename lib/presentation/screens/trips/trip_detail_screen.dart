@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+
+// Conditional import for File and web APIs
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/services/offline_route_service.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/responsive.dart';
 import 'create_trip_screen.dart';
 
 class TripDetailScreen extends StatefulWidget {
   final Trip trip;
-  
+
   const TripDetailScreen({super.key, required this.trip});
 
   @override
@@ -34,7 +38,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     _trip = widget.trip;
     _refreshRoute();
   }
-  
+
   void _refreshRoute() {
     final points = _trip.stops
         .map((stop) => LatLng(stop.latitude, stop.longitude))
@@ -51,10 +55,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         appBar: AppBar(
           title: Text(_trip.name),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: _editTrip,
-            ),
+            IconButton(icon: const Icon(Icons.edit), onPressed: _editTrip),
             if (_isExporting)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -65,10 +66,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ),
               )
             else ...[
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: _shareTrip,
-              ),
+              IconButton(icon: const Icon(Icons.share), onPressed: _shareTrip),
               IconButton(
                 icon: const Icon(Icons.download),
                 onPressed: _exportTrip,
@@ -77,40 +75,49 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           ],
         ),
         body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildMap(),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 24),
-                    _buildStats(),
-                    const SizedBox(height: 24),
-                    Text(
-                      l10n.translate('tripDetail.itinerary'),
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+          child: ResponsiveContent(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildMap(),
+                Padding(
+                  padding: Responsive.pagePadding(context),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      _buildStats(),
+                      const SizedBox(height: 24),
+                      Text(
+                        l10n.translate('tripDetail.itinerary'),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildItinerary(),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildItinerary(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-  
+
   Widget _buildMap() {
     if (_trip.stops.isEmpty) return const SizedBox.shrink();
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final mapHeight = screenWidth >= 1000
+        ? 420.0
+        : screenWidth >= 600
+        ? 360.0
+        : 280.0;
 
     return FutureBuilder<List<LatLng>>(
       future: _routeFuture,
@@ -123,7 +130,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         final bounds = LatLngBounds.fromPoints(routePoints);
 
         return SizedBox(
-          height: 300,
+          height: mapHeight,
           child: Stack(
             children: [
               FlutterMap(
@@ -137,8 +144,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                   TileLayer(
                     urlTemplate: AppConstants.mapTileUrlTemplate,
                     userAgentPackageName: 'com.baganetic.app',
-                    tileProvider: const FMTCStore(AppConstants.mapTileStore)
-                        .getTileProvider(),
+                    tileProvider: FMTCTileProvider(
+                      stores: const {
+                        AppConstants.mapTileStore:
+                            BrowseStoreStrategy.readUpdateCreate,
+                      },
+                    ),
                   ),
                   PolylineLayer(
                     polylines: [
@@ -147,7 +158,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         color: const Color(0xFFD4AF37),
                         strokeWidth: 5,
                         borderStrokeWidth: 3,
-                        borderColor: Colors.black.withOpacity(0.25),
+                        borderColor: Colors.black.withValues(alpha: 0.25),
                         gradientColors: const [
                           Colors.green,
                           Color(0xFFD4AF37),
@@ -170,9 +181,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                           decoration: BoxDecoration(
                             color: index == 0
                                 ? Colors.green
-                            : index == _trip.stops.length - 1
-                                    ? Colors.red
-                                    : const Color(0xFFD4AF37),
+                                : index == _trip.stops.length - 1
+                                ? Colors.red
+                                : const Color(0xFFD4AF37),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -202,7 +213,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.55),
+                        color: Colors.black.withValues(alpha: 0.55),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -222,17 +233,14 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       },
     );
   }
-  
+
   Widget _buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           _trip.name,
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Row(
@@ -241,58 +249,65 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             const SizedBox(width: 8),
             Text(
               Helpers.formatDate(_trip.date),
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
         ),
         if (_trip.description != null) ...[
           const SizedBox(height: 12),
-          Text(
-            _trip.description!,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(_trip.description!, style: const TextStyle(fontSize: 16)),
         ],
       ],
     );
   }
-  
+
   Widget _buildStats() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.location_on,
-            label: context.l10n.translate('tripDetail.stops'),
-            value: '${_trip.stops.length}',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.straighten,
-            label: context.l10n.translate('tripDetail.distance'),
-            value: Helpers.formatDistance(
-              context,
-              _trip.getTotalDistance(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth >= 900
+            ? (constraints.maxWidth - 24) / 3
+            : constraints.maxWidth >= 600
+            ? (constraints.maxWidth - 12) / 2
+            : constraints.maxWidth;
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            SizedBox(
+              width: cardWidth,
+              child: _buildStatCard(
+                icon: Icons.location_on,
+                label: context.l10n.translate('tripDetail.stops'),
+                value: '${_trip.stops.length}',
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.access_time,
-            label: context.l10n.translate('tripDetail.duration'),
-            value:
-                '${_trip.getEstimatedDuration()} ${context.l10n.translate('common.minutesShort')}',
-          ),
-        ),
-      ],
+            SizedBox(
+              width: cardWidth,
+              child: _buildStatCard(
+                icon: Icons.straighten,
+                label: context.l10n.translate('tripDetail.distance'),
+                value: Helpers.formatDistance(
+                  context,
+                  _trip.getTotalDistance(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: cardWidth,
+              child: _buildStatCard(
+                icon: Icons.access_time,
+                label: context.l10n.translate('tripDetail.duration'),
+                value:
+                    '${_trip.getEstimatedDuration()} ${context.l10n.translate('common.minutesShort')}',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
-  
+
   Widget _buildStatCard({
     required IconData icon,
     required String label,
@@ -308,24 +323,18 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             const SizedBox(height: 8),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
       ),
     );
   }
-  
+
   Widget _buildItinerary() {
     return ListView.builder(
       shrinkWrap: true,
@@ -334,7 +343,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       itemBuilder: (context, index) {
         final stop = _trip.stops[index];
         final isLast = index == _trip.stops.length - 1;
-        
+
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -347,8 +356,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     color: index == 0
                         ? Colors.green
                         : isLast
-                            ? Colors.red
-                            : const Color(0xFFD4AF37),
+                        ? Colors.red
+                        : const Color(0xFFD4AF37),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -362,11 +371,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                   ),
                 ),
                 if (!isLast)
-                  Container(
-                    width: 2,
-                    height: 60,
-                    color: Colors.grey[300],
-                  ),
+                  Container(width: 2, height: 60, color: Colors.grey[300]),
               ],
             ),
             const SizedBox(width: 16),
@@ -396,7 +401,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            Icon(Icons.arrow_downward, size: 14, color: Colors.grey[600]),
+                            Icon(
+                              Icons.arrow_downward,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               Helpers.formatDistance(
@@ -421,28 +430,36 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       },
     );
   }
-  
+
   Future<void> _shareTrip() async {
     if (_isExporting) return;
     setState(() {
       _isExporting = true;
     });
-    
+
     try {
       final image = await _screenshotController.capture();
       if (image == null) {
         throw Exception('Failed to capture screenshot');
       }
-      
-      final directory = await getTemporaryDirectory();
-      final imagePath = '${directory.path}/trip_${widget.trip.id}.png';
-      final imageFile = File(imagePath);
-      await imageFile.writeAsBytes(image);
-      
-      await Share.shareXFiles(
-        [XFile(imagePath)],
-        text: '${_trip.name} - ${Helpers.formatDate(_trip.date)}',
-      );
+
+      if (kIsWeb) {
+        // On web, share directly without file
+        await Share.share(
+          '${_trip.name} - ${Helpers.formatDate(_trip.date)}',
+        );
+      } else {
+        final directory = await getTemporaryDirectory();
+        final imagePath = '${directory.path}/trip_${widget.trip.id}.png';
+        // ignore: avoid_dynamic_calls
+        final imageFile = html.File(imagePath);
+        // ignore: avoid_dynamic_calls
+        await (imageFile as dynamic).writeAsBytes(image);
+
+        await Share.shareXFiles([
+          XFile(imagePath),
+        ], text: '${_trip.name} - ${Helpers.formatDate(_trip.date)}');
+      }
     } catch (e) {
       if (mounted) {
         Helpers.showSnackBar(
@@ -460,32 +477,48 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
       });
     }
   }
-  
+
   Future<void> _exportTrip() async {
     if (_isExporting) return;
     setState(() {
       _isExporting = true;
     });
-    
+
     try {
       final image = await _screenshotController.capture();
       if (image == null) {
         throw Exception('Failed to capture screenshot');
       }
-      
-      final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/trip_${_trip.id}.png';
-      final imageFile = File(imagePath);
-      await imageFile.writeAsBytes(image);
-      
-      if (mounted) {
-        Helpers.showSnackBar(
-          context,
-          context.l10n.translate(
-            'tripDetail.exportSuccess',
-            args: {'path': imagePath},
-          ),
+
+      if (kIsWeb) {
+        // On web, use Share API which handles file download
+        // Convert image to base64 and share, or use share_plus web support
+        await Share.share(
+          '${_trip.name} - ${Helpers.formatDate(_trip.date)}\n\nImage exported successfully.',
         );
+        if (mounted) {
+          Helpers.showSnackBar(
+            context,
+            context.l10n.translate('tripDetail.exportSuccess', args: {'path': 'trip_${_trip.id}.png'}),
+          );
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final imagePath = '${directory.path}/trip_${_trip.id}.png';
+        // ignore: avoid_dynamic_calls
+        final imageFile = html.File(imagePath);
+        // ignore: avoid_dynamic_calls
+        await (imageFile as dynamic).writeAsBytes(image);
+
+        if (mounted) {
+          Helpers.showSnackBar(
+            context,
+            context.l10n.translate(
+              'tripDetail.exportSuccess',
+              args: {'path': imagePath},
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

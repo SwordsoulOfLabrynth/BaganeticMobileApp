@@ -166,16 +166,16 @@ class PathfindingService {
   }) {
     if (pagodas.length <= 2) return pagodas;
 
-    final start = keepFirst ? pagodas.first : null;
-    final remaining = keepFirst ? pagodas.sublist(1) : List<Pagoda>.from(pagodas);
-    final initial = <Pagoda>[];
-    if (start != null) {
-      initial.add(start);
+    final List<Pagoda> initial;
+    if (keepFirst) {
+      // Build order once from the first stop to avoid duplicating it.
+      initial = _nearestNeighborOrder(pagodas.first, pagodas.sublist(1));
+    } else {
+      initial = _nearestNeighborOrder(
+        pagodas.first,
+        pagodas.sublist(1),
+      );
     }
-    initial.addAll(_nearestNeighborOrder(
-      start ?? remaining.first,
-      remaining,
-    ));
 
     final optimized = List<Pagoda>.from(initial);
     final int n = optimized.length;

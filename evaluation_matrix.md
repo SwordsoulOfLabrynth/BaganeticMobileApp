@@ -26,9 +26,9 @@ This evaluation matrix provides a comprehensive framework for assessing the proj
 | **Trip Planning** | ✅ Implemented | 80% | Good | 5% | - | ⏳ Testing |
 | **Bilingual UI (EN/MM)** | ✅ Implemented | 85% | Good | 5% | - | ⏳ Testing |
 | **Firebase Authentication** | ✅ Implemented | 90% | Good | 3% | - | ⏳ Testing |
+| **Discovery Module** | ✅ Implemented | 90% | Good | 5% | - | ⏳ Testing |
+| **Group Chat/Trip Rooms** | ✅ Implemented | 85% | Good | 4% | - | ⏳ Testing |
 | **GPS Tracking** | 🔄 Planned | 0% | - | 5% | - | ⏳ Pending |
-| **Discovery Module** | 🔄 Planned | 0% | - | 5% | - | ⏳ Pending |
-| **Group Chat/Trip Rooms** | 🔄 Planned | 0% | - | 4% | - | ⏳ Pending |
 | **AI Chatbot** | 🔄 Planned | 0% | - | 5% | - | ⏳ Pending |
 | **Safety Toolkit** | 🔄 Planned | 0% | - | 3% | - | ⏳ Pending |
 
@@ -70,8 +70,10 @@ This evaluation matrix provides a comprehensive framework for assessing the proj
 | **UI/UX Design** | Weeks 3-4 | ✅ Completed | On Time | - |
 | **Offline Map Integration** | Weeks 5-6 | ✅ Completed | On Time | - |
 | **A* Algorithm Implementation** | Weeks 7-8 | ✅ Completed | On Time | - |
-| **Personalization Features** | Weeks 9-10 | 🔄 In Progress | On Track | - |
-| **AI Chatbot Integration** | Weeks 11-12 | ⏳ Pending | Pending | - |
+| **Personalization Features** | Weeks 9-10 | ✅ Completed | On Time | - |
+| **Discovery Module** | Weeks 11-12 | ✅ Completed | On Time | - |
+| **Group Chat/Trip Rooms** | Weeks 13-14 | ✅ Completed | On Time | - |
+| **AI Chatbot Integration** | Weeks 15-16 | ⏳ Pending | Pending | - |
 | **Final Testing & Evaluation** | Weeks 13-14 | ⏳ Pending | Pending | - |
 
 ## 7. Success Metrics Summary

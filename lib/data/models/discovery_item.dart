@@ -24,6 +24,8 @@ class DiscoveryItem {
   });
 
   bool get isHotel => type.toLowerCase() == 'hotel';
+  bool get isRestaurant => type.toLowerCase() == 'restaurant';
+  bool get isService => type.toLowerCase() == 'service';
 
   factory DiscoveryItem.fromJson(Map<String, dynamic> json) {
     final tagsRaw = json['tags'];

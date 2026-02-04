@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../data/models/discovery_item.dart';
 import '../../providers/discovery_provider.dart';
 
@@ -17,12 +18,14 @@ class DiscoveryScreen extends StatelessWidget {
         title: Text(l10n.translate('discovery.title')),
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(context),
-          _buildCategoryFilter(context),
-          _buildDiscoveryList(context),
-        ],
+      body: ResponsiveContent(
+        child: Column(
+          children: [
+            _buildSearchBar(context),
+            _buildCategoryFilter(context),
+            _buildDiscoveryList(context),
+          ],
+        ),
       ),
     );
   }
@@ -30,7 +33,7 @@ class DiscoveryScreen extends StatelessWidget {
   Widget _buildSearchBar(BuildContext context) {
     final l10n = context.l10n;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: Responsive.pagePadding(context).copyWith(bottom: 12),
       child: TextField(
         decoration: InputDecoration(
           hintText: l10n.translate('discovery.searchHint'),
@@ -57,7 +60,9 @@ class DiscoveryScreen extends StatelessWidget {
           height: 50,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.pagePadding(context).left,
+            ),
             itemCount: AppConstants.discoveryCategories.length,
             itemBuilder: (context, index) {
               final category = AppConstants.discoveryCategories[index];
@@ -95,16 +100,37 @@ class DiscoveryScreen extends StatelessWidget {
 
           final items = provider.items;
           if (items.isEmpty) {
-            return Center(
-              child: Text(l10n.translate('discovery.empty')),
-            );
+            return Center(child: Text(l10n.translate('discovery.empty')));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return _buildDiscoveryCard(context, items[index]);
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final useGrid = constraints.maxWidth >= 900;
+              final crossAxisCount = constraints.maxWidth >= 1200 ? 3 : 2;
+
+              if (!useGrid) {
+                return ListView.builder(
+                  padding: Responsive.pagePadding(context),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    return _buildDiscoveryCard(context, items[index]);
+                  },
+                );
+              }
+
+              return GridView.builder(
+                padding: Responsive.pagePadding(context),
+                itemCount: items.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.05,
+                ),
+                itemBuilder: (context, index) {
+                  return _buildDiscoveryCard(context, items[index]);
+                },
+              );
             },
           );
         },
@@ -114,15 +140,16 @@ class DiscoveryScreen extends StatelessWidget {
 
   Widget _buildDiscoveryCard(BuildContext context, DiscoveryItem item) {
     final l10n = context.l10n;
-    final accentColor = item.isHotel ? Colors.indigo : Colors.deepOrange;
-    final icon = item.isHotel ? Icons.hotel : Icons.restaurant;
+    final accentColor = _accentColorFor(item);
+    final icon = _iconFor(item);
+    final isWideLayout = MediaQuery.sizeOf(context).width >= 900;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: isWideLayout
+          ? EdgeInsets.zero
+          : const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () => _showDetails(context, item),
         borderRadius: BorderRadius.circular(12),
@@ -137,7 +164,7 @@ class DiscoveryScreen extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.12),
+                      color: accentColor.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(icon, color: accentColor),
@@ -164,12 +191,13 @@ class DiscoveryScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Column(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 18),
-                      Text(item.rating.toStringAsFixed(1)),
-                    ],
-                  ),
+                  if (item.rating > 0)
+                    Column(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 18),
+                        Text(item.rating.toStringAsFixed(1)),
+                      ],
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -208,9 +236,7 @@ class DiscoveryScreen extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: item.tags
-                      .map((tag) => _buildTag(tag))
-                      .toList(),
+                  children: item.tags.map((tag) => _buildTag(tag)).toList(),
                 ),
               ],
             ],
@@ -222,7 +248,7 @@ class DiscoveryScreen extends StatelessWidget {
 
   Widget _buildInfoChip(String label, IconData icon, Color color) {
     return Chip(
-      backgroundColor: color.withOpacity(0.12),
+      backgroundColor: color.withValues(alpha: 0.12),
       label: Text(label),
       avatar: Icon(icon, size: 16, color: color),
     );
@@ -232,7 +258,7 @@ class DiscoveryScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFB8860B).withOpacity(0.12),
+        color: const Color(0xFFB8860B).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFB8860B), width: 0.6),
       ),
@@ -245,8 +271,8 @@ class DiscoveryScreen extends StatelessWidget {
 
   void _showDetails(BuildContext context, DiscoveryItem item) {
     final l10n = context.l10n;
-    final accentColor = item.isHotel ? Colors.indigo : Colors.deepOrange;
-    final icon = item.isHotel ? Icons.hotel : Icons.restaurant;
+    final accentColor = _accentColorFor(item);
+    final icon = _iconFor(item);
 
     showModalBottomSheet(
       context: context,
@@ -273,7 +299,7 @@ class DiscoveryScreen extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: accentColor.withOpacity(0.12),
+                        color: accentColor.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(icon, color: accentColor),
@@ -288,13 +314,14 @@ class DiscoveryScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 18),
-                        const SizedBox(width: 4),
-                        Text(item.rating.toStringAsFixed(1)),
-                      ],
-                    ),
+                    if (item.rating > 0)
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          const SizedBox(width: 4),
+                          Text(item.rating.toStringAsFixed(1)),
+                        ],
+                      ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -336,8 +363,7 @@ class DiscoveryScreen extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children:
-                        item.tags.map((tag) => _buildTag(tag)).toList(),
+                    children: item.tags.map((tag) => _buildTag(tag)).toList(),
                   ),
                 ],
               ],
@@ -374,5 +400,17 @@ class DiscoveryScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _accentColorFor(DiscoveryItem item) {
+    if (item.isHotel) return Colors.indigo;
+    if (item.isRestaurant) return Colors.deepOrange;
+    return Colors.teal;
+  }
+
+  IconData _iconFor(DiscoveryItem item) {
+    if (item.isHotel) return Icons.hotel;
+    if (item.isRestaurant) return Icons.restaurant;
+    return Icons.miscellaneous_services;
   }
 }

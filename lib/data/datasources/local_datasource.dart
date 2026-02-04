@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/pagoda_model.dart';
@@ -12,40 +13,48 @@ import 'migrations/migration_v4.dart';
 import 'migrations/migration_v5.dart';
 import 'migrations/migration_v6.dart';
 import 'migrations/migration_v7.dart';
+import 'migrations/migration_v8.dart';
+import 'migrations/migration_v9.dart';
 
 class DatabaseService {
   static Database? _database;
-  
+
   Future<Database> get database async {
+    if (kIsWeb) {
+      throw UnsupportedError('DatabaseService is not supported on web platform');
+    }
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
-  
+
   Future<void> closeDatabase() async {
     if (_database != null) {
       await _database!.close();
       _database = null;
     }
   }
-  
+
   Future<Database> _initDatabase() async {
     String path = join(await getDatabasesPath(), AppConstants.dbName);
-    
+
     return await openDatabase(
       path,
       version: AppConstants.dbVersion,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onOpen: _onOpen,
     );
   }
-  
+
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     final List<DatabaseMigration> migrations = [
       MigrationToV4(),
       MigrationToV5(),
       MigrationToV6(),
       MigrationToV7(),
+      MigrationToV8(),
+      MigrationToV9(),
     ]..sort((a, b) => a.targetVersion.compareTo(b.targetVersion));
 
     for (final migration in migrations) {
@@ -56,7 +65,7 @@ class DatabaseService {
       }
     }
   }
-  
+
   Future<void> _onCreate(Database db, int version) async {
     // Pagodas table
     await db.execute('''
@@ -87,11 +96,12 @@ class DatabaseService {
         isFavorite INTEGER DEFAULT 0
       )
     ''');
-    
+
     // Trips table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableTrips} (
         id TEXT PRIMARY KEY,
+        ownerUserId TEXT NOT NULL,
         name TEXT NOT NULL,
         description TEXT,
         date TEXT NOT NULL,
@@ -99,7 +109,7 @@ class DatabaseService {
         updatedAt TEXT NOT NULL
       )
     ''');
-    
+
     // Trip stops table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableTripStops} (
@@ -115,54 +125,70 @@ class DatabaseService {
         FOREIGN KEY (tripId) REFERENCES ${AppConstants.tableTrips}(id) ON DELETE CASCADE
       )
     ''');
-    
+
     // Favorites table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableFavorites} (
-        pagodaId TEXT PRIMARY KEY,
-        addedAt TEXT NOT NULL
+        ownerUserId TEXT NOT NULL,
+        pagodaId TEXT NOT NULL,
+        addedAt TEXT NOT NULL,
+        PRIMARY KEY (ownerUserId, pagodaId)
       )
     ''');
   }
-  
+
+  Future<void> _onOpen(Database db) async {
+    try {
+      // Repair critical schema drift for users with partially applied updates.
+      await MigrationToV7().migrate(db);
+      await MigrationToV9().migrate(db);
+    } catch (e, stackTrace) {
+      Logger.error('Database schema self-heal failed', e, stackTrace);
+    }
+  }
+
   // Pagoda CRUD operations
   Future<int> insertPagoda(Pagoda pagoda) async {
     final db = await database;
-    
+
     // Normalize image paths before saving
-    final String normalizedImageUrl = ImagePathUtils.normalizeImagePath(pagoda.imageUrl);
+    final String normalizedImageUrl = ImagePathUtils.normalizeImagePath(
+      pagoda.imageUrl,
+    );
     final List<String> normalizedImages = pagoda.images
         .map((img) => ImagePathUtils.normalizeImagePath(img))
         .toList();
-    
+
     final String uniqueFeaturesJson = jsonEncode(
       pagoda.uniqueFeatures.map((feature) => feature.toJson()).toList(),
     );
 
-    return await db.insert(
-      AppConstants.tablePagodas,
-      {
-        ...pagoda.toJson(),
-        'imageUrl': normalizedImageUrl,
-        'images': normalizedImages.join(','),
-        'uniqueFeatures': uniqueFeaturesJson,
-        'isFavorite': pagoda.isFavorite ? 1 : 0,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    return await db.insert(AppConstants.tablePagodas, {
+      ...pagoda.toJson(),
+      'imageUrl': normalizedImageUrl,
+      'images': normalizedImages.join(','),
+      'uniqueFeatures': uniqueFeaturesJson,
+      'isFavorite': pagoda.isFavorite ? 1 : 0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
-  
-  Future<List<Pagoda>> getAllPagodas() async {
+
+  Future<List<Pagoda>> getAllPagodas({String? ownerUserId}) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(AppConstants.tablePagodas);
-    
+    final favoriteIds = await _getFavoriteIdsForOwner(
+      db,
+      ownerUserId: ownerUserId,
+    );
+    final List<Map<String, dynamic>> maps = await db.query(
+      AppConstants.tablePagodas,
+    );
+
     return List.generate(maps.length, (i) {
       // Normalize image path
       final String? imageUrl = maps[i]['imageUrl'] as String?;
-      final String normalizedImageUrl = imageUrl != null 
+      final String normalizedImageUrl = imageUrl != null
           ? ImagePathUtils.normalizeImagePath(imageUrl)
           : '';
-      
+
       // Normalize images list
       final String? imagesStr = maps[i]['images'] as String?;
       final List<String> normalizedImages = (imagesStr?.split(',') ?? [])
@@ -170,35 +196,40 @@ class DatabaseService {
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
 
-      final List<dynamic> uniqueFeatures =
-          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
-      
+      final List<dynamic> uniqueFeatures = _decodeUniqueFeatures(
+        maps[i]['uniqueFeatures'] as String?,
+      );
+
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
         'uniqueFeatures': uniqueFeatures,
-        'isFavorite': maps[i]['isFavorite'] == 1,
+        'isFavorite': favoriteIds.contains(maps[i]['id']),
       });
     });
   }
-  
-  Future<Pagoda?> getPagodaById(String id) async {
+
+  Future<Pagoda?> getPagodaById(String id, {String? ownerUserId}) async {
     final db = await database;
+    final favoriteIds = await _getFavoriteIdsForOwner(
+      db,
+      ownerUserId: ownerUserId,
+    );
     final List<Map<String, dynamic>> maps = await db.query(
       AppConstants.tablePagodas,
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     if (maps.isEmpty) return null;
-    
+
     // Normalize image path
     final String? imageUrl = maps.first['imageUrl'] as String?;
-    final String normalizedImageUrl = imageUrl != null 
+    final String normalizedImageUrl = imageUrl != null
         ? ImagePathUtils.normalizeImagePath(imageUrl)
         : '';
-    
+
     // Normalize images list
     final String? imagesStr = maps.first['images'] as String?;
     final List<String> normalizedImages = (imagesStr?.split(',') ?? [])
@@ -206,33 +237,41 @@ class DatabaseService {
         .map((img) => ImagePathUtils.normalizeImagePath(img))
         .toList();
 
-    final List<dynamic> uniqueFeatures =
-        _decodeUniqueFeatures(maps.first['uniqueFeatures'] as String?);
-    
+    final List<dynamic> uniqueFeatures = _decodeUniqueFeatures(
+      maps.first['uniqueFeatures'] as String?,
+    );
+
     return Pagoda.fromJson({
       ...maps.first,
       'imageUrl': normalizedImageUrl,
       'images': normalizedImages,
       'uniqueFeatures': uniqueFeatures,
-      'isFavorite': maps.first['isFavorite'] == 1,
+      'isFavorite': favoriteIds.contains(maps.first['id']),
     });
   }
-  
-  Future<List<Pagoda>> searchPagodas(String query) async {
+
+  Future<List<Pagoda>> searchPagodas(
+    String query, {
+    String? ownerUserId,
+  }) async {
     final db = await database;
+    final favoriteIds = await _getFavoriteIdsForOwner(
+      db,
+      ownerUserId: ownerUserId,
+    );
     final List<Map<String, dynamic>> maps = await db.query(
       AppConstants.tablePagodas,
-      where: 'name LIKE ? OR description LIKE ?',
-      whereArgs: ['%$query%', '%$query%'],
+      where: 'name LIKE ?',
+      whereArgs: ['%$query%'],
     );
-    
+
     return List.generate(maps.length, (i) {
       // Normalize image path
       final String? imageUrl = maps[i]['imageUrl'] as String?;
-      final String normalizedImageUrl = imageUrl != null 
+      final String normalizedImageUrl = imageUrl != null
           ? ImagePathUtils.normalizeImagePath(imageUrl)
           : '';
-      
+
       // Normalize images list
       final String? imagesStr = maps[i]['images'] as String?;
       final List<String> normalizedImages = (imagesStr?.split(',') ?? [])
@@ -240,34 +279,42 @@ class DatabaseService {
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
 
-      final List<dynamic> uniqueFeatures =
-          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
-      
+      final List<dynamic> uniqueFeatures = _decodeUniqueFeatures(
+        maps[i]['uniqueFeatures'] as String?,
+      );
+
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
         'uniqueFeatures': uniqueFeatures,
-        'isFavorite': maps[i]['isFavorite'] == 1,
+        'isFavorite': favoriteIds.contains(maps[i]['id']),
       });
     });
   }
-  
-  Future<List<Pagoda>> getPagodasByCategory(String category) async {
+
+  Future<List<Pagoda>> getPagodasByCategory(
+    String category, {
+    String? ownerUserId,
+  }) async {
     final db = await database;
+    final favoriteIds = await _getFavoriteIdsForOwner(
+      db,
+      ownerUserId: ownerUserId,
+    );
     final List<Map<String, dynamic>> maps = await db.query(
       AppConstants.tablePagodas,
       where: 'category = ?',
       whereArgs: [category],
     );
-    
+
     return List.generate(maps.length, (i) {
       // Normalize image path
       final String? imageUrl = maps[i]['imageUrl'] as String?;
-      final String normalizedImageUrl = imageUrl != null 
+      final String normalizedImageUrl = imageUrl != null
           ? ImagePathUtils.normalizeImagePath(imageUrl)
           : '';
-      
+
       // Normalize images list
       final String? imagesStr = maps[i]['images'] as String?;
       final List<String> normalizedImages = (imagesStr?.split(',') ?? [])
@@ -275,15 +322,16 @@ class DatabaseService {
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
 
-      final List<dynamic> uniqueFeatures =
-          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
-      
+      final List<dynamic> uniqueFeatures = _decodeUniqueFeatures(
+        maps[i]['uniqueFeatures'] as String?,
+      );
+
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
         'images': normalizedImages,
         'uniqueFeatures': uniqueFeatures,
-        'isFavorite': maps[i]['isFavorite'] == 1,
+        'isFavorite': favoriteIds.contains(maps[i]['id']),
       });
     });
   }
@@ -300,63 +348,81 @@ class DatabaseService {
     }
     return const [];
   }
-  
+
+  Future<Set<String>> _getFavoriteIdsForOwner(
+    Database db, {
+    String? ownerUserId,
+  }) async {
+    if (ownerUserId == null || ownerUserId.isEmpty) {
+      return <String>{};
+    }
+    final rows = await db.query(
+      AppConstants.tableFavorites,
+      columns: ['pagodaId'],
+      where: 'ownerUserId = ?',
+      whereArgs: [ownerUserId],
+    );
+    return rows.map((row) => row['pagodaId']).whereType<String>().toSet();
+  }
+
   // Favorites
-  Future<void> toggleFavorite(String pagodaId) async {
+  Future<void> toggleFavorite(
+    String pagodaId, {
+    required String ownerUserId,
+  }) async {
+    if (ownerUserId.isEmpty) return;
     final db = await database;
-    final isFav = await isFavorite(pagodaId);
-    
+    final isFav = await isFavorite(pagodaId, ownerUserId: ownerUserId);
+
     if (isFav) {
       await db.delete(
         AppConstants.tableFavorites,
-        where: 'pagodaId = ?',
-        whereArgs: [pagodaId],
-      );
-      await db.update(
-        AppConstants.tablePagodas,
-        {'isFavorite': 0},
-        where: 'id = ?',
-        whereArgs: [pagodaId],
+        where: 'ownerUserId = ? AND pagodaId = ?',
+        whereArgs: [ownerUserId, pagodaId],
       );
     } else {
-      await db.insert(
-        AppConstants.tableFavorites,
-        {'pagodaId': pagodaId, 'addedAt': DateTime.now().toIso8601String()},
-      );
-      await db.update(
-        AppConstants.tablePagodas,
-        {'isFavorite': 1},
-        where: 'id = ?',
-        whereArgs: [pagodaId],
-      );
+      await db.insert(AppConstants.tableFavorites, {
+        'ownerUserId': ownerUserId,
+        'pagodaId': pagodaId,
+        'addedAt': DateTime.now().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
   }
-  
-  Future<bool> isFavorite(String pagodaId) async {
+
+  Future<bool> isFavorite(
+    String pagodaId, {
+    required String ownerUserId,
+  }) async {
+    if (ownerUserId.isEmpty) return false;
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       AppConstants.tableFavorites,
-      where: 'pagodaId = ?',
-      whereArgs: [pagodaId],
+      where: 'ownerUserId = ? AND pagodaId = ?',
+      whereArgs: [ownerUserId, pagodaId],
     );
     return maps.isNotEmpty;
   }
-  
-  Future<List<Pagoda>> getFavorites() async {
+
+  Future<List<Pagoda>> getFavorites({required String ownerUserId}) async {
+    if (ownerUserId.isEmpty) return [];
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    final List<Map<String, dynamic>> maps = await db.rawQuery(
+      '''
       SELECT p.* FROM ${AppConstants.tablePagodas} p
       INNER JOIN ${AppConstants.tableFavorites} f ON p.id = f.pagodaId
+      WHERE f.ownerUserId = ?
       ORDER BY f.addedAt DESC
-    ''');
-    
+    ''',
+      [ownerUserId],
+    );
+
     return List.generate(maps.length, (i) {
       // Normalize image path
       final String? imageUrl = maps[i]['imageUrl'] as String?;
-      final String normalizedImageUrl = imageUrl != null 
+      final String normalizedImageUrl = imageUrl != null
           ? ImagePathUtils.normalizeImagePath(imageUrl)
           : '';
-      
+
       // Normalize images list
       final String? imagesStr = maps[i]['images'] as String?;
       final List<String> normalizedImages = (imagesStr?.split(',') ?? [])
@@ -364,9 +430,10 @@ class DatabaseService {
           .map((img) => ImagePathUtils.normalizeImagePath(img))
           .toList();
 
-      final List<dynamic> uniqueFeatures =
-          _decodeUniqueFeatures(maps[i]['uniqueFeatures'] as String?);
-      
+      final List<dynamic> uniqueFeatures = _decodeUniqueFeatures(
+        maps[i]['uniqueFeatures'] as String?,
+      );
+
       return Pagoda.fromJson({
         ...maps[i],
         'imageUrl': normalizedImageUrl,
@@ -376,24 +443,21 @@ class DatabaseService {
       });
     });
   }
-  
+
   // Trip CRUD operations
   Future<String> insertTrip(Trip trip) async {
     final db = await database;
 
     await db.transaction((txn) async {
-      await txn.insert(
-        AppConstants.tableTrips,
-        {
-          'id': trip.id,
-          'name': trip.name,
-          'description': trip.description,
-          'date': trip.date.toIso8601String(),
-          'createdAt': trip.createdAt.toIso8601String(),
-          'updatedAt': trip.updatedAt.toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await txn.insert(AppConstants.tableTrips, {
+        'id': trip.id,
+        'ownerUserId': trip.ownerUserId,
+        'name': trip.name,
+        'description': trip.description,
+        'date': trip.date.toIso8601String(),
+        'createdAt': trip.createdAt.toIso8601String(),
+        'updatedAt': trip.updatedAt.toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       await txn.delete(
         AppConstants.tableTripStops,
@@ -403,32 +467,31 @@ class DatabaseService {
 
       // Insert stops
       for (var stop in trip.stops) {
-        await txn.insert(
-          AppConstants.tableTripStops,
-          {
-            'tripId': trip.id,
-            'pagodaId': stop.pagodaId,
-            'pagodaName': stop.pagodaName,
-            'latitude': stop.latitude,
-            'longitude': stop.longitude,
-            'orderIndex': stop.order,
-            'notes': stop.notes,
-            'distanceToNext': stop.distanceToNext,
-          },
-        );
+        await txn.insert(AppConstants.tableTripStops, {
+          'tripId': trip.id,
+          'pagodaId': stop.pagodaId,
+          'pagodaName': stop.pagodaName,
+          'latitude': stop.latitude,
+          'longitude': stop.longitude,
+          'orderIndex': stop.order,
+          'notes': stop.notes,
+          'distanceToNext': stop.distanceToNext,
+        });
       }
     });
 
     return trip.id;
   }
-  
-  Future<List<Trip>> getAllTrips() async {
+
+  Future<List<Trip>> getAllTrips({required String ownerUserId}) async {
     final db = await database;
     final List<Map<String, dynamic>> tripMaps = await db.query(
       AppConstants.tableTrips,
+      where: 'ownerUserId = ?',
+      whereArgs: [ownerUserId],
       orderBy: 'date DESC',
     );
-    
+
     if (tripMaps.isEmpty) return [];
 
     final tripIds = tripMaps.map((map) => map['id'] as String).toList();
@@ -450,52 +513,74 @@ class DatabaseService {
       final stops = stopsByTripId[tripMap['id']] ?? const [];
       return Trip.fromJson({
         ...tripMap,
-        'stops': stops.map((s) => {
-          'pagodaId': s['pagodaId'],
-          'pagodaName': s['pagodaName'],
-          'latitude': s['latitude'],
-          'longitude': s['longitude'],
-          'order': s['orderIndex'],
-          'notes': s['notes'],
-          'distanceToNext': s['distanceToNext'],
-        }).toList(),
+        'stops': stops
+            .map(
+              (s) => {
+                'pagodaId': s['pagodaId'],
+                'pagodaName': s['pagodaName'],
+                'latitude': s['latitude'],
+                'longitude': s['longitude'],
+                'order': s['orderIndex'],
+                'notes': s['notes'],
+                'distanceToNext': s['distanceToNext'],
+              },
+            )
+            .toList(),
       });
     }).toList();
   }
-  
-  Future<Trip?> getTripById(String id) async {
+
+  Future<Trip?> getTripById(String id, {required String ownerUserId}) async {
     final db = await database;
     final List<Map<String, dynamic>> tripMaps = await db.query(
       AppConstants.tableTrips,
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id = ? AND ownerUserId = ?',
+      whereArgs: [id, ownerUserId],
     );
-    
+
     if (tripMaps.isEmpty) return null;
-    
+
     final List<Map<String, dynamic>> stopMaps = await db.query(
       AppConstants.tableTripStops,
       where: 'tripId = ?',
       whereArgs: [id],
       orderBy: 'orderIndex ASC',
     );
-    
+
     return Trip.fromJson({
       ...tripMaps.first,
-      'stops': stopMaps.map((s) => {
-        'pagodaId': s['pagodaId'],
-        'pagodaName': s['pagodaName'],
-        'latitude': s['latitude'],
-        'longitude': s['longitude'],
-        'order': s['orderIndex'],
-        'notes': s['notes'],
-        'distanceToNext': s['distanceToNext'],
-      }).toList(),
+      'stops': stopMaps
+          .map(
+            (s) => {
+              'pagodaId': s['pagodaId'],
+              'pagodaName': s['pagodaName'],
+              'latitude': s['latitude'],
+              'longitude': s['longitude'],
+              'order': s['orderIndex'],
+              'notes': s['notes'],
+              'distanceToNext': s['distanceToNext'],
+            },
+          )
+          .toList(),
     });
   }
-  
-  Future<int> deleteTrip(String id) async {
+
+  Future<int> deleteTrip(String id, {required String ownerUserId}) async {
     final db = await database;
+    final tripRows = await db.query(
+      AppConstants.tableTrips,
+      columns: ['ownerUserId'],
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (tripRows.isEmpty) {
+      return 0;
+    }
+    final tripOwner = (tripRows.first['ownerUserId'] as String?) ?? '';
+    if (tripOwner.isNotEmpty && tripOwner != ownerUserId) {
+      return 0;
+    }
     await db.delete(
       AppConstants.tableTripStops,
       where: 'tripId = ?',
@@ -507,12 +592,23 @@ class DatabaseService {
       whereArgs: [id],
     );
   }
-  
+
+  Future<void> assignOwnerToUnownedTrips(String ownerUserId) async {
+    final db = await database;
+    await db.update(
+      AppConstants.tableTrips,
+      {'ownerUserId': ownerUserId},
+      where: 'ownerUserId IS NULL OR ownerUserId = ?',
+      whereArgs: [''],
+    );
+  }
+
   Future<void> clearAllData() async {
     final db = await database;
     await db.delete(AppConstants.tablePagodas);
+    await db.delete(AppConstants.tableFavorites);
     await db.delete(AppConstants.tableTrips);
     await db.delete(AppConstants.tableTripStops);
-    await db.delete(AppConstants.tableFavorites);
   }
+
 }

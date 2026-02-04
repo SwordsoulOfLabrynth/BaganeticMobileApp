@@ -2,23 +2,27 @@ class AppConstants {
   // App Info
   static const String appName = 'Baganetic';
   static const String appVersion = '1.0.0';
-  
+
   // Firebase Collections
   static const String pagodas = 'pagodas';
   static const String users = 'users';
   static const String trips = 'trips';
   static const String favorites = 'favorites';
-  
+  static const String chatGroups = 'groups';
+  static const String chatGroupMembers = 'group_members';
+  static const String chatMessages = 'messages';
+
   // Database
   static const String dbName = 'baganetic.db';
-  static const int dbVersion = 7;
-  
+  static const int dbVersion = 9;
+  static const String guestOwnerId = '__guest__';
+
   // Tables
   static const String tablePagodas = 'pagodas';
   static const String tableTrips = 'trips';
   static const String tableTripStops = 'trip_stops';
   static const String tableFavorites = 'favorites';
-  
+
   // Map
   static const double baganLatitude = 21.1717;
   static const double baganLongitude = 94.8589;
@@ -30,7 +34,7 @@ class AppConstants {
   // Offline routing graph
   static const String offlineGraphUrl = '';
   static const Duration offlineGraphSyncInterval = Duration(hours: 24);
-  
+
   // Pagoda Categories
   static const List<String> categories = [
     'All',
@@ -44,8 +48,9 @@ class AppConstants {
     'All',
     'Hotel',
     'Restaurant',
+    'Service',
   ];
-  
+
   // Assets
   static const String placeholderImage = 'assets/images/placeholder.png';
   static const String logoImage = 'assets/images/logo.png';

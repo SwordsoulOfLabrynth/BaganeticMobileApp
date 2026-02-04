@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../../data/models/pagoda_model.dart';
@@ -8,6 +9,7 @@ import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/pathfinding.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/responsive.dart';
 
 class CreateTripScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -27,7 +29,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   List<Pagoda> _selectedPagodas = [];
   bool _isCalculatingRoute = false;
   bool _loadedExistingStops = false;
-  
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -50,7 +52,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       _selectedPagodas = [widget.initialPagoda!];
     }
   }
-  
+
   void _loadExistingStops() {
     if (_loadedExistingStops || widget.existingTrip == null) return;
     final provider = context.read<PagodaProvider>();
@@ -78,7 +80,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       _loadedExistingStops = true;
     });
   }
-  
+
   Future<void> _selectDate(BuildContext context) async {
     final now = DateTime.now();
     final firstDate = _selectedDate.isBefore(now) ? _selectedDate : now;
@@ -97,7 +99,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       });
     }
   }
-  
+
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedPagodas.isEmpty) {
@@ -108,19 +110,20 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isCalculatingRoute = true;
     });
-    
+
     try {
       final isEditing = widget.existingTrip != null;
+      final ownerUserId = context.read<TripProvider>().currentOwnerId;
       // Create trip stops
       List<TripStop> stops = [];
       for (int i = 0; i < _selectedPagodas.length; i++) {
         final pagoda = _selectedPagodas[i];
         double? distanceToNext;
-        
+
         if (i < _selectedPagodas.length - 1) {
           final nextPagoda = _selectedPagodas[i + 1];
           distanceToNext = Helpers.calculateDistance(
@@ -130,20 +133,25 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             nextPagoda.longitude,
           );
         }
-        
-        stops.add(TripStop(
-          pagodaId: pagoda.id,
-          pagodaName: pagoda.name,
-          latitude: pagoda.latitude,
-          longitude: pagoda.longitude,
-          order: i,
-          distanceToNext: distanceToNext,
-        ));
+
+        stops.add(
+          TripStop(
+            pagodaId: pagoda.id,
+            pagodaName: pagoda.name,
+            latitude: pagoda.latitude,
+            longitude: pagoda.longitude,
+            order: i,
+            distanceToNext: distanceToNext,
+          ),
+        );
       }
-      
+
       final now = DateTime.now();
       final trip = Trip(
         id: isEditing ? widget.existingTrip!.id : const Uuid().v4(),
+        ownerUserId: isEditing && widget.existingTrip!.ownerUserId.isNotEmpty
+            ? widget.existingTrip!.ownerUserId
+            : ownerUserId,
         name: _nameController.text,
         description: _descriptionController.text.isEmpty
             ? null
@@ -153,9 +161,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         createdAt: isEditing ? widget.existingTrip!.createdAt : now,
         updatedAt: now,
       );
-      
+
       await context.read<TripProvider>().saveTrip(trip);
-      
+
       if (mounted) {
         Helpers.showSnackBar(
           context,
@@ -182,7 +190,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       });
     }
   }
-  
+
   Future<void> _optimizeRoute() async {
     if (_selectedPagodas.length < 2) {
       Helpers.showSnackBar(
@@ -192,15 +200,15 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isCalculatingRoute = true;
     });
-    
+
     try {
       final provider = context.read<PagodaProvider>();
       final allPagodas = provider.allPagodas;
-      
+
       if (_selectedPagodas.length == 2) {
         // Use A* for 2 pagodas
         final path = PathfindingService.findPath(
@@ -208,12 +216,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           _selectedPagodas[1],
           allPagodas,
         );
-        
+
         if (path.isNotEmpty) {
-          final isSameOrder = path.length == _selectedPagodas.length &&
+          final isSameOrder =
+              path.length == _selectedPagodas.length &&
               path.asMap().entries.every(
-                    (entry) => entry.value.id == _selectedPagodas[entry.key].id,
-                  );
+                (entry) => entry.value.id == _selectedPagodas[entry.key].id,
+              );
           if (isSameOrder) {
             Helpers.showSnackBar(
               context,
@@ -242,10 +251,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           keepFirst: true,
         );
 
-        final isSameOrder = optimized.length == _selectedPagodas.length &&
+        final isSameOrder =
+            optimized.length == _selectedPagodas.length &&
             optimized.asMap().entries.every(
-                  (entry) => entry.value.id == _selectedPagodas[entry.key].id,
-                );
+              (entry) => entry.value.id == _selectedPagodas[entry.key].id,
+            );
         if (isSameOrder) {
           Helpers.showSnackBar(
             context,
@@ -280,7 +290,37 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isLoggedIn = context.select<AuthProvider, bool>(
+      (auth) => auth.user != null,
+    );
     final isEditing = widget.existingTrip != null;
+
+    if (!isLoggedIn) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            l10n.translate(isEditing ? 'trip.editTitle' : 'trip.createTitle'),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.lock_outline, size: 84, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              Text(
+                l10n.translate('auth.loginRequired'),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -311,124 +351,132 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: l10n.translate('trip.nameLabel'),
-                prefixIcon: const Icon(Icons.title),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return l10n.translate('trip.nameRequired');
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                labelText: l10n.translate('trip.descriptionOptional'),
-                prefixIcon: const Icon(Icons.description),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.calendar_today),
-              title: Text(l10n.translate('trip.date')),
-              subtitle: Text(Helpers.formatDate(_selectedDate)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _selectDate(context),
-            ),
-            const Divider(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.translate('trip.selectedPagodas'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: ResponsiveContent(
+          child: ListView(
+            padding: Responsive.pagePadding(context),
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: l10n.translate('trip.nameLabel'),
+                  prefixIcon: const Icon(Icons.title),
                 ),
-                TextButton.icon(
-                  onPressed: _optimizeRoute,
-                  icon: const Icon(Icons.route),
-                  label: Text(l10n.translate('trip.optimize')),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (_selectedPagodas.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text(
-                    l10n.translate('trip.noneSelected'),
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ),
-              )
-            else
-              ReorderableListView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) {
-                      newIndex -= 1;
-                    }
-                    final item = _selectedPagodas.removeAt(oldIndex);
-                    _selectedPagodas.insert(newIndex, item);
-                  });
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return l10n.translate('trip.nameRequired');
+                  }
+                  return null;
                 },
-                children: _selectedPagodas.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final pagoda = entry.value;
-                  return Card(
-                    key: ValueKey(pagoda.id),
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFD4AF37),
-                        child: Text('${index + 1}'),
-                      ),
-                      title: Text(l10n.pagodaName(pagoda.id, pagoda.name)),
-                      subtitle: Text(l10n.categoryLabel(pagoda.category)),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.remove_circle, color: Colors.red),
-                        onPressed: () {
-                          setState(() {
-                            _selectedPagodas.removeAt(index);
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                }).toList(),
               ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _showPagodaSelector(context),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.translate('trip.addPagodas')),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(
+                  labelText: l10n.translate('trip.descriptionOptional'),
+                  prefixIcon: const Icon(Icons.description),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.calendar_today),
+                title: Text(l10n.translate('trip.date')),
+                subtitle: Text(Helpers.formatDate(_selectedDate)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _selectDate(context),
+              ),
+              const Divider(height: 32),
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Text(
+                    l10n.translate('trip.selectedPagodas'),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _optimizeRoute,
+                    icon: const Icon(Icons.route),
+                    label: Text(l10n.translate('trip.optimize')),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_selectedPagodas.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      l10n.translate('trip.noneSelected'),
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                )
+              else
+                ReorderableListView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      if (newIndex > oldIndex) {
+                        newIndex -= 1;
+                      }
+                      final item = _selectedPagodas.removeAt(oldIndex);
+                      _selectedPagodas.insert(newIndex, item);
+                    });
+                  },
+                  children: _selectedPagodas.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final pagoda = entry.value;
+                    return Card(
+                      key: ValueKey(pagoda.id),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: const Color(0xFFD4AF37),
+                          child: Text('${index + 1}'),
+                        ),
+                        title: Text(l10n.pagodaName(pagoda.id, pagoda.name)),
+                        subtitle: Text(l10n.categoryLabel(pagoda.category)),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle,
+                            color: Colors.red,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _selectedPagodas.removeAt(index);
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => _showPagodaSelector(context),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.translate('trip.addPagodas')),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
+
   Future<void> _showPagodaSelector(BuildContext context) async {
     final provider = context.read<PagodaProvider>();
     final allPagodas = provider.allPagodas;
     final l10n = context.l10n;
-    
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -479,7 +527,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   itemCount: allPagodas.length,
                   itemBuilder: (context, index) {
                     final pagoda = allPagodas[index];
-                    final isSelected = _selectedPagodas.any((p) => p.id == pagoda.id);
+                    final isSelected = _selectedPagodas.any(
+                      (p) => p.id == pagoda.id,
+                    );
 
                     return CheckboxListTile(
                       value: isSelected,
@@ -488,7 +538,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                           if (value == true) {
                             _selectedPagodas.add(pagoda);
                           } else {
-                            _selectedPagodas.removeWhere((p) => p.id == pagoda.id);
+                            _selectedPagodas.removeWhere(
+                              (p) => p.id == pagoda.id,
+                            );
                           }
                         });
                         if (mounted) {

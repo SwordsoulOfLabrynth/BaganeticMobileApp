@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/foundation.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'firebase_options.dart';
 import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
@@ -20,17 +23,52 @@ import 'presentation/screens/home/home_screen.dart';
 import 'core/services/offline_map_service.dart';
 import 'core/services/offline_route_service.dart';
 import 'core/services/logger.dart';
+import 'core/services/firestore_instance.dart';
+import 'data/repositories/chat_repository.dart';
+import 'data/repositories/firebase_chat_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _configureDesktopDatabase();
 
   // Initialize Firebase
+  var firebaseReady = false;
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    await Firebase
+        .initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+        .timeout(const Duration(seconds: 8));
+    firebaseReady = true;
+    FirestoreInstance.instance.settings = const Settings(
+      persistenceEnabled: true,
+    );
+    Logger.info(
+      'Firestore DB: ${FirestoreInstance.configuredDatabaseId.isEmpty ? '(default)' : FirestoreInstance.configuredDatabaseId}',
     );
   } catch (e) {
     Logger.error('Firebase initialization failed', e);
+  }
+
+  runApp(const MyApp());
+
+  unawaited(_initializeBackgroundServices(firebaseReady: firebaseReady));
+}
+
+void _configureDesktopDatabase() {
+  if (kIsWeb) return;
+  try {
+    final target = defaultTargetPlatform;
+    if (target == TargetPlatform.windows || target == TargetPlatform.linux) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+  } catch (e) {
+    Logger.error('Failed to configure desktop database', e);
+  }
+}
+
+Future<void> _initializeBackgroundServices({required bool firebaseReady}) async {
+  if (!firebaseReady) {
+    Logger.info('Skipping Firestore-dependent background work (Firebase not ready)');
   }
 
   try {
@@ -44,8 +82,7 @@ void main() async {
     Logger.error('Map tile caching initialization failed', e);
   }
 
-  OfflineRouteService.instance.startBackgroundSync();
-  runApp(const MyApp());
+  unawaited(OfflineRouteService.instance.startBackgroundSync());
 }
 
 class MyApp extends StatelessWidget {
@@ -60,6 +97,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DiscoveryProvider()),
         ChangeNotifierProvider(create: (_) => PagodaProvider()),
         ChangeNotifierProvider(create: (_) => TripProvider()),
+        Provider<ChatRepository>(create: (_) => FirebaseChatRepository()),
       ],
       child: Consumer<LanguageProvider>(
         builder: (context, languageProvider, _) {
@@ -69,10 +107,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             locale: languageProvider.locale,
-            supportedLocales: const [
-              Locale('en'),
-              Locale('my'),
-            ],
+            supportedLocales: const [Locale('en'), Locale('my')],
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,

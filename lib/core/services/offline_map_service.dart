@@ -1,12 +1,15 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../constants/app_constants.dart';
 import 'logger.dart';
+
+// Conditional import for InternetAddress - only import on non-web
+import 'dart:io' if (dart.library.html) 'dart:html' show InternetAddress;
 
 class OfflineMapService {
   OfflineMapService._();
@@ -125,6 +128,12 @@ class OfflineMapService {
   }
 
   Future<bool> _hasNetwork() async {
+    if (kIsWeb) {
+      // On web, assume network is available if we can reach here
+      // You could use a more sophisticated check if needed
+      return true;
+    }
+    // Use InternetAddress only on non-web platforms
     try {
       final result = await InternetAddress.lookup(
         'tile.openstreetmap.org',

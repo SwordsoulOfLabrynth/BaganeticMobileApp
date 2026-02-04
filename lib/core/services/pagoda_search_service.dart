@@ -17,8 +17,7 @@ class PagodaSearchService {
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
       filtered = filtered.where((pagoda) {
-        return pagoda.name.toLowerCase().contains(query) ||
-            pagoda.description.toLowerCase().contains(query);
+        return pagoda.name.toLowerCase().contains(query);
       }).toList();
     }
 

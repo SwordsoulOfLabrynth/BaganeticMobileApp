@@ -5,6 +5,7 @@ import '../../../data/models/pagoda_model.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/responsive.dart';
 
 class HomeContentScreen extends StatelessWidget {
   final void Function(int) onNavigateToTab;
@@ -15,21 +16,20 @@ class HomeContentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.translate('app.title')),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWelcomeSection(context),
-            const SizedBox(height: 24),
-            _buildFeaturedPagodas(context),
-            const SizedBox(height: 24),
-            _buildQuickActions(context),
-          ],
+      appBar: AppBar(title: Text(l10n.translate('app.title')), elevation: 0),
+      body: ResponsiveContent(
+        child: SingleChildScrollView(
+          padding: Responsive.pagePadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildWelcomeSection(context),
+              const SizedBox(height: 24),
+              _buildFeaturedPagodas(context),
+              const SizedBox(height: 24),
+              _buildQuickActions(context),
+            ],
+          ),
         ),
       ),
     );
@@ -52,19 +52,15 @@ class HomeContentScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.temple_buddhist,
-                color: Colors.white,
-                size: 32,
-              ),
+              const Icon(Icons.temple_buddhist, color: Colors.white, size: 32),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   l10n.translate('home.welcomeTitle'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -73,8 +69,8 @@ class HomeContentScreen extends StatelessWidget {
           Text(
             l10n.translate('home.welcomeBody'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
           ),
         ],
       ),
@@ -88,9 +84,9 @@ class HomeContentScreen extends StatelessWidget {
       children: [
         Text(
           l10n.translate('home.featuredTitle'),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         Consumer<PagodaProvider>(
@@ -99,12 +95,11 @@ class HomeContentScreen extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final featuredPagodas = provider.pagodas.take(3).toList();
+            // Use allPagodas instead of filtered pagodas for featured section
+            final featuredPagodas = provider.allPagodas.take(3).toList();
 
             if (featuredPagodas.isEmpty) {
-              return Center(
-                child: Text(l10n.translate('home.featuredEmpty')),
-              );
+              return Center(child: Text(l10n.translate('home.featuredEmpty')));
             }
 
             return SizedBox(
@@ -113,7 +108,10 @@ class HomeContentScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: featuredPagodas.length,
                 itemBuilder: (context, index) {
-                  return _buildFeaturedPagodaCard(context, featuredPagodas[index]);
+                  return _buildFeaturedPagodaCard(
+                    context,
+                    featuredPagodas[index],
+                  );
                 },
               ),
             );
@@ -125,14 +123,14 @@ class HomeContentScreen extends StatelessWidget {
 
   Widget _buildFeaturedPagodaCard(BuildContext context, Pagoda pagoda) {
     final l10n = context.l10n;
+    final width = MediaQuery.sizeOf(context).width;
+    final cardWidth = width < 380 ? 150.0 : 170.0;
     return Container(
-      width: 160,
+      width: cardWidth,
       margin: const EdgeInsets.only(right: 16),
       child: Card(
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           onTap: () {
             Navigator.push(
@@ -147,7 +145,9 @@ class HomeContentScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 child: PagodaImageWidget(
                   imageUrl: pagoda.imageUrl,
                   height: 100,
@@ -172,10 +172,7 @@ class HomeContentScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       l10n.categoryLabel(pagoda.category),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -189,19 +186,31 @@ class HomeContentScreen extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     final l10n = context.l10n;
+    final isCompact = Responsive.isCompact(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final constrainedWidth = screenWidth < Responsive.contentMaxWidth(context)
+        ? screenWidth
+        : Responsive.contentMaxWidth(context);
+    final availableWidth =
+        constrainedWidth - Responsive.pagePadding(context).horizontal;
+    final cardWidth = isCompact ? (availableWidth - 16) / 2 : 220.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           l10n.translate('home.quickActions'),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        Row(
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
           children: [
-            Expanded(
+            SizedBox(
+              width: cardWidth,
               child: _buildQuickActionCard(
                 context,
                 l10n.translate('home.actionExplore'),
@@ -211,8 +220,8 @@ class HomeContentScreen extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            SizedBox(
+              width: cardWidth,
               child: _buildQuickActionCard(
                 context,
                 l10n.translate('home.actionDiscover'),
@@ -222,29 +231,25 @@ class HomeContentScreen extends StatelessWidget {
                 },
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
+            SizedBox(
+              width: cardWidth,
               child: _buildQuickActionCard(
                 context,
                 l10n.translate('home.actionMap'),
                 Icons.map,
                 () {
-                  onNavigateToTab(3);
+                  onNavigateToTab(4);
                 },
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            SizedBox(
+              width: cardWidth,
               child: _buildQuickActionCard(
                 context,
                 l10n.translate('home.actionPlan'),
                 Icons.route,
                 () {
-                  onNavigateToTab(3);
+                  onNavigateToTab(4);
                 },
               ),
             ),
@@ -254,12 +259,15 @@ class HomeContentScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActionCard(BuildContext context, String title, IconData icon, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -267,11 +275,7 @@ class HomeContentScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Icon(
-                icon,
-                size: 32,
-                color: const Color(0xFFD4AF37),
-              ),
+              Icon(icon, size: 32, color: const Color(0xFFD4AF37)),
               const SizedBox(height: 8),
               Text(
                 title,

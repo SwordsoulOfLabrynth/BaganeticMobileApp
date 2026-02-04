@@ -7,10 +7,12 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/offline_route_service.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../core/utils/responsive.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../../../data/models/trip_model.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/trip_detail_screen.dart';
@@ -72,6 +74,15 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _setMode(MapTripMode mode) {
+    final isLoggedIn = context.read<AuthProvider>().user != null;
+    if (mode == MapTripMode.trips && !isLoggedIn) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('auth.loginRequired'),
+        isError: true,
+      );
+      return;
+    }
     if (_mode == mode) return;
     setState(() {
       _mode = mode;
@@ -100,7 +111,9 @@ class _MapScreenState extends State<MapScreen>
       _isRouteLoading = true;
     });
 
-    final route = await OfflineRouteService.instance.buildRouteForPoints(points);
+    final route = await OfflineRouteService.instance.buildRouteForPoints(
+      points,
+    );
     if (!mounted) return;
 
     final resolved = route.isEmpty ? points : route;
@@ -120,10 +133,7 @@ class _MapScreenState extends State<MapScreen>
     }
     final bounds = LatLngBounds.fromPoints(points);
     _mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: const EdgeInsets.all(48),
-      ),
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(48)),
     );
   }
 
@@ -136,26 +146,49 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _openCreateTrip() {
+    final isLoggedIn = context.read<AuthProvider>().user != null;
+    if (!isLoggedIn) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('auth.loginRequired'),
+        isError: true,
+      );
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateTripScreen(
-          initialPagoda: _selectedPagoda,
-        ),
+        builder: (context) => CreateTripScreen(initialPagoda: _selectedPagoda),
       ),
     );
   }
 
   void _openTripDetail(Trip trip) {
+    final isLoggedIn = context.read<AuthProvider>().user != null;
+    if (!isLoggedIn) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('auth.loginRequired'),
+        isError: true,
+      );
+      return;
+    }
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => TripDetailScreen(trip: trip),
-      ),
+      MaterialPageRoute(builder: (context) => TripDetailScreen(trip: trip)),
     );
   }
 
   Future<void> _openEditTrip(Trip trip) async {
+    final isLoggedIn = context.read<AuthProvider>().user != null;
+    if (!isLoggedIn) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('auth.loginRequired'),
+        isError: true,
+      );
+      return;
+    }
     final updatedTrip = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -176,20 +209,58 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
+  Future<void> _deleteTrip(Trip trip) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.translate('trips.deleteTitle')),
+        content: Text(context.l10n.translate('trips.deleteConfirm')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.translate('common.cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              context.l10n.translate('common.delete'),
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    await context.read<TripProvider>().deleteTrip(trip.id);
+    if (!mounted) return;
+
+    if (_selectedTrip?.id == trip.id) {
+      setState(() {
+        _selectedTrip = null;
+        _tripRoute = [];
+        _isRouteFallback = false;
+        _isRouteLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isLoggedIn = context.select<AuthProvider, bool>(
+      (auth) => auth.user != null,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.translate('map.title')),
-        elevation: 0,
-      ),
-      body: Consumer2<PagodaProvider, TripProvider>(
-        builder: (context, pagodaProvider, tripProvider, _) {
+      appBar: AppBar(title: Text(l10n.translate('map.title')), elevation: 0),
+      body: Consumer3<PagodaProvider, TripProvider, AuthProvider>(
+        builder: (context, pagodaProvider, tripProvider, authProvider, _) {
           if (pagodaProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final isLoggedIn = authProvider.user != null;
           final pagodas = pagodaProvider.allPagodas;
           final showTrip = _mode != MapTripMode.browse && _selectedTrip != null;
           final markers = showTrip && _selectedTrip != null
@@ -211,8 +282,12 @@ class _MapScreenState extends State<MapScreen>
                   TileLayer(
                     urlTemplate: AppConstants.mapTileUrlTemplate,
                     userAgentPackageName: 'com.baganetic.app',
-                    tileProvider: const FMTCStore(AppConstants.mapTileStore)
-                        .getTileProvider(),
+                    tileProvider: FMTCTileProvider(
+                      stores: const {
+                        AppConstants.mapTileStore:
+                            BrowseStoreStrategy.readUpdateCreate,
+                      },
+                    ),
                   ),
                   if (showTrip && _tripRoute.isNotEmpty)
                     PolylineLayer(
@@ -222,7 +297,7 @@ class _MapScreenState extends State<MapScreen>
                           color: const Color(0xFFD4AF37),
                           strokeWidth: 5,
                           borderStrokeWidth: 3,
-                          borderColor: Colors.black.withOpacity(0.25),
+                          borderColor: Colors.black.withValues(alpha: 0.25),
                           gradientColors: const [
                             Colors.green,
                             Color(0xFFD4AF37),
@@ -246,9 +321,7 @@ class _MapScreenState extends State<MapScreen>
                 top: 12,
                 left: 16,
                 right: 16,
-                child: SafeArea(
-                  child: _buildModeToggle(context),
-                ),
+                child: SafeArea(child: _buildModeToggle(context)),
               ),
               if (_mode == MapTripMode.browse && _selectedPagoda != null)
                 Positioned(
@@ -272,7 +345,7 @@ class _MapScreenState extends State<MapScreen>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.55),
+                        color: Colors.black.withValues(alpha: 0.55),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -288,13 +361,13 @@ class _MapScreenState extends State<MapScreen>
                 ),
               if (_mode != MapTripMode.browse)
                 Positioned.fill(
-                  child: _buildTripPanel(tripProvider),
+                  child: _buildTripPanel(tripProvider, isLoggedIn: isLoggedIn),
                 ),
             ],
           );
         },
       ),
-      floatingActionButton: _buildFloatingActionButtons(),
+      floatingActionButton: _buildFloatingActionButtons(isLoggedIn: isLoggedIn),
     );
   }
 
@@ -302,11 +375,14 @@ class _MapScreenState extends State<MapScreen>
     final theme = Theme.of(context);
     final isSelected = MapTripMode.values.map((mode) => _mode == mode).toList();
     final l10n = context.l10n;
+    final availableWidth = MediaQuery.sizeOf(context).width - 32;
+    final tabMinWidth = (availableWidth / 2).clamp(96, 170).toDouble();
+    final isCompact = Responsive.isCompact(context);
 
     return Material(
       elevation: 3,
       borderRadius: BorderRadius.circular(18),
-      color: Colors.white.withOpacity(0.95),
+      color: Colors.white.withValues(alpha: 0.95),
       child: ToggleButtons(
         borderRadius: BorderRadius.circular(18),
         selectedColor: Colors.white,
@@ -314,18 +390,24 @@ class _MapScreenState extends State<MapScreen>
         fillColor: theme.colorScheme.primary,
         borderColor: Colors.transparent,
         selectedBorderColor: Colors.transparent,
-        constraints: const BoxConstraints(minHeight: 40, minWidth: 120),
+        constraints: BoxConstraints(
+          minHeight: isCompact ? 36 : 40,
+          minWidth: tabMinWidth,
+        ),
         isSelected: isSelected,
         onPressed: (index) => _setMode(MapTripMode.values[index]),
         children: [
-          _ModeChip(label: l10n.translate('map.mode.browse'), icon: Icons.map_outlined),
+          _ModeChip(
+            label: l10n.translate('map.mode.browse'),
+            icon: Icons.map_outlined,
+          ),
           _ModeChip(label: l10n.translate('map.mode.trips'), icon: Icons.route),
         ],
       ),
     );
   }
 
-  Widget _buildTripPanel(TripProvider provider) {
+  Widget _buildTripPanel(TripProvider provider, {required bool isLoggedIn}) {
     final label = context.l10n.translate('map.tripsTitle');
     final helper = context.l10n.translate('map.tripsHelp');
 
@@ -339,7 +421,7 @@ class _MapScreenState extends State<MapScreen>
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 18,
               offset: const Offset(0, -4),
             ),
@@ -380,11 +462,14 @@ class _MapScreenState extends State<MapScreen>
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                         const SizedBox(width: 12),
-                        TextButton.icon(
-                          onPressed: _openCreateTrip,
-                          icon: const Icon(Icons.add),
-                          label: Text(context.l10n.translate('common.create')),
-                        ),
+                        if (isLoggedIn)
+                          TextButton.icon(
+                            onPressed: _openCreateTrip,
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              context.l10n.translate('common.create'),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -392,10 +477,7 @@ class _MapScreenState extends State<MapScreen>
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Text(
                       helper,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                   ),
                   if (_selectedTrip != null)
@@ -403,14 +485,26 @@ class _MapScreenState extends State<MapScreen>
                 ],
               ),
             ),
-            ..._buildTripListSlivers(provider),
+            ..._buildTripListSlivers(provider, isLoggedIn: isLoggedIn),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _buildTripListSlivers(TripProvider provider) {
+  List<Widget> _buildTripListSlivers(
+    TripProvider provider, {
+    required bool isLoggedIn,
+  }) {
+    if (!isLoggedIn) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _buildEmptyTrips(isLoggedIn: false),
+        ),
+      ];
+    }
+
     if (provider.isLoading) {
       return [
         const SliverFillRemaining(
@@ -425,7 +519,7 @@ class _MapScreenState extends State<MapScreen>
       return [
         SliverFillRemaining(
           hasScrollBody: false,
-          child: _buildEmptyTrips(),
+          child: _buildEmptyTrips(isLoggedIn: true),
         ),
       ];
     }
@@ -434,47 +528,81 @@ class _MapScreenState extends State<MapScreen>
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
         sliver: SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final trip = trips[index];
-              final isSelected = _selectedTrip?.id == trip.id;
-              return Card(
-                elevation: isSelected ? 4 : 1,
-                margin: const EdgeInsets.only(bottom: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.transparent,
-                    width: 1,
-                  ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final trip = trips[index];
+            final isSelected = _selectedTrip?.id == trip.id;
+            return Card(
+              elevation: isSelected ? 4 : 1,
+              margin: const EdgeInsets.only(bottom: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  width: 1,
                 ),
-                child: ListTile(
-                  selected: isSelected,
-                  selectedTileColor:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    child: Text('${trip.stops.length}'),
-                  ),
-                  title: Text(trip.name),
-                  subtitle: Text(
-                    '${Helpers.formatDate(trip.date)} - ${context.l10n.translate('common.stopsCount', args: {'count': trip.stops.length.toString()})}',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _selectTrip(trip),
+              ),
+              child: ListTile(
+                selected: isSelected,
+                selectedTileColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.08),
+                leading: CircleAvatar(
+                  backgroundColor: const Color(0xFFD4AF37),
+                  child: Text('${trip.stops.length}'),
                 ),
-              );
-            },
-            childCount: trips.length,
-          ),
+                title: Text(trip.name),
+                subtitle: Text(
+                  '${Helpers.formatDate(trip.date)} - ${context.l10n.translate('common.stopsCount', args: {'count': trip.stops.length.toString()})}',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      tooltip: context.l10n.translate('common.edit'),
+                      onPressed: () => _openEditTrip(trip),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      tooltip: context.l10n.translate('common.delete'),
+                      onPressed: () => _deleteTrip(trip),
+                    ),
+                  ],
+                ),
+                onTap: () => _selectTrip(trip),
+              ),
+            );
+          }, childCount: trips.length),
         ),
       ),
     ];
   }
 
-  Widget _buildEmptyTrips() {
+  Widget _buildEmptyTrips({required bool isLoggedIn}) {
+    if (!isLoggedIn) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 72, color: Colors.grey[300]),
+              const SizedBox(height: 12),
+              Text(
+                context.l10n.translate('auth.loginRequired'),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -510,7 +638,9 @@ class _MapScreenState extends State<MapScreen>
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.7),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(16),
         ),
         padding: const EdgeInsets.all(14),
@@ -546,7 +676,9 @@ class _MapScreenState extends State<MapScreen>
               style: TextStyle(color: Colors.grey[700]),
             ),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 _buildTripStat(
                   Icons.place,
@@ -555,15 +687,10 @@ class _MapScreenState extends State<MapScreen>
                     args: {'count': trip.stops.length.toString()},
                   ),
                 ),
-                const SizedBox(width: 12),
                 _buildTripStat(
                   Icons.straighten,
-                  Helpers.formatDistance(
-                    context,
-                    trip.getTotalDistance(),
-                  ),
+                  Helpers.formatDistance(context, trip.getTotalDistance()),
                 ),
-                const SizedBox(width: 12),
                 _buildTripStat(
                   Icons.access_time,
                   '${trip.getEstimatedDuration()} ${context.l10n.translate('common.minutesShort')}',
@@ -585,6 +712,12 @@ class _MapScreenState extends State<MapScreen>
                   icon: const Icon(Icons.edit),
                   label: Text(context.l10n.translate('common.edit')),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () => _deleteTrip(trip),
+                  icon: const Icon(Icons.delete_outline),
+                  label: Text(context.l10n.translate('common.delete')),
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                ),
               ],
             ),
           ],
@@ -599,10 +732,7 @@ class _MapScreenState extends State<MapScreen>
       children: [
         Icon(icon, size: 16, color: Colors.grey[700]),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey[700]),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[700])),
       ],
     );
   }
@@ -635,8 +765,8 @@ class _MapScreenState extends State<MapScreen>
       final color = index == 0
           ? Colors.green
           : index == trip.stops.length - 1
-              ? Colors.red
-              : const Color(0xFFD4AF37);
+          ? Colors.red
+          : const Color(0xFFD4AF37);
 
       return Marker(
         point: LatLng(stop.latitude, stop.longitude),
@@ -663,83 +793,95 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Widget _buildPagodaInfo(Pagoda pagoda) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ResponsiveContent(
+        child: Container(
+          margin: EdgeInsets.all(Responsive.spacing(context)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Padding(
+            padding: Responsive.cardPadding(context),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.pagodaName(pagoda.id, pagoda.name),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        context.l10n.pagodaName(pagoda.id, pagoda.name),
+                        style: TextStyle(
+                          fontSize: Responsive.responsiveFontSize(context, 20),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        setState(() {
+                          _selectedPagoda = null;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: Responsive.smallSpacing(context)),
+                Text(
+                  context.l10n.pagodaDescription(pagoda.id, pagoda.description),
+                  maxLines: Responsive.isDesktopOrLarger(context) ? 3 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: Responsive.responsiveFontSize(context, 14),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    setState(() {
-                      _selectedPagoda = null;
-                    });
-                  },
+                SizedBox(height: Responsive.spacing(context)),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PagodaDetailScreen(pagoda: pagoda),
+                        ),
+                      );
+                    },
+                    child: Text(context.l10n.translate('map.viewDetails')),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n.pagodaDescription(pagoda.id, pagoda.description),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PagodaDetailScreen(pagoda: pagoda),
-                  ),
-                );
-              },
-              child: Text(context.l10n.translate('map.viewDetails')),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFloatingActionButtons() {
+  Widget _buildFloatingActionButtons({required bool isLoggedIn}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (_mode == MapTripMode.trips) ...[
+        if (_mode == MapTripMode.trips && isLoggedIn) ...[
           FloatingActionButton.small(
             heroTag: 'create-trip',
             onPressed: _openCreateTrip,
             child: const Icon(Icons.add),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: Responsive.smallSpacing(context)),
         ],
         if (_selectedPagoda != null && _mode == MapTripMode.browse) ...[
           FloatingActionButton.small(
@@ -756,16 +898,13 @@ class _MapScreenState extends State<MapScreen>
             },
             child: const Icon(Icons.place),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: Responsive.smallSpacing(context)),
         ],
         FloatingActionButton(
           heroTag: 'reset-map',
           onPressed: () {
             _mapController.move(
-              LatLng(
-                AppConstants.baganLatitude,
-                AppConstants.baganLongitude,
-              ),
+              LatLng(AppConstants.baganLatitude, AppConstants.baganLongitude),
               AppConstants.defaultZoom,
             );
           },
@@ -792,7 +931,10 @@ class _ModeChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: Responsive.responsiveFontSize(context, 14),
+            ),
           ),
         ],
       ),
@@ -804,10 +946,7 @@ class _MapMarker extends StatelessWidget {
   final bool isSelected;
   final Animation<double> pulse;
 
-  const _MapMarker({
-    required this.isSelected,
-    required this.pulse,
-  });
+  const _MapMarker({required this.isSelected, required this.pulse});
 
   @override
   Widget build(BuildContext context) {
@@ -817,11 +956,7 @@ class _MapMarker extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),
       ),
-      child: const Icon(
-        Icons.temple_buddhist,
-        color: Colors.white,
-        size: 20,
-      ),
+      child: const Icon(Icons.temple_buddhist, color: Colors.white, size: 20),
     );
 
     if (!isSelected) {
@@ -832,9 +967,10 @@ class _MapMarker extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         ScaleTransition(
-          scale: Tween<double>(begin: 0.8, end: 1.4).animate(
-            CurvedAnimation(parent: pulse, curve: Curves.easeOut),
-          ),
+          scale: Tween<double>(
+            begin: 0.8,
+            end: 1.4,
+          ).animate(CurvedAnimation(parent: pulse, curve: Curves.easeOut)),
           child: FadeTransition(
             opacity: Tween<double>(begin: 0.5, end: 0.0).animate(pulse),
             child: Container(

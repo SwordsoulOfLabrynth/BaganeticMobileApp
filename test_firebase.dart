@@ -5,9 +5,7 @@ import 'lib/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const TestFirebaseApp());
 }
 
@@ -16,9 +14,7 @@ class TestFirebaseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: const TestFirebaseScreen(),
-    );
+    return MaterialApp(home: const TestFirebaseScreen());
   }
 }
 
@@ -53,8 +49,13 @@ class _TestFirebaseScreenState extends State<TestFirebaseScreen> {
       final firestore = FirebaseFirestore.instance;
 
       // Try to read a test document
-      final testDoc = await firestore.collection('test').doc('connection_test').get();
-      print('Firestore connection successful. Test document exists: ${testDoc.exists}');
+      final testDoc = await firestore
+          .collection('test')
+          .doc('connection_test')
+          .get();
+      debugPrint(
+        'Firestore connection successful. Test document exists: ${testDoc.exists}',
+      );
 
       // Try to write a test document
       setState(() {
@@ -65,28 +66,26 @@ class _TestFirebaseScreenState extends State<TestFirebaseScreen> {
         'timestamp': DateTime.now(),
         'test': true,
       });
-      print('Firestore write successful');
+      debugPrint('Firestore write successful');
 
       setState(() {
-        _status = 'Firestore test completed successfully! Firebase is connected but Authentication may need to be enabled in Firebase Console.';
+        _status =
+            'Firestore test completed successfully! Firebase is connected but Authentication may need to be enabled in Firebase Console.';
         _isLoading = false;
       });
-
     } catch (e) {
       setState(() {
         _status = 'Firebase test failed: $e';
         _isLoading = false;
       });
-      print('Firebase test error: $e');
+      debugPrint('Firebase test error: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Firebase Test'),
-      ),
+      appBar: AppBar(title: const Text('Firebase Test')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -96,11 +95,7 @@ class _TestFirebaseScreenState extends State<TestFirebaseScreen> {
               if (_isLoading)
                 const CircularProgressIndicator()
               else
-                const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 50,
-                ),
+                const Icon(Icons.check_circle, color: Colors.green, size: 50),
               const SizedBox(height: 20),
               Text(
                 _status,

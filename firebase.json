@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "baganetic-mobile",
+      "rules": "firestore.rules"
+    }
+  ]
+}

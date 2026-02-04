@@ -1,5 +1,6 @@
 class Trip {
   final String id;
+  final String ownerUserId;
   final String name;
   final String? description;
   final DateTime date;
@@ -9,6 +10,7 @@ class Trip {
   
   Trip({
     required this.id,
+    required this.ownerUserId,
     required this.name,
     this.description,
     required this.date,
@@ -20,6 +22,7 @@ class Trip {
   factory Trip.fromJson(Map<String, dynamic> json) {
     return Trip(
       id: json['id'] as String,
+      ownerUserId: json['ownerUserId'] as String? ?? '',
       name: json['name'] as String,
       description: json['description'] as String?,
       date: DateTime.parse(json['date'] as String),
@@ -34,6 +37,7 @@ class Trip {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'ownerUserId': ownerUserId,
       'name': name,
       'description': description,
       'date': date.toIso8601String(),
@@ -41,6 +45,28 @@ class Trip {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
+  }
+
+  Trip copyWith({
+    String? id,
+    String? ownerUserId,
+    String? name,
+    String? description,
+    DateTime? date,
+    List<TripStop>? stops,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Trip(
+      id: id ?? this.id,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      date: date ?? this.date,
+      stops: stops ?? this.stops,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
   
   double getTotalDistance() {

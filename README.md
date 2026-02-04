@@ -18,10 +18,10 @@ modules are planned and not yet integrated into the UI.
 - Local database (SQLite) for pagodas, trips, and favorites
 - Firebase email/password authentication plus guest mode
 - Bilingual UI (English and Myanmar)
+- Discovery module: hotels, restaurants, and services with search and filtering
+- Group trip rooms and real-time chat functionality
 
 ## Future Work
-- Discovery module (hotels, restaurants, and services)
-- Group trip rooms and chat
 - Community tips and Q/A feed
 - Safety and emergency toolkit
 - AI chatbot integration
@@ -74,10 +74,12 @@ flutter run
 Screens included:
 1. Splash
 2. Login / Signup (optional, guest mode supported)
-3. Home (tabs: Pagodas, Map, Trips, Profile)
+3. Home (tabs: Home, Pagodas, Discovery, Chat, Map, Profile)
 4. Pagoda Detail
 5. Create Trip
 6. Trip Detail
+7. Discovery (hotels, restaurants, services)
+8. Group Chat Rooms and Messaging
 
 ## Architecture
 ```

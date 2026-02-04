@@ -13,8 +13,10 @@ class AppLocalizations {
       _AppLocalizationsDelegate();
 
   static AppLocalizations of(BuildContext context) {
-    final localizations =
-        Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final localizations = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     if (localizations == null) {
       throw StateError('AppLocalizations not found in context');
     }
@@ -22,8 +24,9 @@ class AppLocalizations {
   }
 
   Future<bool> load() async {
-    final jsonString = await rootBundle
-        .loadString('assets/languages/${locale.languageCode}.json');
+    final jsonString = await rootBundle.loadString(
+      'assets/languages/${locale.languageCode}.json',
+    );
     _localizedStrings = json.decode(jsonString) as Map<String, dynamic>;
     return true;
   }
@@ -39,8 +42,7 @@ class AppLocalizations {
     return text;
   }
 
-  String translateOr(String key, String fallback,
-      {Map<String, String>? args}) {
+  String translateOr(String key, String fallback, {Map<String, String>? args}) {
     final value = _localizedStrings[key];
     if (value is String && value.isNotEmpty) {
       return translate(key, args: args);
@@ -105,6 +107,8 @@ class AppLocalizations {
         return translate('discovery.category.hotel');
       case 'Restaurant':
         return translate('discovery.category.restaurant');
+      case 'Service':
+        return translate('discovery.category.service');
       default:
         return category;
     }

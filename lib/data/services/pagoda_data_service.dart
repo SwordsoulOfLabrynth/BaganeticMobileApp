@@ -8,33 +8,41 @@ import '../models/pagoda_model.dart';
 
 class PagodaDataService {
   PagodaDataService({DatabaseService? databaseService})
-      : _db = databaseService ?? DatabaseService();
+    : _db = databaseService ?? DatabaseService();
 
   final DatabaseService _db;
 
-  Future<List<Pagoda>> loadPagodas() async {
-    var pagodas = await _db.getAllPagodas();
+  Future<List<Pagoda>> loadPagodas({String? ownerUserId}) async {
+    try {
+      var pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
 
-    if (pagodas.isEmpty) {
-      Logger.info('Database is empty, initializing with sample data...');
-      await initializeSampleData();
-      pagodas = await _db.getAllPagodas();
-      Logger.info('Initialized ${pagodas.length} pagodas with sample data');
-    } else if (pagodas.isNotEmpty) {
-      final didRefresh = await _refreshFromSampleIfNeeded(pagodas);
-      if (didRefresh) {
-        pagodas = await _db.getAllPagodas();
-        Logger.info('Refreshed pagoda data from sample JSON');
+      if (pagodas.isEmpty) {
+        Logger.info('Database is empty, initializing with sample data...');
+        await initializeSampleData();
+        pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
+        Logger.info('Initialized ${pagodas.length} pagodas with sample data');
+      } else if (pagodas.isNotEmpty) {
+        final didRefresh = await _refreshFromSampleIfNeeded(pagodas);
+        if (didRefresh) {
+          pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
+          Logger.info('Refreshed pagoda data from sample JSON');
+        }
+        Logger.info('Loaded ${pagodas.length} pagodas from database');
       }
-      Logger.info('Loaded ${pagodas.length} pagodas from database');
+
+      if (pagodas.isNotEmpty) {
+        return pagodas;
+      }
+    } catch (e, stackTrace) {
+      Logger.error('Failed to load pagodas from local database', e, stackTrace);
     }
 
-    return pagodas;
-  }
-
-  Future<void> reloadSampleData() async {
-    await _db.clearAllData();
-    await initializeSampleData();
+    // Keep the app usable even when local DB init/query fails.
+    final fallback = await _loadSamplePagodas();
+    Logger.info(
+      'Using bundled sample pagodas fallback (${fallback.length} items)',
+    );
+    return fallback;
   }
 
   Future<void> initializeSampleData() async {
@@ -45,8 +53,9 @@ class PagodaDataService {
   }
 
   Future<List<Pagoda>> _loadSamplePagodas() async {
-    final jsonString =
-        await rootBundle.loadString('assets/data/sample_pagodas.json');
+    final jsonString = await rootBundle.loadString(
+      'assets/data/sample_pagodas.json',
+    );
     final List<dynamic> jsonData = jsonDecode(jsonString) as List<dynamic>;
     return jsonData
         .map((item) => Pagoda.fromJson(item as Map<String, dynamic>))
@@ -84,7 +93,9 @@ class PagodaDataService {
         missingOrEmpty(current.architecturalStyle, sample.architecturalStyle) ||
         missingOrEmpty(current.legends, sample.legends) ||
         missingOrEmpty(
-            current.religiousImportance, sample.religiousImportance) ||
+          current.religiousImportance,
+          sample.religiousImportance,
+        ) ||
         missingOrEmpty(current.preservationInfo, sample.preservationInfo) ||
         missingOrEmpty(current.bestTimeToVisit, sample.bestTimeToVisit) ||
         missingOrEmpty(current.finalWords, sample.finalWords) ||
@@ -108,15 +119,15 @@ class PagodaDataService {
     return false;
   }
 
-  Future<List<Pagoda>> getFavorites() {
-    return _db.getFavorites();
+  Future<List<Pagoda>> getFavorites({required String ownerUserId}) {
+    return _db.getFavorites(ownerUserId: ownerUserId);
   }
 
-  Future<void> toggleFavorite(String pagodaId) {
-    return _db.toggleFavorite(pagodaId);
+  Future<void> toggleFavorite(String pagodaId, {required String ownerUserId}) {
+    return _db.toggleFavorite(pagodaId, ownerUserId: ownerUserId);
   }
 
-  Future<Pagoda?> getPagodaById(String id) {
-    return _db.getPagodaById(id);
+  Future<Pagoda?> getPagodaById(String id, {String? ownerUserId}) {
+    return _db.getPagodaById(id, ownerUserId: ownerUserId);
   }
 }

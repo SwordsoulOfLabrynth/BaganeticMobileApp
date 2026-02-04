@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/responsive.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -21,76 +22,62 @@ class ProfileScreen extends StatelessWidget {
         title: Text(l10n.translate('profile.title')),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildProfileHeader(context),
-            const SizedBox(height: 32),
-            _buildFavorites(context),
-            const SizedBox(height: 32),
-            _buildSettingsTile(
-              icon: Icons.language,
-              title: l10n.translate('profile.language'),
-              subtitle: languageLabel,
-              onTap: () => _showLanguagePicker(context),
-            ),
-            _buildSettingsTile(
-              icon: Icons.notifications,
-              title: l10n.translate('profile.notifications'),
-              subtitle: l10n.translate('profile.enabled'),
-              onTap: () {},
-            ),
-            _buildSettingsTile(
-              icon: Icons.refresh,
-              title: l10n.translate('profile.reloadSampleData'),
-              subtitle: l10n.translate('profile.reloadSampleDataSubtitle'),
-              onTap: () async {
-                final pagodaProvider = context.read<PagodaProvider>();
-                await pagodaProvider.reloadSampleData();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.translate('profile.sampleDataReloaded')),
-                    ),
-                  );
-                }
-              },
-            ),
-            _buildSettingsTile(
-              icon: Icons.help,
-              title: l10n.translate('profile.helpSupport'),
-              onTap: () {},
-            ),
-            _buildSettingsTile(
-              icon: Icons.info,
-              title: l10n.translate('profile.about'),
-              onTap: () {},
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  await context.read<AuthProvider>().signOut();
-                  if (context.mounted) {
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  }
-                },
-                icon: const Icon(Icons.logout),
-                label: Text(l10n.translate('profile.signOut')),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+      body: ResponsiveContent(
+        child: SingleChildScrollView(
+          padding: Responsive.pagePadding(context),
+          child: Column(
+            children: [
+              _buildProfileHeader(context),
+              const SizedBox(height: 32),
+              _buildFavorites(context),
+              const SizedBox(height: 32),
+              _buildSettingsTile(
+                icon: Icons.language,
+                title: l10n.translate('profile.language'),
+                subtitle: languageLabel,
+                onTap: () => _showLanguagePicker(context),
+              ),
+              _buildSettingsTile(
+                icon: Icons.notifications,
+                title: l10n.translate('profile.notifications'),
+                subtitle: l10n.translate('profile.enabled'),
+                onTap: () {},
+              ),
+              _buildSettingsTile(
+                icon: Icons.help,
+                title: l10n.translate('profile.helpSupport'),
+                onTap: () {},
+              ),
+              _buildSettingsTile(
+                icon: Icons.info,
+                title: l10n.translate('profile.about'),
+                onTap: () {},
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await context.read<AuthProvider>().signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    }
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: Text(l10n.translate('profile.signOut')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-  
+
   Widget _buildProfileHeader(BuildContext context) {
     final l10n = context.l10n;
     return Consumer<AuthProvider>(
@@ -137,13 +124,14 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildFavorites(BuildContext context) {
     final l10n = context.l10n;
-    return Consumer<PagodaProvider>(
-      builder: (context, provider, _) {
+    return Consumer2<AuthProvider, PagodaProvider>(
+      builder: (context, auth, provider, _) {
+        final isLoggedIn = auth.user != null;
         final favorites = provider.favorites;
-        
+
         return Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -175,15 +163,21 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                if (favorites.isEmpty)
+                if (!isLoggedIn)
+                  Text(l10n.translate('auth.loginRequired'))
+                else if (favorites.isEmpty)
                   Text(l10n.translate('profile.noFavorites'))
                 else
-                  ...favorites.take(3).map((pagoda) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.temple_buddhist),
-                    title: Text(pagoda.name),
-                    dense: true,
-                  )),
+                  ...favorites
+                      .take(3)
+                      .map(
+                        (pagoda) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.temple_buddhist),
+                          title: Text(pagoda.name),
+                          dense: true,
+                        ),
+                      ),
               ],
             ),
           ),
@@ -191,7 +185,7 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildSettingsTile({
     required IconData icon,
     required String title,
@@ -229,27 +223,31 @@ class ProfileScreen extends StatelessWidget {
               l10n.translate('profile.chooseLanguage'),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            RadioListTile<String>(
-              value: 'en',
-              groupValue: currentCode,
-              onChanged: (_) async {
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(l10n.translate('profile.languageEnglish')),
+              trailing: currentCode == 'en'
+                  ? const Icon(Icons.check_circle, color: Color(0xFFD4AF37))
+                  : null,
+              onTap: () async {
                 await languageProvider.setLocale(const Locale('en'));
                 if (context.mounted) {
                   Navigator.pop(context);
                 }
               },
-              title: Text(l10n.translate('profile.languageEnglish')),
             ),
-            RadioListTile<String>(
-              value: 'my',
-              groupValue: currentCode,
-              onChanged: (_) async {
+            ListTile(
+              leading: const Icon(Icons.translate),
+              title: Text(l10n.translate('profile.languageMyanmar')),
+              trailing: currentCode == 'my'
+                  ? const Icon(Icons.check_circle, color: Color(0xFFD4AF37))
+                  : null,
+              onTap: () async {
                 await languageProvider.setLocale(const Locale('my'));
                 if (context.mounted) {
                   Navigator.pop(context);
                 }
               },
-              title: Text(l10n.translate('profile.languageMyanmar')),
             ),
             const SizedBox(height: 8),
           ],

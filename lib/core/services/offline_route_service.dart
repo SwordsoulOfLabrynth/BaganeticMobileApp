@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
@@ -10,6 +10,9 @@ import 'package:path_provider/path_provider.dart';
 
 import '../constants/app_constants.dart';
 import '../utils/helpers.dart';
+
+// Conditional import for File - only import on non-web
+import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
 class OfflineRouteService {
   OfflineRouteService._();
@@ -39,6 +42,10 @@ class OfflineRouteService {
   }
 
   Future<OfflineGraphData?> loadGraph() async {
+    if (kIsWeb) {
+      // On web, always use bundled graph
+      return _loadBundledGraph();
+    }
     final file = await _getGraphFile();
     if (!await file.exists()) {
       return _loadBundledGraph();
@@ -52,6 +59,10 @@ class OfflineRouteService {
   }
 
   Future<void> _syncIfNeeded() async {
+    if (kIsWeb) {
+      // On web, skip file-based sync
+      return;
+    }
     try {
       if (AppConstants.offlineGraphUrl.isEmpty) {
         return;
@@ -99,11 +110,17 @@ class OfflineRouteService {
   }
 
   Future<File> _getGraphFile() async {
+    if (kIsWeb) {
+      throw UnsupportedError('File operations not supported on web');
+    }
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/$_graphFileName');
   }
 
   Future<File> _getMetaFile() async {
+    if (kIsWeb) {
+      throw UnsupportedError('File operations not supported on web');
+    }
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/$_metaFileName');
   }
