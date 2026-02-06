@@ -121,15 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMobileLayout(BuildContext context, List<NavigationItem> navigationItems) {
     return Scaffold(
+      extendBody: true,
       body: Stack(
         fit: StackFit.expand,
         children: [
           _screens[_currentIndex],
-          if (_isNavPopupOpen)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              color: const Color(0x55000000),
-            ),
         ],
       ),
       bottomNavigationBar: _buildMobileBottomNavigationBar(context, navigationItems),

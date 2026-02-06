@@ -184,6 +184,10 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                          widget.items[2].label.isEmpty;
     final middleButtonSize = isCompact ? 58.0 : 65.0;
 
+    final popupHitHeight = moreItems.isNotEmpty
+        ? (isCompact ? 260.0 : 280.0)
+        : 0.0;
+
     return SafeArea(
       top: false,
       child: Material(
@@ -198,11 +202,55 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOutCubic,
-            height: navContainerHeight,
+            height: navContainerHeight +
+                (_isMoreMenuOpen ? popupHitHeight : 0.0),
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.bottomCenter,
               children: [
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    height: navBarHeight,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0x12000000)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1A000000),
+                          blurRadius: 16,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        ...primaryItems.map(
+                          (item) {
+                            final isPopupMenu = item.icon ==
+                                    Icons.apps_rounded &&
+                                item.label.isEmpty;
+                            if (isPopupMenu) {
+                              return const Expanded(child: SizedBox());
+                            }
+                            return Expanded(
+                              child: _BarNavItem(
+                                icon: item.icon,
+                                label: item.label,
+                                isSelected: widget.currentIndex == item.index,
+                                onTap: () {
+                                  _setMoreMenuOpen(false);
+                                  widget.onNavigate(item.index);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 if (moreItems.isNotEmpty)
                   Positioned(
                     bottom: isCompact ? 36 : 40,
@@ -222,12 +270,12 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                             currentIndex: widget.currentIndex,
                             onTap: (index) {
                               // Handle popup menu items (Chat and Discovery)
-                              final hasPopupMenu = widget.items.length > 2 && 
-                                                   widget.items[2].icon == Icons.apps_rounded && 
-                                                   widget.items[2].label.isEmpty;
+                              final hasPopupMenu = widget.items.length > 2 &&
+                                  widget.items[2].icon == Icons.apps_rounded &&
+                                  widget.items[2].label.isEmpty;
                               if (hasPopupMenu) {
                                 // Navigate to Chat (index 3) or Discovery (index 2) based on selection
-                                final targetIndex = index == 0 ? 3 : 2; // Chat is index 3, Discovery is index 2
+                                final targetIndex = index == 0 ? 3 : 2;
                                 widget.onNavigate(targetIndex);
                               } else {
                                 final globalIndex = widget.items.indexOf(
@@ -245,83 +293,60 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                       ),
                     ),
                   ),
-                Container(
-                  height: navBarHeight,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0x12000000)),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1A000000),
-                        blurRadius: 16,
-                        offset: Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      ...primaryItems.map(
-                        (item) {
-                          final isPopupMenu = item.icon == Icons.apps_rounded && item.label.isEmpty;
-                          if (isPopupMenu) {
-                            return const Expanded(child: SizedBox());
-                          }
-                          return Expanded(
-                            child: _BarNavItem(
-                              icon: item.icon,
-                              label: item.label,
-                              isSelected: widget.currentIndex == item.index,
-                              onTap: () {
-                                _setMoreMenuOpen(false);
-                                widget.onNavigate(item.index);
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
                 // Only show floating button if we have a popup menu
                 if (hasPopupMenu && moreItems.isNotEmpty)
                   Positioned(
-                    bottom: isCompact ? 30 : 34,
-                    child: GestureDetector(
-                      onTap: () => _setMoreMenuOpen(!_isMoreMenuOpen),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        height: middleButtonSize,
-                        width: middleButtonSize,
-                        decoration: BoxDecoration(
-                          color: isMoreItemSelected || _isMoreMenuOpen
-                              ? const Color(0xFFD4AF37)
-                              : Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isMoreItemSelected || _isMoreMenuOpen
-                                ? const Color(0xFFD4AF37)
-                                : const Color(0x19000000),
-                            width: 1.2,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x1A000000),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: AnimatedRotation(
-                            turns: _isMoreMenuOpen ? 0.125 : 0,
-                            duration: const Duration(milliseconds: 220),
-                            child: Icon(
-                              Icons.apps_rounded,
-                              size: isCompact ? 27 : 30,
-                              color: isMoreItemSelected || _isMoreMenuOpen
-                                  ? Colors.white
-                                  : Colors.grey.shade700,
+                    bottom: isCompact ? 16 : 20,
+                    child: SizedBox.square(
+                      dimension: middleButtonSize + (isCompact ? 14 : 18),
+                      child: Material(
+                        color: Colors.transparent,
+                        shape: const CircleBorder(),
+                        child: InkResponse(
+                          onTap: () => _setMoreMenuOpen(!_isMoreMenuOpen),
+                          containedInkWell: true,
+                          highlightColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          overlayColor:
+                              const MaterialStatePropertyAll(Colors.transparent),
+                          child: Center(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 220),
+                              height: middleButtonSize,
+                              width: middleButtonSize,
+                              decoration: BoxDecoration(
+                                color: isMoreItemSelected || _isMoreMenuOpen
+                                    ? const Color(0xFFD4AF37)
+                                    : Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isMoreItemSelected || _isMoreMenuOpen
+                                      ? const Color(0xFFD4AF37)
+                                      : const Color(0x19000000),
+                                  width: 1.2,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x1A000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: AnimatedRotation(
+                                  turns: _isMoreMenuOpen ? 0.125 : 0,
+                                  duration: const Duration(milliseconds: 220),
+                                  child: Icon(
+                                    Icons.apps_rounded,
+                                    size: isCompact ? 27 : 30,
+                                    color: isMoreItemSelected || _isMoreMenuOpen
+                                        ? Colors.white
+                                        : Colors.grey.shade700,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -359,6 +384,10 @@ class _BarNavItem extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      overlayColor: const MaterialStatePropertyAll(Colors.transparent),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
@@ -429,10 +458,11 @@ class _BubbleMoreMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final angles = _anglesForCount(items.length);
+    final extraHeight = radius + 120.0;
 
     return SizedBox(
       width: width,
-      height: height,
+      height: height + extraHeight,
       child: Stack(
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
@@ -479,6 +509,10 @@ class _BubbleNavItem extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: onTap,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      overlayColor: const MaterialStatePropertyAll(Colors.transparent),
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Column(

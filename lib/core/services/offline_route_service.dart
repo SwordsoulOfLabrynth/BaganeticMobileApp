@@ -244,15 +244,24 @@ class OfflineRouteService {
       return node == null ? [] : [LatLng(node.lat, node.lng)];
     }
 
-    final distances = <String, double>{};
+    final gScores = <String, double>{};
     final previous = <String, String?>{};
     final queue = _PriorityQueue<_QueueItem>((a, b) => a.cost.compareTo(b.cost));
 
-    distances[startId] = 0;
-    queue.add(_QueueItem(startId, 0));
+    gScores[startId] = 0;
+    queue.add(_QueueItem(startId, _heuristic(graph, startId, goalId)));
 
     while (queue.isNotEmpty) {
       final current = queue.removeFirst();
+      final currentG = gScores[current.nodeId];
+      if (currentG == null) {
+        continue;
+      }
+      final currentF = currentG + _heuristic(graph, current.nodeId, goalId);
+      if (current.cost > currentF) {
+        // Stale queue item.
+        continue;
+      }
       if (current.nodeId == goalId) {
         return _reconstructRoute(graph, previous, startId, goalId);
       }
@@ -260,18 +269,32 @@ class OfflineRouteService {
       final neighbors = graph.adjacency[current.nodeId] ?? const [];
       for (final edge in neighbors) {
         final next = edge.to;
-        final tentative = (distances[current.nodeId] ?? double.infinity) +
-            edge.weight;
+        final tentative = currentG + edge.weight;
 
-        if (tentative < (distances[next] ?? double.infinity)) {
-          distances[next] = tentative;
+        if (tentative < (gScores[next] ?? double.infinity)) {
+          gScores[next] = tentative;
           previous[next] = current.nodeId;
-          queue.add(_QueueItem(next, tentative));
+          final fScore = tentative + _heuristic(graph, next, goalId);
+          queue.add(_QueueItem(next, fScore));
         }
       }
     }
 
     return [];
+  }
+
+  double _heuristic(OfflineGraphData graph, String fromId, String goalId) {
+    final fromNode = graph.nodes[fromId];
+    final goalNode = graph.nodes[goalId];
+    if (fromNode == null || goalNode == null) {
+      return 0;
+    }
+    return Helpers.calculateDistance(
+      fromNode.lat,
+      fromNode.lng,
+      goalNode.lat,
+      goalNode.lng,
+    );
   }
 
   List<LatLng> _reconstructRoute(
