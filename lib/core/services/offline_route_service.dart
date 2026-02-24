@@ -297,6 +297,89 @@ class OfflineRouteService {
     );
   }
 
+  double? estimateGraphDistance(
+    OfflineGraphData graph,
+    LatLng start,
+    LatLng end,
+  ) {
+    final startId = graph.findNearestNode(start);
+    final goalId = graph.findNearestNode(end);
+    if (startId.isEmpty || goalId.isEmpty) {
+      return null;
+    }
+
+    final startNode = graph.nodes[startId];
+    final goalNode = graph.nodes[goalId];
+    if (startNode == null || goalNode == null) {
+      return null;
+    }
+
+    final pathDistance = _findPathDistance(graph, startId, goalId);
+    if (pathDistance == null) {
+      return null;
+    }
+
+    final startGap = Helpers.calculateDistance(
+      start.latitude,
+      start.longitude,
+      startNode.lat,
+      startNode.lng,
+    );
+    final endGap = Helpers.calculateDistance(
+      end.latitude,
+      end.longitude,
+      goalNode.lat,
+      goalNode.lng,
+    );
+
+    return pathDistance + startGap + endGap;
+  }
+
+  double? _findPathDistance(
+    OfflineGraphData graph,
+    String startId,
+    String goalId,
+  ) {
+    if (startId == goalId) {
+      return 0;
+    }
+
+    final gScores = <String, double>{};
+    final queue = _PriorityQueue<_QueueItem>((a, b) => a.cost.compareTo(b.cost));
+
+    gScores[startId] = 0;
+    queue.add(_QueueItem(startId, _heuristic(graph, startId, goalId)));
+
+    while (queue.isNotEmpty) {
+      final current = queue.removeFirst();
+      final currentG = gScores[current.nodeId];
+      if (currentG == null) {
+        continue;
+      }
+      final currentF = currentG + _heuristic(graph, current.nodeId, goalId);
+      if (current.cost > currentF) {
+        continue;
+      }
+      if (current.nodeId == goalId) {
+        return currentG;
+      }
+
+      final neighbors = graph.adjacency[current.nodeId] ?? const [];
+      for (final edge in neighbors) {
+        final next = edge.to;
+        final tentative = currentG + edge.weight;
+
+        if (tentative < (gScores[next] ?? double.infinity)) {
+          gScores[next] = tentative;
+          final fScore = tentative + _heuristic(graph, next, goalId);
+          queue.add(_QueueItem(next, fScore));
+        }
+      }
+    }
+
+    return null;
+  }
+
   List<LatLng> _reconstructRoute(
     OfflineGraphData graph,
     Map<String, String?> previous,

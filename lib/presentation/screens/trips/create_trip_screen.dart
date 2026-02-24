@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:latlong2/latlong.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
@@ -10,6 +11,7 @@ import '../../../core/utils/helpers.dart';
 import '../../../core/utils/pathfinding.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
+import '../../../core/services/offline_route_service.dart';
 
 class CreateTripScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -245,10 +247,14 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           );
         }
       } else {
+        final graph = await OfflineRouteService.instance.loadGraph();
+        final distanceCalculator = _buildDistanceCalculator(graph);
+
         // Nearest neighbor + 2-opt improvement for multiple pagodas
         final optimized = PathfindingService.optimizeRouteOrder(
           _selectedPagodas,
           keepFirst: true,
+          distanceCalculator: distanceCalculator,
         );
 
         final isSameOrder =
@@ -285,6 +291,36 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         _isCalculatingRoute = false;
       });
     }
+  }
+
+  PathDistanceCalculator _buildDistanceCalculator(OfflineGraphData? graph) {
+    final cache = <String, double>{};
+    return (Pagoda a, Pagoda b) {
+      final key = a.id.compareTo(b.id) <= 0 ? '${a.id}|${b.id}' : '${b.id}|${a.id}';
+      final cached = cache[key];
+      if (cached != null) {
+        return cached;
+      }
+
+      double? distance;
+      if (graph != null) {
+        distance = OfflineRouteService.instance.estimateGraphDistance(
+          graph,
+          LatLng(a.latitude, a.longitude),
+          LatLng(b.latitude, b.longitude),
+        );
+      }
+
+      distance ??= Helpers.calculateDistance(
+        a.latitude,
+        a.longitude,
+        b.latitude,
+        b.longitude,
+      );
+
+      cache[key] = distance;
+      return distance;
+    };
   }
 
   @override

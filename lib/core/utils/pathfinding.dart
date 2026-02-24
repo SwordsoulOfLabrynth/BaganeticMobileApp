@@ -1,6 +1,8 @@
 import '../../data/models/pagoda_model.dart';
 import 'helpers.dart';
 
+typedef PathDistanceCalculator = double Function(Pagoda a, Pagoda b);
+
 class PathNode {
   final Pagoda pagoda;
   double g; // Cost from start
@@ -163,17 +165,25 @@ class PathfindingService {
     List<Pagoda> pagodas, {
     bool keepFirst = true,
     int maxIterations = 200,
+    PathDistanceCalculator? distanceCalculator,
   }) {
     if (pagodas.length <= 2) return pagodas;
+
+    final distance = distanceCalculator ?? _haversineDistance;
 
     final List<Pagoda> initial;
     if (keepFirst) {
       // Build order once from the first stop to avoid duplicating it.
-      initial = _nearestNeighborOrder(pagodas.first, pagodas.sublist(1));
+      initial = _nearestNeighborOrder(
+        pagodas.first,
+        pagodas.sublist(1),
+        distance: distance,
+      );
     } else {
       initial = _nearestNeighborOrder(
         pagodas.first,
         pagodas.sublist(1),
+        distance: distance,
       );
     }
 
@@ -187,7 +197,7 @@ class PathfindingService {
       iterations += 1;
       for (int i = 1; i < n - 1; i++) {
         for (int k = i + 1; k < n; k++) {
-          final delta = _twoOptDelta(optimized, i, k);
+          final delta = _twoOptDelta(optimized, i, k, distance);
           if (delta < -_improvementEpsilonKm) {
             _reverseSegment(optimized, i, k);
             improved = true;
@@ -201,8 +211,9 @@ class PathfindingService {
 
   static List<Pagoda> _nearestNeighborOrder(
     Pagoda start,
-    List<Pagoda> remaining,
-  ) {
+    List<Pagoda> remaining, {
+    required PathDistanceCalculator distance,
+  }) {
     final List<Pagoda> ordered = [start];
     final List<Pagoda> pool = List<Pagoda>.from(remaining);
 
@@ -215,14 +226,9 @@ class PathfindingService {
       double minDistance = double.infinity;
       Pagoda? nearest;
       for (final pagoda in pool) {
-        final distance = Helpers.calculateDistance(
-          current.latitude,
-          current.longitude,
-          pagoda.latitude,
-          pagoda.longitude,
-        );
-        if (distance < minDistance) {
-          minDistance = distance;
+        final currentDistance = distance(current, pagoda);
+        if (currentDistance < minDistance) {
+          minDistance = currentDistance;
           nearest = pagoda;
         }
       }
@@ -236,14 +242,21 @@ class PathfindingService {
     return ordered;
   }
 
-  static double _twoOptDelta(List<Pagoda> route, int i, int k) {
+  static double _twoOptDelta(
+    List<Pagoda> route,
+    int i,
+    int k,
+    PathDistanceCalculator distance,
+  ) {
     final Pagoda a = route[i - 1];
     final Pagoda b = route[i];
     final Pagoda c = route[k];
     final Pagoda? d = (k + 1 < route.length) ? route[k + 1] : null;
 
-    final oldDistance = _distanceBetween(a, b) + (d == null ? 0.0 : _distanceBetween(c, d));
-    final newDistance = _distanceBetween(a, c) + (d == null ? 0.0 : _distanceBetween(b, d));
+    final oldDistance =
+        distance(a, b) + (d == null ? 0.0 : distance(c, d));
+    final newDistance =
+        distance(a, c) + (d == null ? 0.0 : distance(b, d));
 
     return newDistance - oldDistance;
   }
@@ -266,20 +279,23 @@ class PathfindingService {
       b.longitude,
     );
   }
+
+  static double _haversineDistance(Pagoda a, Pagoda b) {
+    return _distanceBetween(a, b);
+  }
   
-  static double calculatePathDistance(List<Pagoda> path) {
+  static double calculatePathDistance(
+    List<Pagoda> path, {
+    PathDistanceCalculator? distanceCalculator,
+  }) {
     if (path.length < 2) return 0;
-    
+    final distance = distanceCalculator ?? _haversineDistance;
+
     double totalDistance = 0;
     for (int i = 0; i < path.length - 1; i++) {
-      totalDistance += Helpers.calculateDistance(
-        path[i].latitude,
-        path[i].longitude,
-        path[i + 1].latitude,
-        path[i + 1].longitude,
-      );
+      totalDistance += distance(path[i], path[i + 1]);
     }
-    
+
     return totalDistance;
   }
 }
