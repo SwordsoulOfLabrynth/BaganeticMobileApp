@@ -141,23 +141,6 @@ flutter run --hot
 flutter build apk --release
 ```
 
-### 7. Emergent LLM Key Setup (for Chatbot - Phase 2)
-
-To enable AI chatbot functionality:
-
-1. Get Emergent LLM Key:
-```bash
-# This key works with OpenAI, Gemini, and Claude
-EMERGENT_LLM_KEY="your_key_here"
-```
-
-2. The app uses provider abstraction, so you can switch between:
-   - **OpenAI**: GPT-4o-mini
-   - **Gemini**: Gemini 2.0 Flash
-   - **Claude**: Claude 3.5 Sonnet
-
-3. Update LLM service configuration in `lib/core/services/llm_service.dart`
-
 ## 🧪 Testing
 
 ### Run All Tests
@@ -446,7 +429,7 @@ Your Baganetic mobile app is now set up and ready for development!
 1. Customize the sample data with real pagoda information
 2. Test all features thoroughly
 3. Add more pagodas to the database
-4. Implement Phase 2 features (chatbot, cloud sync)
+4. Implement Phase 2 features (cloud sync, advanced tooling)
 5. Deploy to stores
 
 **Happy Coding! 🚀**

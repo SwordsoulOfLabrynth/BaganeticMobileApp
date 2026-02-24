@@ -224,10 +224,10 @@ class HomeContentScreen extends StatelessWidget {
               width: cardWidth,
               child: _buildQuickActionCard(
                 context,
-                l10n.translate('home.actionDiscover'),
-                Icons.explore,
+                l10n.translate('home.actionProfile'),
+                Icons.person,
                 () {
-                  onNavigateToTab(2);
+                  onNavigateToTab(3);
                 },
               ),
             ),
@@ -238,7 +238,7 @@ class HomeContentScreen extends StatelessWidget {
                 l10n.translate('home.actionMap'),
                 Icons.map,
                 () {
-                  onNavigateToTab(4);
+                  onNavigateToTab(2);
                 },
               ),
             ),
@@ -249,7 +249,7 @@ class HomeContentScreen extends StatelessWidget {
                 l10n.translate('home.actionPlan'),
                 Icons.route,
                 () {
-                  onNavigateToTab(4);
+                  onNavigateToTab(2);
                 },
               ),
             ),

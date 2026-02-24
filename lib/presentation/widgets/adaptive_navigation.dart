@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
 
 class AdaptiveNavigation extends StatefulWidget {
@@ -129,25 +128,12 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
   Widget build(BuildContext context) {
     final primaryItems = _getPrimaryItems();
     final moreItems = _getMoreItems();
-    // Check if we have a popup menu item (index 2 with apps_rounded icon and empty label)
-    final hasPopupMenu = widget.items.length > 2 && 
-                         widget.items[2].icon == Icons.apps_rounded && 
-                         widget.items[2].label.isEmpty;
-    final List<NavigationItem> popupMenuItems = hasPopupMenu 
-        ? [
-            NavigationItem(icon: Icons.forum_outlined, label: context.l10n.translate('nav.chat'), index: 3),
-            NavigationItem(icon: Icons.explore, label: context.l10n.translate('nav.discovery'), index: 2),
-          ]
-        : [];
-    final moreItemIndexes = (hasPopupMenu
-            ? [2, 3]
-            : moreItems.map((item) => item.index))
-        .toSet();
+    final moreItemIndexes = moreItems.map((item) => item.index).toSet();
     final isMoreItemSelected = moreItemIndexes.contains(widget.currentIndex);
 
     return _buildBottomNavigationBar(
       primaryItems: primaryItems,
-      moreItems: hasPopupMenu ? popupMenuItems : moreItems,
+      moreItems: moreItems,
       isMoreItemSelected: isMoreItemSelected,
     );
   }
@@ -179,9 +165,6 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
     final isCompact = screenWidth < 360;
     final navBarHeight = isCompact ? 62.0 : 66.0;
     final navContainerHeight = navBarHeight;
-    final hasPopupMenu = widget.items.length > 2 && 
-                         widget.items[2].icon == Icons.apps_rounded && 
-                         widget.items[2].label.isEmpty;
     final middleButtonSize = isCompact ? 58.0 : 65.0;
 
     final popupHitHeight = moreItems.isNotEmpty
@@ -227,25 +210,17 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                     child: Row(
                       children: [
                         ...primaryItems.map(
-                          (item) {
-                            final isPopupMenu = item.icon ==
-                                    Icons.apps_rounded &&
-                                item.label.isEmpty;
-                            if (isPopupMenu) {
-                              return const Expanded(child: SizedBox());
-                            }
-                            return Expanded(
-                              child: _BarNavItem(
-                                icon: item.icon,
-                                label: item.label,
-                                isSelected: widget.currentIndex == item.index,
-                                onTap: () {
-                                  _setMoreMenuOpen(false);
-                                  widget.onNavigate(item.index);
-                                },
-                              ),
-                            );
-                          },
+                          (item) => Expanded(
+                            child: _BarNavItem(
+                              icon: item.icon,
+                              label: item.label,
+                              isSelected: widget.currentIndex == item.index,
+                              onTap: () {
+                                _setMoreMenuOpen(false);
+                                widget.onNavigate(item.index);
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -269,20 +244,7 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                             items: moreItems,
                             currentIndex: widget.currentIndex,
                             onTap: (index) {
-                              // Handle popup menu items (Chat and Discovery)
-                              final hasPopupMenu = widget.items.length > 2 &&
-                                  widget.items[2].icon == Icons.apps_rounded &&
-                                  widget.items[2].label.isEmpty;
-                              if (hasPopupMenu) {
-                                // Navigate to Chat (index 3) or Discovery (index 2) based on selection
-                                final targetIndex = index == 0 ? 3 : 2;
-                                widget.onNavigate(targetIndex);
-                              } else {
-                                final globalIndex = widget.items.indexOf(
-                                  moreItems[index],
-                                );
-                                widget.onNavigate(globalIndex);
-                              }
+                              widget.onNavigate(moreItems[index].index);
                               _setMoreMenuOpen(false);
                             },
                             width: isCompact ? 200 : 224,
@@ -293,8 +255,7 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                       ),
                     ),
                   ),
-                // Only show floating button if we have a popup menu
-                if (hasPopupMenu && moreItems.isNotEmpty)
+                if (moreItems.isNotEmpty)
                   Positioned(
                     bottom: isCompact ? 16 : 20,
                     child: SizedBox.square(
@@ -309,7 +270,7 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                           splashColor: Colors.transparent,
                           hoverColor: Colors.transparent,
                           overlayColor:
-                              const MaterialStatePropertyAll(Colors.transparent),
+                              const WidgetStatePropertyAll(Colors.transparent),
                           child: Center(
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 220),
@@ -339,7 +300,7 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                                   turns: _isMoreMenuOpen ? 0.125 : 0,
                                   duration: const Duration(milliseconds: 220),
                                   child: Icon(
-                                    Icons.apps_rounded,
+                                    Icons.more_horiz_rounded,
                                     size: isCompact ? 27 : 30,
                                     color: isMoreItemSelected || _isMoreMenuOpen
                                         ? Colors.white
@@ -387,7 +348,7 @@ class _BarNavItem extends StatelessWidget {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      overlayColor: const MaterialStatePropertyAll(Colors.transparent),
+      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
@@ -512,7 +473,7 @@ class _BubbleNavItem extends StatelessWidget {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      overlayColor: const MaterialStatePropertyAll(Colors.transparent),
+      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       child: Padding(
         padding: const EdgeInsets.all(4),
         child: Column(

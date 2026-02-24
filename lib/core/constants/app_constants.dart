@@ -8,9 +8,6 @@ class AppConstants {
   static const String users = 'users';
   static const String trips = 'trips';
   static const String favorites = 'favorites';
-  static const String chatGroups = 'groups';
-  static const String chatGroupMembers = 'group_members';
-  static const String chatMessages = 'messages';
 
   // Database
   static const String dbName = 'baganetic.db';
@@ -44,20 +41,7 @@ class AppConstants {
     'Monastery',
   ];
 
-  static const List<String> discoveryCategories = [
-    'All',
-    'Hotel',
-    'Restaurant',
-    'Service',
-  ];
-
   // Assets
   static const String placeholderImage = 'assets/images/placeholder.png';
   static const String logoImage = 'assets/images/logo.png';
-}
-
-class LLMProviders {
-  static const String openai = 'openai';
-  static const String gemini = 'gemini';
-  static const String claude = 'claude';
 }

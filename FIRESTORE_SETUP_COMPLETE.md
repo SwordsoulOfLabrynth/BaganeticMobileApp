@@ -13,19 +13,12 @@
 - User documents will be created in Firestore
 - Authentication + Firestore profile creation works
 
-### ✅ Chat Function
-- No more infinite loading
-- Chat groups can be created
-- Messages can be sent and received
-- Real-time updates work
-
 ## Next Steps
 
 ### 1. Test Your App
 Run your Flutter app and try:
 - **Signup**: Create a new account
 - **Login**: Sign in with existing account
-- **Chat**: Create a chat group and send messages
 
 ### 2. Security Rules (Important!)
 Your database is in "test mode" which allows all reads/writes. For production, update security rules in Firebase Console:
@@ -37,24 +30,12 @@ Your database is in "test mode" which allows all reads/writes. For production, u
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read/write their own data
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Chat groups - authenticated users can read/write
-    match /chatGroups/{groupId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-      
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null;
-      }
-    }
-    
-    // Chat group members
-    match /chatGroupMembers/{memberId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
   }
 }
@@ -88,4 +69,4 @@ firebase firestore:databases:list --project=baganetic-mobile
 
 ## Success! 🎉
 
-Your Firestore database is now set up and ready to use. The timeout fixes I added earlier will prevent infinite loading, and now that the database exists, all operations should complete successfully.
+Your Firestore database is now set up and ready to use for authentication and user profile data.
