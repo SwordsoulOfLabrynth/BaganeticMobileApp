@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/pagoda_model.dart';
 import '../models/trip_model.dart';
+import '../models/feedback_model.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/logger.dart';
 import '../../core/utils/image_path_utils.dart';
@@ -15,13 +16,16 @@ import 'migrations/migration_v6.dart';
 import 'migrations/migration_v7.dart';
 import 'migrations/migration_v8.dart';
 import 'migrations/migration_v9.dart';
+import 'migrations/migration_v10.dart';
 
 class DatabaseService {
   static Database? _database;
 
   Future<Database> get database async {
     if (kIsWeb) {
-      throw UnsupportedError('DatabaseService is not supported on web platform');
+      throw UnsupportedError(
+        'DatabaseService is not supported on web platform',
+      );
     }
     if (_database != null) return _database!;
     _database = await _initDatabase();
@@ -55,6 +59,7 @@ class DatabaseService {
       MigrationToV7(),
       MigrationToV8(),
       MigrationToV9(),
+      MigrationToV10(),
     ]..sort((a, b) => a.targetVersion.compareTo(b.targetVersion));
 
     for (final migration in migrations) {
@@ -135,6 +140,19 @@ class DatabaseService {
         PRIMARY KEY (ownerUserId, pagodaId)
       )
     ''');
+
+    // Feedbacks table
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableFeedbacks} (
+        id TEXT PRIMARY KEY,
+        pagodaId TEXT NOT NULL,
+        userId TEXT NOT NULL,
+        userName TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        comment TEXT NOT NULL,
+        createdAt TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> _onOpen(Database db) async {
@@ -142,6 +160,7 @@ class DatabaseService {
       // Repair critical schema drift for users with partially applied updates.
       await MigrationToV7().migrate(db);
       await MigrationToV9().migrate(db);
+      await MigrationToV10().migrate(db);
     } catch (e, stackTrace) {
       Logger.error('Database schema self-heal failed', e, stackTrace);
     }
@@ -609,6 +628,36 @@ class DatabaseService {
     await db.delete(AppConstants.tableFavorites);
     await db.delete(AppConstants.tableTrips);
     await db.delete(AppConstants.tableTripStops);
+    await db.delete(AppConstants.tableFeedbacks);
   }
 
+  // Feedback CRUD operations
+  Future<void> insertFeedback(PagodaFeedback feedback) async {
+    final db = await database;
+    await db.insert(
+      AppConstants.tableFeedbacks,
+      feedback.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<PagodaFeedback>> getFeedbacksForPagoda(String pagodaId) async {
+    final db = await database;
+    final maps = await db.query(
+      AppConstants.tableFeedbacks,
+      where: 'pagodaId = ?',
+      whereArgs: [pagodaId],
+      orderBy: 'createdAt DESC',
+    );
+    return maps.map((m) => PagodaFeedback.fromJson(m)).toList();
+  }
+
+  Future<void> deleteFeedback(String id) async {
+    final db = await database;
+    await db.delete(
+      AppConstants.tableFeedbacks,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }

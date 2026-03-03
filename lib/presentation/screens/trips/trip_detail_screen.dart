@@ -7,8 +7,9 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
-// Conditional import for File and web APIs
-import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import '../../../core/utils/platform_file_stub.dart'
+    if (dart.library.io) '../../../core/utils/platform_file_io.dart'
+    as platform_file;
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
@@ -445,16 +446,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
       if (kIsWeb) {
         // On web, share directly without file
-        await Share.share(
-          '${_trip.name} - ${Helpers.formatDate(_trip.date)}',
-        );
+        await Share.share('${_trip.name} - ${Helpers.formatDate(_trip.date)}');
       } else {
         final directory = await getTemporaryDirectory();
         final imagePath = '${directory.path}/trip_${widget.trip.id}.png';
-        // ignore: avoid_dynamic_calls
-        final imageFile = html.File(imagePath);
-        // ignore: avoid_dynamic_calls
-        await (imageFile as dynamic).writeAsBytes(image);
+        await platform_file.writeBytesToFile(imagePath, image);
 
         await Share.shareXFiles([
           XFile(imagePath),
@@ -499,16 +495,16 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         if (mounted) {
           Helpers.showSnackBar(
             context,
-            context.l10n.translate('tripDetail.exportSuccess', args: {'path': 'trip_${_trip.id}.png'}),
+            context.l10n.translate(
+              'tripDetail.exportSuccess',
+              args: {'path': 'trip_${_trip.id}.png'},
+            ),
           );
         }
       } else {
         final directory = await getApplicationDocumentsDirectory();
         final imagePath = '${directory.path}/trip_${_trip.id}.png';
-        // ignore: avoid_dynamic_calls
-        final imageFile = html.File(imagePath);
-        // ignore: avoid_dynamic_calls
-        await (imageFile as dynamic).writeAsBytes(image);
+        await platform_file.writeBytesToFile(imagePath, image);
 
         if (mounted) {
           Helpers.showSnackBar(

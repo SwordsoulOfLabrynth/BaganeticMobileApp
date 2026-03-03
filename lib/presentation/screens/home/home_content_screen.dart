@@ -3,11 +3,18 @@ import 'package:provider/provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
+import '../chat/chat_screen.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
 
 class HomeContentScreen extends StatelessWidget {
+  static const List<String> _curatedFeaturedIds = [
+    'ananda',
+    'shwezigon',
+    'dhammayangyi',
+  ];
+
   final void Function(int) onNavigateToTab;
 
   const HomeContentScreen({super.key, required this.onNavigateToTab});
@@ -15,11 +22,19 @@ class HomeContentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final pagePadding = Responsive.pagePadding(context);
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+
+    // Keep final home actions above the floating chat button and bottom nav.
+    final bottomReservedSpace = 136.0 + bottomInset;
+
     return Scaffold(
       appBar: AppBar(title: Text(l10n.translate('app.title')), elevation: 0),
       body: ResponsiveContent(
         child: SingleChildScrollView(
-          padding: Responsive.pagePadding(context),
+          padding: pagePadding.copyWith(
+            bottom: pagePadding.bottom + bottomReservedSpace,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -95,8 +110,9 @@ class HomeContentScreen extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // Use allPagodas instead of filtered pagodas for featured section
-            final featuredPagodas = provider.allPagodas.take(3).toList();
+            final featuredPagodas = _resolveFeaturedPagodas(
+              provider.allPagodas,
+            );
 
             if (featuredPagodas.isEmpty) {
               return Center(child: Text(l10n.translate('home.featuredEmpty')));
@@ -119,6 +135,28 @@ class HomeContentScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<Pagoda> _resolveFeaturedPagodas(List<Pagoda> allPagodas) {
+    if (allPagodas.isEmpty) {
+      return const <Pagoda>[];
+    }
+
+    final byId = <String, Pagoda>{for (final p in allPagodas) p.id: p};
+    final curated = _curatedFeaturedIds
+        .map((id) => byId[id])
+        .whereType<Pagoda>()
+        .toList();
+
+    if (curated.length >= 3) {
+      return curated.take(3).toList();
+    }
+
+    final remaining =
+        allPagodas.where((p) => !curated.any((c) => c.id == p.id)).toList()
+          ..shuffle();
+
+    return [...curated, ...remaining].take(3).toList();
   }
 
   Widget _buildFeaturedPagodaCard(BuildContext context, Pagoda pagoda) {
@@ -246,10 +284,12 @@ class HomeContentScreen extends StatelessWidget {
               width: cardWidth,
               child: _buildQuickActionCard(
                 context,
-                l10n.translate('home.actionPlan'),
-                Icons.route,
+                l10n.translate('chat.title'),
+                Icons.auto_awesome,
                 () {
-                  onNavigateToTab(2);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const ChatScreen()),
+                  );
                 },
               ),
             ),

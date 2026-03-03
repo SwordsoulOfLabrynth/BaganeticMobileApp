@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
+import '../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,8 +22,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    // For now, always go to login screen since Firebase is not configured
-    Navigator.of(context).pushReplacementNamed('/login');
+    final authProvider = context.read<AuthProvider>();
+    final isLoggedIn = authProvider.user != null;
+
+    Navigator.of(context).pushReplacementNamed(isLoggedIn ? '/home' : '/login');
   }
 
   @override

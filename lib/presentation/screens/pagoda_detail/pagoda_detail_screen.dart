@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../../../data/models/pagoda_model.dart';
+import '../../../data/models/feedback_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/feedback_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../trips/create_trip_screen.dart';
 import '../home/home_screen.dart';
@@ -21,7 +24,14 @@ class PagodaDetailScreen extends StatefulWidget {
 
 class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
   final PageController _pageController = PageController();
+  final TextEditingController _feedbackCommentController =
+      TextEditingController();
+  final String _guestFeedbackUserId = 'guest_${const Uuid().v4()}';
   int _currentImageIndex = 0;
+  int _feedbackRating = 5;
+  bool _feedbackLoaded = false;
+  bool _isFeedbackComposerVisible = false;
+  bool _isSubmittingFeedback = false;
 
   List<String> _buildImageList(Pagoda pagoda) {
     final List<String> images = [];
@@ -39,7 +49,21 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _feedbackCommentController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_feedbackLoaded) {
+      return;
+    }
+    _feedbackLoaded = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<FeedbackProvider>().loadFeedbacks(widget.pagoda.id);
+    });
   }
 
   @override
@@ -48,6 +72,10 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
     final theme = Theme.of(context);
     final pagoda = widget.pagoda;
     final pagodaProvider = context.watch<PagodaProvider>();
+    final feedbackProvider = context.watch<FeedbackProvider>();
+    final authProvider = context.watch<AuthProvider>();
+    final currentUserId = authProvider.user?.uid ?? _guestFeedbackUserId;
+    final isSignedIn = authProvider.user != null;
     final livePagoda = pagodaProvider.allPagodas.firstWhere(
       (item) => item.id == pagoda.id,
       orElse: () => pagoda,
@@ -64,10 +92,7 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
         : l10n.pagodaHistory(pagoda.id, pagoda.historicalInfo!);
     final pagodaArchitecture = pagoda.architecturalStyle == null
         ? null
-        : l10n.pagodaArchitecture(
-            pagoda.id,
-            pagoda.architecturalStyle!,
-          );
+        : l10n.pagodaArchitecture(pagoda.id, pagoda.architecturalStyle!);
     final pagodaLegends = pagoda.legends == null
         ? null
         : l10n.pagodaLegends(pagoda.id, pagoda.legends!);
@@ -79,14 +104,51 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
           );
     final pagodaPreservation = pagoda.preservationInfo == null
         ? null
-        : l10n.pagodaPreservation(
-            pagoda.id,
-            pagoda.preservationInfo!,
-          );
+        : l10n.pagodaPreservation(pagoda.id, pagoda.preservationInfo!);
     final pagodaBestTime = pagoda.bestTimeToVisit == null
         ? null
         : l10n.pagodaBestTime(pagoda.id, pagoda.bestTimeToVisit!);
+    final pagodaVisitorLocation = pagoda.visitorLocation == null
+        ? null
+        : l10n.pagodaVisitorLocation(pagoda.id, pagoda.visitorLocation!);
+    final pagodaOpeningHours = pagoda.openingHours == null
+        ? null
+        : l10n.pagodaOpeningHours(pagoda.id, pagoda.openingHours!);
+    final pagodaDressCode = pagoda.dressCode == null
+        ? null
+        : l10n.pagodaDressCode(pagoda.id, pagoda.dressCode!);
+    final pagodaEntranceFee = pagoda.entranceFee == null
+        ? null
+        : l10n.pagodaEntranceFee(pagoda.id, pagoda.entranceFee!);
+    final pagodaPhotographyRules = pagoda.photographyRules == null
+        ? null
+        : l10n.pagodaPhotographyRules(pagoda.id, pagoda.photographyRules!);
+    final pagodaFinalWords = pagoda.finalWords == null
+        ? null
+        : l10n.pagodaFinalWords(pagoda.id, pagoda.finalWords!);
     final uniqueFeatures = pagoda.uniqueFeatures;
+    final localizedUniqueFeatures = uniqueFeatures
+        .asMap()
+        .entries
+        .map((entry) {
+          final index = entry.key;
+          final feature = entry.value;
+          return PagodaFeature(
+            title: l10n.pagodaUniqueFeatureTitle(
+              pagoda.id,
+              index,
+              feature.title,
+            ),
+            description: l10n.pagodaUniqueFeatureDescription(
+              pagoda.id,
+              index,
+              feature.description,
+            ),
+            icon: feature.icon,
+            imageUrl: feature.imageUrl,
+          );
+        })
+        .toList(growable: false);
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -133,7 +195,9 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                         return PagodaImageWidget(
                           imageUrl: images[index],
                           fit: BoxFit.cover,
-                          height: Responsive.isDesktopOrLarger(context) ? 400 : 320,
+                          height: Responsive.isDesktopOrLarger(context)
+                              ? 400
+                              : 320,
                           width: double.infinity,
                           placeholder: Container(
                             color: Colors.grey[300],
@@ -227,9 +291,7 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                     );
                     return;
                   }
-                  context.read<PagodaProvider>().toggleFavorite(
-                    pagoda.id,
-                  );
+                  context.read<PagodaProvider>().toggleFavorite(pagoda.id);
                 },
               ),
             ],
@@ -241,273 +303,601 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                   top: Responsive.spacing(context),
                   bottom: Responsive.largeSpacing(context),
                 ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: Responsive.smallSpacing(context),
-                    runSpacing: Responsive.smallSpacing(context),
-                    children: [
-                      Chip(
-                        label: Text(l10n.categoryLabel(pagoda.category)),
-                        backgroundColor: const Color(0xFFD4AF37),
-                        labelStyle: const TextStyle(color: Colors.white),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      Chip(
-                        label: Text(
-                          '${pagoda.latitude.toStringAsFixed(4)}, ${pagoda.longitude.toStringAsFixed(4)}',
-                        ),
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
-                        labelStyle: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        avatar: Icon(
-                          Icons.location_on,
-                          size: 18,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (Responsive.isDesktopOrLarger(context))
-                    _buildDesktopStats(context, pagoda)
-                  else
-                    _buildMobileStats(context, pagoda),
-                  const SizedBox(height: 20),
-                  _SectionCard(
-                    title: l10n.translate('pagoda.detail.overview'),
-                    child: Text(
-                      pagodaDescription,
-                      style: const TextStyle(fontSize: 16, height: 1.5),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _SectionCard(
-                    title: l10n.translate('pagoda.detail.quickFacts'),
-                    child: Column(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: Responsive.smallSpacing(context),
+                      runSpacing: Responsive.smallSpacing(context),
                       children: [
-                        if (pagodaArchitecture != null)
-                          _InfoTile(
-                            icon: Icons.architecture,
-                            label: l10n.translate('pagoda.detail.archStyle'),
-                            value: pagodaArchitecture,
+                        Chip(
+                          label: Text(l10n.categoryLabel(pagoda.category)),
+                          backgroundColor: const Color(0xFFD4AF37),
+                          labelStyle: const TextStyle(color: Colors.white),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        Chip(
+                          label: Text(
+                            '${pagoda.latitude.toStringAsFixed(4)}, ${pagoda.longitude.toStringAsFixed(4)}',
                           ),
-                        if (pagoda.height != null)
-                          _InfoTile(
-                            icon: Icons.height,
-                            label: l10n.translate('pagoda.detail.height'),
-                            value: pagoda.height!,
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
+                          labelStyle: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
-                        if (pagoda.yearBuilt != null)
-                          _InfoTile(
-                            icon: Icons.event,
-                            label: l10n.translate('pagoda.detail.yearBuilt'),
-                            value: pagoda.yearBuilt.toString(),
+                          avatar: Icon(
+                            Icons.location_on,
+                            size: 18,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
-                        _InfoTile(
-                          icon: Icons.place,
-                          label: l10n.translate('pagoda.detail.location'),
-                          value:
-                              '${pagoda.latitude.toStringAsFixed(4)}, ${pagoda.longitude.toStringAsFixed(4)}',
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                         ),
                       ],
                     ),
-                  ),
-                  if (pagodaHistory != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
+                    const SizedBox(height: 16),
+                    if (Responsive.isDesktopOrLarger(context))
+                      _buildDesktopStats(context, pagoda)
+                    else
+                      _buildMobileStats(context, pagoda),
+                    const SizedBox(height: 20),
                     _SectionCard(
-                      title: l10n.translate('pagoda.detail.historicalInfo'),
+                      title: l10n.translate('pagoda.detail.overview'),
                       child: Text(
-                        pagodaHistory,
+                        pagodaDescription,
                         style: const TextStyle(fontSize: 16, height: 1.5),
                       ),
                     ),
-                  ],
-                  if (pagodaLegends != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
+                    const SizedBox(height: 20),
                     _SectionCard(
-                      title: l10n.translate('pagoda.detail.legends'),
-                      child: Text(
-                        pagodaLegends,
-                        style: const TextStyle(fontSize: 16, height: 1.5),
-                      ),
-                    ),
-                  ],
-                  if (pagodaReligious != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
-                    _SectionCard(
-                      title: l10n.translate(
-                        'pagoda.detail.religiousImportance',
-                      ),
-                      child: Text(
-                        pagodaReligious,
-                        style: const TextStyle(fontSize: 16, height: 1.5),
-                      ),
-                    ),
-                  ],
-                  if (pagodaPreservation != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
-                    _SectionCard(
-                      title: l10n.translate('pagoda.detail.preservation'),
-                      child: Text(
-                        pagodaPreservation,
-                        style: const TextStyle(fontSize: 16, height: 1.5),
-                      ),
-                    ),
-                  ],
-                  if (uniqueFeatures.isNotEmpty) ...[
-                    SizedBox(height: Responsive.spacing(context)),
-                    _SectionCard(
-                      title: l10n.translate('pagoda.detail.uniqueFeatures'),
-                      child: Column(
-                        children: uniqueFeatures
-                            .map((feature) => _FeatureTile(feature: feature))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                  if (pagoda.visitorLocation != null ||
-                      pagoda.openingHours != null ||
-                      pagoda.dressCode != null ||
-                      pagoda.entranceFee != null ||
-                      pagoda.photographyRules != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
-                    _SectionCard(
-                      title: l10n.translate('pagoda.detail.visitorInfo'),
+                      title: l10n.translate('pagoda.detail.quickFacts'),
                       child: Column(
                         children: [
-                          if (pagoda.visitorLocation != null)
+                          if (pagodaArchitecture != null)
                             _InfoTile(
-                              icon: Icons.location_on,
-                              label: l10n.translate('pagoda.detail.location'),
-                              value: pagoda.visitorLocation!,
+                              icon: Icons.architecture,
+                              label: l10n.translate('pagoda.detail.archStyle'),
+                              value: pagodaArchitecture,
                             ),
-                          if (pagoda.openingHours != null)
+                          if (pagoda.height != null)
                             _InfoTile(
-                              icon: Icons.access_time,
-                              label: l10n.translate(
-                                'pagoda.detail.openingHours',
-                              ),
-                              value: pagoda.openingHours!,
+                              icon: Icons.height,
+                              label: l10n.translate('pagoda.detail.height'),
+                              value: pagoda.height!,
                             ),
-                          if (pagoda.dressCode != null)
+                          if (pagoda.yearBuilt != null)
                             _InfoTile(
-                              icon: Icons.checkroom,
-                              label: l10n.translate('pagoda.detail.dressCode'),
-                              value: pagoda.dressCode!,
+                              icon: Icons.event,
+                              label: l10n.translate('pagoda.detail.yearBuilt'),
+                              value: pagoda.yearBuilt.toString(),
                             ),
-                          if (pagoda.entranceFee != null)
-                            _InfoTile(
-                              icon: Icons.confirmation_number,
-                              label: l10n.translate(
-                                'pagoda.detail.entranceFee',
-                              ),
-                              value: pagoda.entranceFee!,
-                            ),
-                          if (pagoda.photographyRules != null)
-                            _InfoTile(
-                              icon: Icons.photo_camera,
-                              label: l10n.translate(
-                                'pagoda.detail.photography',
-                              ),
-                              value: pagoda.photographyRules!,
-                            ),
+                          _InfoTile(
+                            icon: Icons.place,
+                            label: l10n.translate('pagoda.detail.location'),
+                            value:
+                                '${pagoda.latitude.toStringAsFixed(4)}, ${pagoda.longitude.toStringAsFixed(4)}',
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                  if (pagodaBestTime != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
-                    _SectionCard(
-                      title: l10n.translate('pagoda.detail.bestTimeToVisit'),
-                      child: Text(
-                        pagodaBestTime,
-                        style: const TextStyle(fontSize: 16, height: 1.5),
-                      ),
-                    ),
-                  ],
-                  if (pagoda.finalWords != null) ...[
-                    SizedBox(height: Responsive.spacing(context)),
-                    _SectionCard(
-                      title: l10n.translate('pagoda.detail.finalWords'),
-                      child: Text(
-                        pagoda.finalWords!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.5,
-                          fontStyle: FontStyle.italic,
+                    if (pagodaHistory != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.historicalInfo'),
+                        child: Text(
+                          pagodaHistory,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
                         ),
                       ),
+                    ],
+                    if (pagodaLegends != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.legends'),
+                        child: Text(
+                          pagodaLegends,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
+                        ),
+                      ),
+                    ],
+                    if (pagodaReligious != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate(
+                          'pagoda.detail.religiousImportance',
+                        ),
+                        child: Text(
+                          pagodaReligious,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
+                        ),
+                      ),
+                    ],
+                    if (pagodaPreservation != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.preservation'),
+                        child: Text(
+                          pagodaPreservation,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
+                        ),
+                      ),
+                    ],
+                    if (localizedUniqueFeatures.isNotEmpty) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.uniqueFeatures'),
+                        child: Column(
+                          children: localizedUniqueFeatures
+                              .map((feature) => _FeatureTile(feature: feature))
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                    if (pagodaVisitorLocation != null ||
+                        pagodaOpeningHours != null ||
+                        pagodaDressCode != null ||
+                        pagodaEntranceFee != null ||
+                        pagodaPhotographyRules != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.visitorInfo'),
+                        child: Column(
+                          children: [
+                            if (pagodaVisitorLocation != null)
+                              _InfoTile(
+                                icon: Icons.location_on,
+                                label: l10n.translate('pagoda.detail.location'),
+                                value: pagodaVisitorLocation,
+                              ),
+                            if (pagodaOpeningHours != null)
+                              _InfoTile(
+                                icon: Icons.access_time,
+                                label: l10n.translate(
+                                  'pagoda.detail.openingHours',
+                                ),
+                                value: pagodaOpeningHours,
+                              ),
+                            if (pagodaDressCode != null)
+                              _InfoTile(
+                                icon: Icons.checkroom,
+                                label: l10n.translate(
+                                  'pagoda.detail.dressCode',
+                                ),
+                                value: pagodaDressCode,
+                              ),
+                            if (pagodaEntranceFee != null)
+                              _InfoTile(
+                                icon: Icons.confirmation_number,
+                                label: l10n.translate(
+                                  'pagoda.detail.entranceFee',
+                                ),
+                                value: pagodaEntranceFee,
+                              ),
+                            if (pagodaPhotographyRules != null)
+                              _InfoTile(
+                                icon: Icons.photo_camera,
+                                label: l10n.translate(
+                                  'pagoda.detail.photography',
+                                ),
+                                value: pagodaPhotographyRules,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (pagodaBestTime != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.bestTimeToVisit'),
+                        child: Text(
+                          pagodaBestTime,
+                          style: const TextStyle(fontSize: 16, height: 1.5),
+                        ),
+                      ),
+                    ],
+                    if (pagodaFinalWords != null) ...[
+                      SizedBox(height: Responsive.spacing(context)),
+                      _SectionCard(
+                        title: l10n.translate('pagoda.detail.finalWords'),
+                        child: Text(
+                          pagodaFinalWords,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            height: 1.5,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                    SizedBox(height: Responsive.spacing(context)),
+                    _buildFeedbackSection(
+                      context,
+                      provider: feedbackProvider,
+                      pagodaId: pagoda.id,
+                      currentUserId: currentUserId,
+                      isSignedIn: isSignedIn,
                     ),
-                  ],
-                  SizedBox(height: Responsive.largeSpacing(context)),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        final authProvider = context.read<AuthProvider>();
-                        if (authProvider.user == null) {
-                          Helpers.showSnackBar(
+                    SizedBox(height: Responsive.largeSpacing(context)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          final authProvider = context.read<AuthProvider>();
+                          if (authProvider.user == null) {
+                            Helpers.showSnackBar(
+                              context,
+                              l10n.translate('auth.loginRequired'),
+                              isError: true,
+                            );
+                            return;
+                          }
+                          Navigator.push(
                             context,
-                            l10n.translate('auth.loginRequired'),
-                            isError: true,
-                          );
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                CreateTripScreen(initialPagoda: pagoda),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.add_road),
-                      label: Text(l10n.translate('pagoda.detail.addToTrip')),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.isCompact(context) ? 16 : 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: Responsive.smallSpacing(context)),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomeScreen(
-                              initialIndex: 2,
-                              initialMapPagoda: pagoda,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CreateTripScreen(initialPagoda: pagoda),
                             ),
+                          );
+                        },
+                        icon: const Icon(Icons.add_road),
+                        label: Text(l10n.translate('pagoda.detail.addToTrip')),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.isCompact(context) ? 16 : 20,
                           ),
-                          (route) => false,
-                        );
-                      },
-                      icon: const Icon(Icons.map),
-                      label: Text(l10n.translate('pagoda.detail.viewOnMap')),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Responsive.isCompact(context) ? 16 : 20,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: Responsive.smallSpacing(context)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HomeScreen(
+                                initialIndex: 2,
+                                initialMapPagoda: pagoda,
+                              ),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        icon: const Icon(Icons.map),
+                        label: Text(l10n.translate('pagoda.detail.viewOnMap')),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: Responsive.isCompact(context) ? 16 : 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildFeedbackSection(
+    BuildContext context, {
+    required FeedbackProvider provider,
+    required String pagodaId,
+    required String currentUserId,
+    required bool isSignedIn,
+  }) {
+    final l10n = context.l10n;
+
+    return _SectionCard(
+      title: l10n.translate('feedback.title'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildStaticStars(provider.averageRating, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                '${provider.averageRating.toStringAsFixed(1)} (${provider.feedbackCount})',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _isFeedbackComposerVisible = true;
+                });
+              },
+              icon: const Icon(Icons.rate_review_outlined),
+              label: Text(l10n.translate('feedback.write')),
+            ),
+          ),
+          if (!isSignedIn)
+            Text(
+              l10n.translate('feedback.signInPrompt'),
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+          if (_isFeedbackComposerVisible) ...[
+            const SizedBox(height: 10),
+            _buildFeedbackComposer(context, pagodaId),
+          ],
+          const SizedBox(height: 8),
+          if (provider.isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (provider.feedbacks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(l10n.translate('feedback.empty')),
+            )
+          else
+            Column(
+              children: provider.feedbacks.map((feedback) {
+                final canDelete = currentUserId == feedback.userId;
+                return _buildFeedbackTile(
+                  context,
+                  provider: provider,
+                  feedback: feedback,
+                  canDelete: canDelete,
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedbackTile(
+    BuildContext context, {
+    required FeedbackProvider provider,
+    required PagodaFeedback feedback,
+    required bool canDelete,
+  }) {
+    final l10n = context.l10n;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      feedback.userName,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 2),
+                    _buildStaticStars(feedback.rating.toDouble(), size: 16),
+                  ],
+                ),
+              ),
+              if (canDelete)
+                IconButton(
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(l10n.translate('feedback.delete')),
+                        content: Text(l10n.translate('feedback.deleteConfirm')),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(l10n.translate('common.cancel')),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(l10n.translate('common.delete')),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      await provider.deleteFeedback(feedback.id);
+                    }
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: l10n.translate('feedback.delete'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(feedback.comment),
+          const SizedBox(height: 6),
+          Text(
+            Helpers.formatDate(feedback.createdAt),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaticStars(double rating, {double size = 18}) {
+    final rounded = rating.clamp(0, 5).round();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        final filled = index < rounded;
+        return Icon(
+          filled ? Icons.star : Icons.star_border,
+          size: size,
+          color: const Color(0xFFD4AF37),
+        );
+      }),
+    );
+  }
+
+  Widget _buildFeedbackComposer(BuildContext context, String pagodaId) {
+    final l10n = context.l10n;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.translate('feedback.rating'),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: List.generate(5, (index) {
+              final selected = index < _feedbackRating;
+              return IconButton(
+                onPressed: () {
+                  setState(() {
+                    _feedbackRating = index + 1;
+                  });
+                },
+                icon: Icon(
+                  selected ? Icons.star : Icons.star_border,
+                  color: const Color(0xFFD4AF37),
+                ),
+                visualDensity: VisualDensity.compact,
+              );
+            }),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _feedbackCommentController,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: l10n.translate('feedback.commentHint'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _isSubmittingFeedback
+                      ? null
+                      : () {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            _isFeedbackComposerVisible = false;
+                            _feedbackRating = 5;
+                            _feedbackCommentController.clear();
+                          });
+                        },
+                  child: Text(l10n.translate('common.cancel')),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _isSubmittingFeedback
+                      ? null
+                      : () => _submitFeedbackInline(pagodaId),
+                  child: _isSubmittingFeedback
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.translate('feedback.submit')),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitFeedbackInline(String pagodaId) async {
+    final l10n = context.l10n;
+    final comment = _feedbackCommentController.text.trim();
+    if (comment.isEmpty) {
+      Helpers.showSnackBar(
+        context,
+        l10n.translate('feedback.commentRequired'),
+        isError: true,
+      );
+      return;
+    }
+
+    if (_isSubmittingFeedback) {
+      return;
+    }
+
+    final user = context.read<AuthProvider>().user;
+    final fallbackName = user == null
+        ? l10n.translate('feedback.guestName')
+        : l10n.translate('profile.userDefault');
+    final displayName = (user?.displayName ?? '').trim();
+    final emailName = user?.email?.split('@').first ?? '';
+    final userName = displayName.isNotEmpty
+        ? displayName
+        : (emailName.isNotEmpty ? emailName : fallbackName);
+
+    final feedback = PagodaFeedback(
+      id: const Uuid().v4(),
+      pagodaId: pagodaId,
+      userId: user?.uid ?? _guestFeedbackUserId,
+      userName: userName,
+      rating: _feedbackRating,
+      comment: comment,
+      createdAt: DateTime.now(),
+    );
+
+    setState(() {
+      _isSubmittingFeedback = true;
+    });
+
+    try {
+      await context.read<FeedbackProvider>().submitFeedback(feedback);
+      if (!mounted) return;
+      FocusScope.of(context).unfocus();
+      setState(() {
+        _isFeedbackComposerVisible = false;
+        _feedbackRating = 5;
+        _feedbackCommentController.clear();
+      });
+      Helpers.showSnackBar(context, l10n.translate('feedback.submitSuccess'));
+    } catch (_) {
+      if (!mounted) return;
+      Helpers.showSnackBar(
+        context,
+        l10n.translate('feedback.submitError'),
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingFeedback = false;
+        });
+      }
+    }
   }
 }
 
@@ -534,82 +924,81 @@ class _CarouselNavButton extends StatelessWidget {
 }
 
 Widget _buildDesktopStats(BuildContext context, Pagoda pagoda) {
-    final l10n = context.l10n;
-    return Row(
-      children: [
-        Expanded(
-          child: _StatTile(
-            label: l10n.translate('pagoda.detail.category'),
-            value: l10n.categoryLabel(pagoda.category),
-            icon: Icons.category,
-          ),
+  final l10n = context.l10n;
+  return Row(
+    children: [
+      Expanded(
+        child: _StatTile(
+          label: l10n.translate('pagoda.detail.category'),
+          value: l10n.categoryLabel(pagoda.category),
+          icon: Icons.category,
         ),
-        SizedBox(width: Responsive.spacing(context)),
-        Expanded(
-          child: _StatTile(
-            label: l10n.translate('pagoda.detail.year'),
-            value:
-                pagoda.yearBuilt?.toString() ??
-                l10n.translate('common.unknown'),
-            icon: Icons.event,
-          ),
+      ),
+      SizedBox(width: Responsive.spacing(context)),
+      Expanded(
+        child: _StatTile(
+          label: l10n.translate('pagoda.detail.year'),
+          value:
+              pagoda.yearBuilt?.toString() ?? l10n.translate('common.unknown'),
+          icon: Icons.event,
         ),
-        SizedBox(width: Responsive.spacing(context)),
-        Expanded(
-          child: _StatTile(
-            label: l10n.translate('pagoda.detail.age'),
-            value: pagoda.yearBuilt == null
-                ? l10n.translate('common.unknown')
-                : '${DateTime.now().year - pagoda.yearBuilt!} ${l10n.translate('common.yearsShort')}',
-            icon: Icons.history,
-          ),
+      ),
+      SizedBox(width: Responsive.spacing(context)),
+      Expanded(
+        child: _StatTile(
+          label: l10n.translate('pagoda.detail.age'),
+          value: pagoda.yearBuilt == null
+              ? l10n.translate('common.unknown')
+              : '${DateTime.now().year - pagoda.yearBuilt!} ${l10n.translate('common.yearsShort')}',
+          icon: Icons.history,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
 Widget _buildMobileStats(BuildContext context, Pagoda pagoda) {
-    final l10n = context.l10n;
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _StatTile(
-                label: l10n.translate('pagoda.detail.category'),
-                value: l10n.categoryLabel(pagoda.category),
-                icon: Icons.category,
-              ),
+  final l10n = context.l10n;
+  return Column(
+    children: [
+      Row(
+        children: [
+          Expanded(
+            child: _StatTile(
+              label: l10n.translate('pagoda.detail.category'),
+              value: l10n.categoryLabel(pagoda.category),
+              icon: Icons.category,
             ),
-            SizedBox(width: Responsive.smallSpacing(context)),
-            Expanded(
-              child: _StatTile(
-                label: l10n.translate('pagoda.detail.year'),
-                value:
-                    pagoda.yearBuilt?.toString() ??
-                    l10n.translate('common.unknown'),
-                icon: Icons.event,
-              ),
+          ),
+          SizedBox(width: Responsive.smallSpacing(context)),
+          Expanded(
+            child: _StatTile(
+              label: l10n.translate('pagoda.detail.year'),
+              value:
+                  pagoda.yearBuilt?.toString() ??
+                  l10n.translate('common.unknown'),
+              icon: Icons.event,
             ),
-          ],
-        ),
-        SizedBox(height: Responsive.smallSpacing(context)),
-        Row(
-          children: [
-            Expanded(
-              child: _StatTile(
-                label: l10n.translate('pagoda.detail.age'),
-                value: pagoda.yearBuilt == null
-                    ? l10n.translate('common.unknown')
-                    : '${DateTime.now().year - pagoda.yearBuilt!} ${l10n.translate('common.yearsShort')}',
-                icon: Icons.history,
-              ),
+          ),
+        ],
+      ),
+      SizedBox(height: Responsive.smallSpacing(context)),
+      Row(
+        children: [
+          Expanded(
+            child: _StatTile(
+              label: l10n.translate('pagoda.detail.age'),
+              value: pagoda.yearBuilt == null
+                  ? l10n.translate('common.unknown')
+                  : '${DateTime.now().year - pagoda.yearBuilt!} ${l10n.translate('common.yearsShort')}',
+              icon: Icons.history,
             ),
-          ],
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
 class _StatTile extends StatelessWidget {
   final String label;
@@ -628,7 +1017,9 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.35,
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

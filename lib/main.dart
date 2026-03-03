@@ -13,6 +13,7 @@ import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/feedback_provider.dart';
 import 'presentation/providers/language_provider.dart';
 import 'presentation/providers/pagoda_provider.dart';
 import 'presentation/providers/trip_provider.dart';
@@ -23,6 +24,7 @@ import 'core/services/offline_map_service.dart';
 import 'core/services/offline_route_service.dart';
 import 'core/services/logger.dart';
 import 'core/services/firestore_instance.dart';
+import 'data/datasources/local_datasource.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,9 +33,9 @@ void main() async {
   // Initialize Firebase
   var firebaseReady = false;
   try {
-    await Firebase
-        .initializeApp(options: DefaultFirebaseOptions.currentPlatform)
-        .timeout(const Duration(seconds: 8));
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 8));
     firebaseReady = true;
     FirestoreInstance.instance.settings = const Settings(
       persistenceEnabled: true,
@@ -63,9 +65,13 @@ void _configureDesktopDatabase() {
   }
 }
 
-Future<void> _initializeBackgroundServices({required bool firebaseReady}) async {
+Future<void> _initializeBackgroundServices({
+  required bool firebaseReady,
+}) async {
   if (!firebaseReady) {
-    Logger.info('Skipping Firestore-dependent background work (Firebase not ready)');
+    Logger.info(
+      'Skipping Firestore-dependent background work (Firebase not ready)',
+    );
   }
 
   try {
@@ -93,6 +99,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PagodaProvider()),
         ChangeNotifierProvider(create: (_) => TripProvider()),
+        ChangeNotifierProvider(
+          create: (_) => FeedbackProvider(DatabaseService()),
+        ),
       ],
       child: Consumer<LanguageProvider>(
         builder: (context, languageProvider, _) {

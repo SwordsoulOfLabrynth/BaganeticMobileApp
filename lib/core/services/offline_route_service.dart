@@ -436,7 +436,8 @@ class OfflineRouteService {
       end.latitude,
       end.longitude,
     );
-    final steps = 10;
+    // Scale steps by distance: more points for longer segments, fewer for short.
+    final steps = (distanceKm * 8).round().clamp(4, 30);
     final latMid = (start.latitude + end.latitude) / 2;
     final lonMid = (start.longitude + end.longitude) / 2;
     final dx = end.longitude - start.longitude;
@@ -636,6 +637,7 @@ class _QueueItem {
   const _QueueItem(this.nodeId, this.cost);
 }
 
+/// Binary min-heap priority queue – O(log n) insert and extract-min.
 class _PriorityQueue<T> {
   final List<T> _items = [];
   final Comparator<T> _comparator;
@@ -644,12 +646,51 @@ class _PriorityQueue<T> {
 
   void add(T item) {
     _items.add(item);
-    _items.sort(_comparator);
+    _siftUp(_items.length - 1);
   }
 
   T removeFirst() {
-    return _items.removeAt(0);
+    final first = _items.first;
+    final last = _items.removeLast();
+    if (_items.isNotEmpty) {
+      _items[0] = last;
+      _siftDown(0);
+    }
+    return first;
   }
 
   bool get isNotEmpty => _items.isNotEmpty;
+
+  void _siftUp(int index) {
+    while (index > 0) {
+      final parent = (index - 1) ~/ 2;
+      if (_comparator(_items[index], _items[parent]) >= 0) break;
+      _swap(index, parent);
+      index = parent;
+    }
+  }
+
+  void _siftDown(int index) {
+    final length = _items.length;
+    while (true) {
+      int smallest = index;
+      final left = 2 * index + 1;
+      final right = 2 * index + 2;
+      if (left < length && _comparator(_items[left], _items[smallest]) < 0) {
+        smallest = left;
+      }
+      if (right < length && _comparator(_items[right], _items[smallest]) < 0) {
+        smallest = right;
+      }
+      if (smallest == index) break;
+      _swap(index, smallest);
+      index = smallest;
+    }
+  }
+
+  void _swap(int a, int b) {
+    final temp = _items[a];
+    _items[a] = _items[b];
+    _items[b] = temp;
+  }
 }

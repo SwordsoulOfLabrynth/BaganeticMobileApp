@@ -55,31 +55,91 @@ class AppLocalizations {
   }
 
   String pagodaDescription(String id, String fallback) {
-    return translateOr('pagoda.$id.description', fallback);
+    return _translatePagodaField('pagoda.$id.description', fallback);
   }
 
   String pagodaHistory(String id, String fallback) {
-    return translateOr('pagoda.$id.history', fallback);
+    return _translatePagodaField('pagoda.$id.history', fallback);
   }
 
   String pagodaArchitecture(String id, String fallback) {
-    return translateOr('pagoda.$id.architecture', fallback);
+    return _translatePagodaField('pagoda.$id.architecture', fallback);
   }
 
   String pagodaLegends(String id, String fallback) {
-    return translateOr('pagoda.$id.legends', fallback);
+    return _translatePagodaField('pagoda.$id.legends', fallback);
   }
 
   String pagodaReligiousImportance(String id, String fallback) {
-    return translateOr('pagoda.$id.religiousImportance', fallback);
+    return _translatePagodaField('pagoda.$id.religiousImportance', fallback);
   }
 
   String pagodaPreservation(String id, String fallback) {
-    return translateOr('pagoda.$id.preservation', fallback);
+    return _translatePagodaField('pagoda.$id.preservation', fallback);
   }
 
   String pagodaBestTime(String id, String fallback) {
-    return translateOr('pagoda.$id.bestTime', fallback);
+    return _translatePagodaField('pagoda.$id.bestTime', fallback);
+  }
+
+  String pagodaFinalWords(String id, String fallback) {
+    return _translatePagodaField('pagoda.$id.finalWords', fallback);
+  }
+
+  String pagodaVisitorLocation(String id, String fallback) {
+    return _translatePagodaField('pagoda.$id.visitorLocation', fallback);
+  }
+
+  String pagodaOpeningHours(String id, String fallback) {
+    return _translatePagodaField('pagoda.$id.openingHours', fallback);
+  }
+
+  String pagodaDressCode(String id, String fallback) {
+    return _translatePagodaField('pagoda.$id.dressCode', fallback);
+  }
+
+  String pagodaEntranceFee(String id, String fallback) {
+    return _translatePagodaField('pagoda.$id.entranceFee', fallback);
+  }
+
+  String pagodaPhotographyRules(String id, String fallback) {
+    return _translatePagodaField('pagoda.$id.photographyRules', fallback);
+  }
+
+  String pagodaUniqueFeatureTitle(String id, int index, String fallback) {
+    return _translatePagodaField(
+      'pagoda.$id.uniqueFeatures.$index.title',
+      fallback,
+    );
+  }
+
+  String pagodaUniqueFeatureDescription(String id, int index, String fallback) {
+    return _translatePagodaField(
+      'pagoda.$id.uniqueFeatures.$index.description',
+      fallback,
+    );
+  }
+
+  String _translatePagodaField(String key, String fallback) {
+    final translated = translateOr(key, fallback);
+
+    if (locale.languageCode != 'my') {
+      return translated;
+    }
+
+    if (_isLikelyEnglishOnly(translated)) {
+      return translateOr('common.translationPending', fallback);
+    }
+
+    return translated;
+  }
+
+  bool _isLikelyEnglishOnly(String text) {
+    final hasMyanmar = RegExp(r'[\u1000-\u109F]').hasMatch(text);
+    if (hasMyanmar) {
+      return false;
+    }
+    return RegExp(r'[A-Za-z]{3,}').hasMatch(text);
   }
 
   String categoryLabel(String category) {

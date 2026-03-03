@@ -119,20 +119,21 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
     try {
       final isEditing = widget.existingTrip != null;
-      final ownerUserId = context.read<TripProvider>().currentOwnerId;
+      final tripProvider = context.read<TripProvider>();
+      final ownerUserId = tripProvider.currentOwnerId;
+      final graph = await OfflineRouteService.instance.loadGraph();
       // Create trip stops
-      List<TripStop> stops = [];
+      final List<TripStop> stops = [];
       for (int i = 0; i < _selectedPagodas.length; i++) {
         final pagoda = _selectedPagodas[i];
         double? distanceToNext;
 
         if (i < _selectedPagodas.length - 1) {
           final nextPagoda = _selectedPagodas[i + 1];
-          distanceToNext = Helpers.calculateDistance(
-            pagoda.latitude,
-            pagoda.longitude,
-            nextPagoda.latitude,
-            nextPagoda.longitude,
+          distanceToNext = _graphAwareDistanceBetween(
+            pagoda,
+            nextPagoda,
+            graph,
           );
         }
 
@@ -164,7 +165,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         updatedAt: now,
       );
 
-      await context.read<TripProvider>().saveTrip(trip);
+      await tripProvider.saveTrip(trip);
 
       if (mounted) {
         Helpers.showSnackBar(
@@ -187,9 +188,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         );
       }
     } finally {
-      setState(() {
-        _isCalculatingRoute = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isCalculatingRoute = false;
+        });
+      }
     }
   }
 
@@ -248,6 +251,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         }
       } else {
         final graph = await OfflineRouteService.instance.loadGraph();
+        if (!mounted) return;
         final distanceCalculator = _buildDistanceCalculator(graph);
 
         // Nearest neighbor + 2-opt improvement for multiple pagodas
@@ -278,6 +282,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       Helpers.showSnackBar(
         context,
         context.l10n.translate(
@@ -287,40 +292,54 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         isError: true,
       );
     } finally {
-      setState(() {
-        _isCalculatingRoute = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isCalculatingRoute = false;
+        });
+      }
     }
   }
 
   PathDistanceCalculator _buildDistanceCalculator(OfflineGraphData? graph) {
     final cache = <String, double>{};
     return (Pagoda a, Pagoda b) {
-      final key = a.id.compareTo(b.id) <= 0 ? '${a.id}|${b.id}' : '${b.id}|${a.id}';
+      final key = a.id.compareTo(b.id) <= 0
+          ? '${a.id}|${b.id}'
+          : '${b.id}|${a.id}';
       final cached = cache[key];
       if (cached != null) {
         return cached;
       }
 
-      double? distance;
-      if (graph != null) {
-        distance = OfflineRouteService.instance.estimateGraphDistance(
-          graph,
-          LatLng(a.latitude, a.longitude),
-          LatLng(b.latitude, b.longitude),
-        );
-      }
-
-      distance ??= Helpers.calculateDistance(
-        a.latitude,
-        a.longitude,
-        b.latitude,
-        b.longitude,
-      );
+      final distance = _graphAwareDistanceBetween(a, b, graph);
 
       cache[key] = distance;
       return distance;
     };
+  }
+
+  double _graphAwareDistanceBetween(
+    Pagoda from,
+    Pagoda to,
+    OfflineGraphData? graph,
+  ) {
+    if (graph != null) {
+      final graphDistance = OfflineRouteService.instance.estimateGraphDistance(
+        graph,
+        LatLng(from.latitude, from.longitude),
+        LatLng(to.latitude, to.longitude),
+      );
+      if (graphDistance != null) {
+        return graphDistance;
+      }
+    }
+
+    return Helpers.calculateDistance(
+      from.latitude,
+      from.longitude,
+      to.latitude,
+      to.longitude,
+    );
   }
 
   @override

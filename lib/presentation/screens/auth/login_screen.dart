@@ -60,6 +60,42 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleForgotPassword() async {
+    final l10n = context.l10n;
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.translate('auth.resetPasswordHint')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.resetPassword(email);
+    if (!mounted) return;
+
+    final key = authProvider.errorKey;
+    if (key == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.translate('auth.resetPasswordSent', args: {'email': email}),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.translate(key)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -145,6 +181,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
+                          if (!_isSignUp)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _handleForgotPassword,
+                                child: Text(
+                                  l10n.translate('auth.forgotPassword'),
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 24),
                           Consumer<AuthProvider>(
                             builder: (context, auth, _) {

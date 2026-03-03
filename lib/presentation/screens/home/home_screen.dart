@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_content_screen.dart';
+import '../chat/chat_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
@@ -49,6 +50,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _openChat(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ChatScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -84,8 +91,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildDesktopLayout(BuildContext context, List<NavigationItem> navigationItems) {
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    List<NavigationItem> navigationItems,
+  ) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openChat(context),
+        icon: const Icon(Icons.auto_awesome),
+        label: Text(context.l10n.translate('chat.fabLabel')),
+      ),
       body: Row(
         children: [
           AdaptiveNavigation(
@@ -94,28 +109,34 @@ class _HomeScreenState extends State<HomeScreen> {
             items: navigationItems,
           ),
           const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: _screens[_currentIndex],
-          ),
+          Expanded(child: _screens[_currentIndex]),
         ],
       ),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, List<NavigationItem> navigationItems) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    List<NavigationItem> navigationItems,
+  ) {
     return Scaffold(
-      extendBody: true,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          _screens[_currentIndex],
-        ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openChat(context),
+        icon: const Icon(Icons.auto_awesome),
+        label: Text(context.l10n.translate('chat.fabLabel')),
       ),
-      bottomNavigationBar: _buildMobileBottomNavigationBar(context, navigationItems),
+      body: Stack(fit: StackFit.expand, children: [_screens[_currentIndex]]),
+      bottomNavigationBar: _buildMobileBottomNavigationBar(
+        context,
+        navigationItems,
+      ),
     );
   }
 
-  Widget _buildMobileBottomNavigationBar(BuildContext context, List<NavigationItem> navigationItems) {
+  Widget _buildMobileBottomNavigationBar(
+    BuildContext context,
+    List<NavigationItem> navigationItems,
+  ) {
     return AdaptiveNavigation(
       currentIndex: _currentIndex,
       onNavigate: _onTabSelected,

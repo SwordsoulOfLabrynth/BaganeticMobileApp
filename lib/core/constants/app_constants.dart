@@ -11,7 +11,7 @@ class AppConstants {
 
   // Database
   static const String dbName = 'baganetic.db';
-  static const int dbVersion = 9;
+  static const int dbVersion = 10;
   static const String guestOwnerId = '__guest__';
 
   // Tables
@@ -19,6 +19,7 @@ class AppConstants {
   static const String tableTrips = 'trips';
   static const String tableTripStops = 'trip_stops';
   static const String tableFavorites = 'favorites';
+  static const String tableFeedbacks = 'feedbacks';
 
   // Map
   static const double baganLatitude = 21.1717;

@@ -38,38 +38,49 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () => _showLanguagePicker(context),
               ),
               _buildSettingsTile(
-                icon: Icons.notifications,
-                title: l10n.translate('profile.notifications'),
-                subtitle: l10n.translate('profile.enabled'),
-                onTap: () {},
-              ),
-              _buildSettingsTile(
-                icon: Icons.help,
-                title: l10n.translate('profile.helpSupport'),
-                onTap: () {},
-              ),
-              _buildSettingsTile(
                 icon: Icons.info,
                 title: l10n.translate('profile.about'),
-                onTap: () {},
+                subtitle: 'v1.0.0',
+                onTap: () => _showAboutDialog(context),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    await context.read<AuthProvider>().signOut();
-                    if (context.mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
-                  },
-                  icon: const Icon(Icons.logout),
-                  label: Text(l10n.translate('profile.signOut')),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  final isGuest = auth.isGuest || auth.user == null;
+                  if (isGuest) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pushReplacementNamed('/login');
+                        },
+                        icon: const Icon(Icons.login),
+                        label: Text(l10n.translate('auth.signIn')),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD4AF37),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await context.read<AuthProvider>().signOut();
+                        if (context.mounted) {
+                          Navigator.of(context).pushReplacementNamed('/login');
+                        }
+                      },
+                      icon: const Icon(Icons.logout),
+                      label: Text(l10n.translate('profile.signOut')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -253,6 +264,22 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showAboutDialog(
+      context: context,
+      applicationName: 'Baganetic',
+      applicationVersion: 'v1.0.0',
+      applicationIcon: const Icon(
+        Icons.temple_buddhist,
+        size: 48,
+        color: Color(0xFFD4AF37),
+      ),
+      children: [
+        Text(context.l10n.translate('home.welcomeBody')),
+      ],
     );
   }
 }
