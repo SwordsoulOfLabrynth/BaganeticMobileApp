@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../../data/models/trip_model.dart';
@@ -8,6 +9,7 @@ import 'create_trip_screen.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
+import '../../widgets/sign_in_required_view.dart';
 
 class TripsScreen extends StatelessWidget {
   const TripsScreen({super.key});
@@ -25,24 +27,12 @@ class TripsScreen extends StatelessWidget {
           title: Text(l10n.translate('trips.title')),
           elevation: 0,
         ),
-        body: Center(
-          child: Padding(
-            padding: Responsive.pagePadding(context),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.lock_outline, size: 84, color: Colors.grey[400]),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.translate('auth.loginRequired'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        body: SignInRequiredView(
+          icon: Icons.route,
+          message: l10n.translate('trips.signInPrompt'),
+          onSignIn: () {
+            AuthGate.openSignIn(context);
+          },
         ),
       );
     }

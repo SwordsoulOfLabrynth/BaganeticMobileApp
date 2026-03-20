@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
@@ -12,6 +13,7 @@ import '../../../core/utils/pathfinding.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../core/services/offline_route_service.dart';
+import '../../widgets/sign_in_required_view.dart';
 
 class CreateTripScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -357,21 +359,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             l10n.translate(isEditing ? 'trip.editTitle' : 'trip.createTitle'),
           ),
         ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.lock_outline, size: 84, color: Colors.grey[400]),
-              const SizedBox(height: 12),
-              Text(
-                l10n.translate('auth.loginRequired'),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
+        body: SignInRequiredView(
+          icon: Icons.route,
+          message: l10n.translate('trips.signInPrompt'),
+          onSignIn: () {
+            AuthGate.openSignIn(context);
+          },
         ),
       );
     }

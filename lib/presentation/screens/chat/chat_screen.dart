@@ -7,8 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/responsive.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
+import '../../widgets/sign_in_required_view.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -218,25 +221,37 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isSignedIn = context.select<AuthProvider, bool>(
+      (auth) => auth.user != null,
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.translate('chat.title')),
         actions: [
-          IconButton(
-            onPressed: _messages.isEmpty ? null : _clearHistory,
-            icon: const Icon(Icons.delete_sweep_outlined),
-            tooltip: l10n.translate('chat.clear'),
-          ),
+          if (isSignedIn)
+            IconButton(
+              onPressed: _messages.isEmpty ? null : _clearHistory,
+              icon: const Icon(Icons.delete_sweep_outlined),
+              tooltip: l10n.translate('chat.clear'),
+            ),
         ],
       ),
-      body: ResponsiveContent(
-        child: Column(
-          children: [
-            Expanded(child: _buildMessagesBody(context)),
-            _buildComposer(context),
-          ],
-        ),
-      ),
+      body: isSignedIn
+          ? ResponsiveContent(
+              child: Column(
+                children: [
+                  Expanded(child: _buildMessagesBody(context)),
+                  _buildComposer(context),
+                ],
+              ),
+            )
+          : SignInRequiredView(
+              icon: Icons.auto_awesome_outlined,
+              message: l10n.translate('chat.signInPrompt'),
+              onSignIn: () {
+                AuthGate.openSignIn(context);
+              },
+            ),
     );
   }
 

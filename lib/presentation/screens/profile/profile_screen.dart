@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/helpers.dart';
 import '../../../core/utils/responsive.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -52,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.of(context).pushReplacementNamed('/login');
+                          AuthGate.openSignIn(context);
                         },
                         icon: const Icon(Icons.login),
                         label: Text(l10n.translate('auth.signIn')),
@@ -69,7 +71,10 @@ class ProfileScreen extends StatelessWidget {
                       onPressed: () async {
                         await context.read<AuthProvider>().signOut();
                         if (context.mounted) {
-                          Navigator.of(context).pushReplacementNamed('/login');
+                          Helpers.showSnackBar(
+                            context,
+                            l10n.translate('profile.signedOut'),
+                          );
                         }
                       },
                       icon: const Icon(Icons.logout),
@@ -94,6 +99,17 @@ class ProfileScreen extends StatelessWidget {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
         final user = auth.user;
+        final isGuest = user == null;
+        final displayName = (user?.displayName ?? '').trim();
+        final title = isGuest
+            ? l10n.translate('profile.guestTitle')
+            : (displayName.isNotEmpty
+                  ? displayName
+                  : (user.email ?? l10n.translate('profile.userDefault')));
+        final subtitle = isGuest
+            ? l10n.translate('profile.guestSubtitle')
+            : (user.email ?? '');
+        final avatarLabel = title.isEmpty ? 'G' : title.substring(0, 1);
         return Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -107,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                   radius: 50,
                   backgroundColor: const Color(0xFFD4AF37),
                   child: Text(
-                    user?.email?.substring(0, 1).toUpperCase() ?? 'U',
+                    avatarLabel.toUpperCase(),
                     style: const TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
@@ -117,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  user?.displayName ?? l10n.translate('profile.userDefault'),
+                  title,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -125,8 +141,9 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  user?.email ?? '',
+                  subtitle,
                   style: TextStyle(color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -277,9 +294,7 @@ class ProfileScreen extends StatelessWidget {
         size: 48,
         color: Color(0xFFD4AF37),
       ),
-      children: [
-        Text(context.l10n.translate('home.welcomeBody')),
-      ],
+      children: [Text(context.l10n.translate('home.welcomeBody'))],
     );
   }
 }

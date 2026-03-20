@@ -234,9 +234,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: () {
                               final authProvider = context.read<AuthProvider>();
                               authProvider.setGuestMode();
-                              Navigator.of(
-                                context,
-                              ).pushReplacementNamed('/home');
+                              final navigator = Navigator.of(context);
+                              if (navigator.canPop()) {
+                                navigator.pop(false);
+                              } else {
+                                navigator.pushReplacementNamed('/home');
+                              }
                             },
                             child: Text(l10n.translate('auth.continueGuest')),
                           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/auth_gate.dart';
 import 'home_content_screen.dart';
 import '../chat/chat_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
@@ -50,7 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _openChat(BuildContext context) {
+  Future<void> _openChat(BuildContext context) async {
+    final canOpen = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('chat.title'),
+    );
+    if (!canOpen || !context.mounted) {
+      return;
+    }
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const ChatScreen()));

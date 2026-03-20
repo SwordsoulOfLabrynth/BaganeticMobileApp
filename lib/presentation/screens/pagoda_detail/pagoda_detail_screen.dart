@@ -6,6 +6,7 @@ import '../../../data/models/feedback_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/feedback_provider.dart';
 import '../../providers/pagoda_provider.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../trips/create_trip_screen.dart';
 import '../home/home_screen.dart';
 import '../../widgets/pagoda_image_widget.dart';
@@ -281,14 +282,12 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                   isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: isFavorite ? Colors.red : Colors.white,
                 ),
-                onPressed: () {
-                  final authProvider = context.read<AuthProvider>();
-                  if (authProvider.user == null) {
-                    Helpers.showSnackBar(
-                      context,
-                      l10n.translate('auth.loginRequired'),
-                      isError: true,
-                    );
+                onPressed: () async {
+                  final canContinue = await AuthGate.ensureSignedIn(
+                    context,
+                    featureName: l10n.translate('profile.favorites'),
+                  );
+                  if (!canContinue || !context.mounted) {
                     return;
                   }
                   context.read<PagodaProvider>().toggleFavorite(pagoda.id);
@@ -522,14 +521,12 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          final authProvider = context.read<AuthProvider>();
-                          if (authProvider.user == null) {
-                            Helpers.showSnackBar(
-                              context,
-                              l10n.translate('auth.loginRequired'),
-                              isError: true,
-                            );
+                        onPressed: () async {
+                          final canContinue = await AuthGate.ensureSignedIn(
+                            context,
+                            featureName: l10n.translate('trips.title'),
+                          );
+                          if (!canContinue || !context.mounted) {
                             return;
                           }
                           Navigator.push(

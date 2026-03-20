@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../core/utils/helpers.dart';
 import '../../../core/utils/responsive.dart';
 
 class PagodasListScreen extends StatelessWidget {
@@ -70,7 +69,10 @@ class PagodasListScreen extends StatelessWidget {
                           crossAxisCount: crossAxisCount,
                           mainAxisSpacing: Responsive.spacing(context),
                           crossAxisSpacing: Responsive.spacing(context),
-                          childAspectRatio: Responsive.isDesktopOrLarger(context) ? 0.75 : 0.82,
+                          childAspectRatio:
+                              Responsive.isDesktopOrLarger(context)
+                              ? 0.75
+                              : 0.82,
                         ),
                         itemBuilder: (context, index) {
                           return _buildPagodaCard(
@@ -158,7 +160,7 @@ class PagodasListScreen extends StatelessWidget {
     final l10n = context.l10n;
     final isWideLayout = Responsive.isTabletOrLarger(context);
     final isCompact = Responsive.isCompact(context);
-    
+
     return Card(
       margin: isWideLayout
           ? EdgeInsets.zero
@@ -210,7 +212,13 @@ class PagodasListScreen extends StatelessWidget {
             if (useGrid)
               Expanded(
                 flex: 2,
-                child: _buildCardDetails(context, pagoda, l10n, isCompact, true),
+                child: _buildCardDetails(
+                  context,
+                  pagoda,
+                  l10n,
+                  isCompact,
+                  true,
+                ),
               )
             else
               _buildCardDetails(context, pagoda, l10n, isCompact, false),
@@ -255,14 +263,12 @@ class PagodasListScreen extends StatelessWidget {
                   color: pagoda.isFavorite ? Colors.red : null,
                   size: isCompact ? 20 : 24,
                 ),
-                onPressed: () {
-                  final authProvider = context.read<AuthProvider>();
-                  if (authProvider.user == null) {
-                    Helpers.showSnackBar(
-                      context,
-                      l10n.translate('auth.loginRequired'),
-                      isError: true,
-                    );
+                onPressed: () async {
+                  final canContinue = await AuthGate.ensureSignedIn(
+                    context,
+                    featureName: l10n.translate('profile.favorites'),
+                  );
+                  if (!canContinue || !context.mounted) {
                     return;
                   }
                   context.read<PagodaProvider>().toggleFavorite(pagoda.id);
@@ -279,10 +285,7 @@ class PagodasListScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFB8860B).withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFB8860B),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFB8860B), width: 1),
             ),
             child: Text(
               l10n.categoryLabel(pagoda.category),

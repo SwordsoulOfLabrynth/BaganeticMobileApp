@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
-import '../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,16 +14,12 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _navigateAfterDelay();
   }
-  
+
   Future<void> _navigateAfterDelay() async {
     await Future.delayed(const Duration(seconds: 1));
 
     if (!mounted) return;
-
-    final authProvider = context.read<AuthProvider>();
-    final isLoggedIn = authProvider.user != null;
-
-    Navigator.of(context).pushReplacementNamed(isLoggedIn ? '/home' : '/login');
+    Navigator.of(context).pushReplacementNamed('/home');
   }
 
   @override
@@ -37,11 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.temple_buddhist,
-              size: 100,
-              color: Colors.white,
-            ),
+            Icon(Icons.temple_buddhist, size: 100, color: Colors.white),
             const SizedBox(height: 24),
             Text(
               l10n.translate('app.title'),
@@ -55,10 +45,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 8),
             Text(
               l10n.translate('app.tagline'),
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.white70),
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(

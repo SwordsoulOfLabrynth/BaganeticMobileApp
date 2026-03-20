@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/offline_route_service.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../data/models/pagoda_model.dart';
@@ -13,6 +14,7 @@ import '../../../data/models/trip_model.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/sign_in_required_view.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/trip_detail_screen.dart';
@@ -73,15 +75,15 @@ class _MapScreenState extends State<MapScreen>
     super.dispose();
   }
 
-  void _setMode(MapTripMode mode) {
-    final isLoggedIn = context.read<AuthProvider>().user != null;
-    if (mode == MapTripMode.trips && !isLoggedIn) {
-      Helpers.showSnackBar(
+  Future<void> _setMode(MapTripMode mode) async {
+    if (mode == MapTripMode.trips) {
+      final canContinue = await AuthGate.ensureSignedIn(
         context,
-        context.l10n.translate('auth.loginRequired'),
-        isError: true,
+        featureName: context.l10n.translate('map.tripsTitle'),
       );
-      return;
+      if (!canContinue || !mounted) {
+        return;
+      }
     }
     if (_mode == mode) return;
     setState(() {
@@ -145,14 +147,12 @@ class _MapScreenState extends State<MapScreen>
     _loadTripRoute(trip);
   }
 
-  void _openCreateTrip() {
-    final isLoggedIn = context.read<AuthProvider>().user != null;
-    if (!isLoggedIn) {
-      Helpers.showSnackBar(
-        context,
-        context.l10n.translate('auth.loginRequired'),
-        isError: true,
-      );
+  Future<void> _openCreateTrip() async {
+    final canContinue = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('trips.title'),
+    );
+    if (!canContinue || !mounted) {
       return;
     }
     Navigator.push(
@@ -163,14 +163,12 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  void _openTripDetail(Trip trip) {
-    final isLoggedIn = context.read<AuthProvider>().user != null;
-    if (!isLoggedIn) {
-      Helpers.showSnackBar(
-        context,
-        context.l10n.translate('auth.loginRequired'),
-        isError: true,
-      );
+  Future<void> _openTripDetail(Trip trip) async {
+    final canContinue = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('trips.title'),
+    );
+    if (!canContinue || !mounted) {
       return;
     }
     Navigator.push(
@@ -180,13 +178,11 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Future<void> _openEditTrip(Trip trip) async {
-    final isLoggedIn = context.read<AuthProvider>().user != null;
-    if (!isLoggedIn) {
-      Helpers.showSnackBar(
-        context,
-        context.l10n.translate('auth.loginRequired'),
-        isError: true,
-      );
+    final canContinue = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('common.edit'),
+    );
+    if (!canContinue || !mounted) {
       return;
     }
     final updatedTrip = await Navigator.push(
@@ -210,6 +206,14 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Future<void> _deleteTrip(Trip trip) async {
+    final canContinue = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('common.delete'),
+    );
+    if (!canContinue || !mounted) {
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -582,24 +586,12 @@ class _MapScreenState extends State<MapScreen>
 
   Widget _buildEmptyTrips({required bool isLoggedIn}) {
     if (!isLoggedIn) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.lock_outline, size: 72, color: Colors.grey[300]),
-              const SizedBox(height: 12),
-              Text(
-                context.l10n.translate('auth.loginRequired'),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
+      return SignInRequiredView(
+        icon: Icons.route,
+        message: context.l10n.translate('trips.signInPrompt'),
+        onSignIn: () {
+          AuthGate.openSignIn(context);
+        },
       );
     }
 
