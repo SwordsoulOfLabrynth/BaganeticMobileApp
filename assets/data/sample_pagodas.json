@@ -1038,5 +1038,841 @@
       }
     ],
     "height": "35m"
+  },
+  {
+    "id": "shwesandaw",
+    "name": "Shwesandaw Pagoda",
+    "description": "Shwesandaw Pagoda is one of Bagan's most famous monuments and has long been associated with wide views across the temple plain. Built in the early Pagan period, it is admired for its terraced form, elegant silhouette, and enduring role in the sacred landscape of Old Bagan.",
+    "category": "Pagoda",
+    "latitude": 21.1669,
+    "longitude": 94.8671,
+    "imageUrl": "assets/images/pagodas/Pyathetgyi/Pyathadar-Pyathatgyi-Temple.jpg",
+    "images": [
+      "assets/images/pagodas/Pyathetgyi/Pyathadar-Pyathatgyi-Temple.jpg",
+      "assets/images/pagodas/Pyathetgyi/19143645858_a8d4458a88_z.jpg"
+    ],
+    "historicalInfo": "Shwesandaw was commissioned during the reign of King Anawrahta in the 11th century, a formative era for the Pagan Empire. The monument became one of the important stupas in Bagan and was later linked with relic veneration, royal merit-making, and the city's ritual geography.",
+    "architecturalStyle": "The pagoda is defined by a tall bell-shaped stupa set above a sequence of receding terraces. Its stepped profile, axial stairways, and commanding platform make it one of the clearest examples of the monumental terrace-and-stupa composition that shaped the visual identity of Bagan.",
+    "yearBuilt": 1057,
+    "legends": "Traditional accounts connect Shwesandaw with sacred relics and royal acts of devotion. Like many great Bagan monuments, it also gathered stories of merit, protection, and the spiritual prestige of building in the holy plain.",
+    "religiousImportance": "Shwesandaw has served as a place for worship, circumambulation, and quiet reflection for generations of devotees. Its elevated terraces and central stupa reinforce the symbolic ascent from the earthly plain toward spiritual awakening.",
+    "preservationInfo": "The pagoda has been affected by major earthquakes over the centuries, especially those in the modern era. Restoration work has focused on stabilizing terraces, protecting the core structure, and managing visitor access to preserve the monument.",
+    "bestTimeToVisit": "Early morning and late afternoon offer softer light and a calmer atmosphere. The cool season from November to February is the most comfortable time to visit.",
+    "visitorLocation": "Old Bagan, near the central monument zone, Myanmar.",
+    "openingHours": "5:00 AM - 8:00 PM",
+    "dressCode": "Visitors should dress modestly and remove shoes and socks before entering the sacred platform.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is generally allowed, but visitors should respect any active religious practice and restricted access areas.",
+    "finalWords": "Shwesandaw Pagoda remains one of the great symbols of Bagan: simple in form, strong in presence, and deeply connected to the spiritual memory of the ancient city.",
+    "uniqueFeatures": [
+      {
+        "title": "Terraced Silhouette",
+        "description": "Multiple receding terraces create one of the most recognizable profiles in Bagan."
+      },
+      {
+        "title": "Historic Viewpoint",
+        "description": "The pagoda became widely known for broad views over the surrounding temple plain."
+      },
+      {
+        "title": "Early Pagan Monument",
+        "description": "Its origins reach back to the formative century of the Pagan Empire."
+      },
+      {
+        "title": "Sacred Relic Tradition",
+        "description": "Local tradition links the monument with relic enshrinement and royal merit."
+      }
+    ],
+    "height": "36m"
+  },
+  {
+    "id": "mingalazedi",
+    "name": "Mingalazedi Pagoda",
+    "description": "Mingalazedi Pagoda is one of the last great stupas built during Bagan's classical era. Known for its balanced proportions and richly decorated terraces, it stands as a late masterpiece created just before the decline of the Pagan kingdom.",
+    "category": "Stupa",
+    "latitude": 21.1718,
+    "longitude": 94.8857,
+    "imageUrl": "assets/images/pagodas/Shwezigon Pagoda/554d48e8ef6872ac2d7ab2b86b6c3ad3.jpg",
+    "images": [
+      "assets/images/pagodas/Shwezigon Pagoda/554d48e8ef6872ac2d7ab2b86b6c3ad3.jpg",
+      "assets/images/pagodas/Dhammayazaka/dhammayazika-pagoda-l.jpg"
+    ],
+    "historicalInfo": "The pagoda was completed in the late 13th century during the reign of King Narathihapate. Because it belongs to the final flourishing of monumental construction in Bagan, Mingalazedi is often seen as a closing statement of Pagan craftsmanship before the kingdom's political decline.",
+    "architecturalStyle": "Mingalazedi follows the mature Burmese stupa form with a solid bell-shaped body above carefully proportioned square terraces. Rows of glazed plaques, molded ornament, and a harmonious vertical rise give the monument its refined late-Bagan character.",
+    "yearBuilt": 1277,
+    "legends": "Its name is often interpreted as an auspicious or blessed stupa, reflecting the merit and hope invested in its construction. Later generations remembered it as a monument that preserved the dignity of the kingdom even in uncertain times.",
+    "religiousImportance": "As a stupa, Mingalazedi embodies devotion through relic veneration, offerings, and circumambulation. It remains a place where visitors can appreciate how royal faith and public worship came together in Bagan's sacred landscape.",
+    "preservationInfo": "The monument has required repeated maintenance after centuries of weathering and seismic activity. Conservation has focused on preserving its terraces, surface decoration, and structural stability.",
+    "bestTimeToVisit": "Visit during the cool season or in the gentle light of morning and evening for the best atmosphere around the terraces.",
+    "visitorLocation": "Central archaeological zone, Old Bagan, Myanmar.",
+    "openingHours": "5:00 AM - 8:00 PM",
+    "dressCode": "Modest clothing is expected; footwear should be removed in sacred areas.",
+    "entranceFee": "Covered by the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is allowed. Please be mindful of worshippers and fragile surfaces.",
+    "finalWords": "Mingalazedi Pagoda is a powerful reminder that Bagan's late monuments were still capable of extraordinary grace, discipline, and devotional beauty.",
+    "uniqueFeatures": [
+      {
+        "title": "Late Bagan Landmark",
+        "description": "It is widely regarded as one of the final major stupas of Bagan's golden age."
+      },
+      {
+        "title": "Glazed Terrace Plaques",
+        "description": "Decorative plaques help define its rich late-period exterior."
+      },
+      {
+        "title": "Balanced Proportions",
+        "description": "The stupa is admired for its calm, disciplined architectural composition."
+      },
+      {
+        "title": "Auspicious Identity",
+        "description": "Its name and presence emphasize blessing, merit, and sacred continuity."
+      }
+    ],
+    "height": "43m"
+  },
+  {
+    "id": "nagayon",
+    "name": "Nagayon Temple",
+    "description": "Nagayon Temple is a well-known Bagan sanctuary famous for the large image of the Buddha sheltered by the serpent king Mucalinda. The temple is valued for its devotional atmosphere, compact plan, and strong connection between Buddhist teaching and protective symbolism.",
+    "category": "Temple",
+    "latitude": 21.1598,
+    "longitude": 94.9029,
+    "imageUrl": "assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple.jpg",
+    "images": [
+      "assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple.jpg",
+      "assets/images/pagodas/Htilominlo Temple/dee6e00eeb4074ee20f833988c05180f.jpg"
+    ],
+    "historicalInfo": "Nagayon was built in the late 11th century, likely during the reign of King Kyanzittha. It belongs to the early mature phase of Bagan temple architecture, when royal patronage helped create enduring monuments for worship, teaching, and meditation.",
+    "architecturalStyle": "The temple combines a compact rectangular body with a porch, vaulted corridors, and a central sanctuary. Its most striking feature is the monumental Buddha image protected by the hood of the naga, giving the building a unique devotional focus within Bagan's architectural tradition.",
+    "yearBuilt": 1090,
+    "legends": "The central image recalls the Buddhist story in which the serpent king shields the meditating Buddha from a storm. This narrative gave the temple a special aura of protection, calmness, and steadfast faith.",
+    "religiousImportance": "Nagayon remains important because it presents the Buddha not only as a teacher, but as a figure upheld and protected by cosmic forces. The shrine invites contemplation on perseverance, serenity, and refuge in the Dhamma.",
+    "preservationInfo": "Like many monuments in Bagan, Nagayon has seen weathering, plaster loss, and earthquake damage. Preservation work has focused on keeping the sanctuary secure and conserving the temple's interior features.",
+    "bestTimeToVisit": "Morning visits are ideal for a quiet experience and softer light around the entrance and sanctuary.",
+    "visitorLocation": "South of Old Bagan near the Myinkaba area, Myanmar.",
+    "openingHours": "6:00 AM - 6:00 PM",
+    "dressCode": "Please wear modest clothing and remove shoes before entering the temple.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is generally allowed, but flash should be avoided around sensitive interior surfaces.",
+    "finalWords": "Nagayon Temple stands out in Bagan for its intimate scale and memorable sacred image, offering visitors a calm and symbolically rich encounter with Buddhist art.",
+    "uniqueFeatures": [
+      {
+        "title": "Mucalinda Buddha",
+        "description": "The main Buddha image is sheltered by the coiled serpent king, a rare and powerful devotional motif."
+      },
+      {
+        "title": "Compact Sanctuary",
+        "description": "Its modest size creates a focused, contemplative atmosphere."
+      },
+      {
+        "title": "Early Mature Style",
+        "description": "The temple reflects the refinement of Bagan architecture in the Kyanzittha period."
+      },
+      {
+        "title": "Protective Symbolism",
+        "description": "The naga imagery gives the monument a strong sense of guardianship and spiritual refuge."
+      }
+    ],
+    "height": "22m"
+  },
+  {
+    "id": "nanpaya",
+    "name": "Nanpaya Temple",
+    "description": "Nanpaya Temple is one of Bagan's most distinctive stone monuments and is closely associated with the Mon cultural world of early Pagan. Smaller than many of the city's great temples, it is especially admired for its sandstone carvings and refined interior details.",
+    "category": "Temple",
+    "latitude": 21.1584,
+    "longitude": 94.9038,
+    "imageUrl": "assets/images/pagodas/Manuha/Manuha-Paya-1.jpg",
+    "images": [
+      "assets/images/pagodas/Manuha/Manuha-Paya-1.jpg",
+      "assets/images/pagodas/Thambula/thambula-temple.jpg"
+    ],
+    "historicalInfo": "Nanpaya is usually dated to the 11th century and is traditionally connected with King Manuha, the Mon ruler brought to Bagan after Anawrahta's conquest of Thaton. Whether it served as a palace chapel, a residence-related shrine, or a dedicated temple, it preserves an important strand of Mon artistic influence in Bagan.",
+    "architecturalStyle": "Unlike the more common brick monuments of Bagan, Nanpaya is notable for its sandstone carving and compact rectangular plan. Interior pillars, window frames, and carved ornament demonstrate a more intimate and sculptural design language.",
+    "yearBuilt": 1060,
+    "legends": "Popular tradition links Nanpaya with the captive King Manuha and the memory of a displaced royal court. That association has given the temple a quieter, more personal historical identity than many of Bagan's grand imperial monuments.",
+    "religiousImportance": "Nanpaya reflects the fusion of political history and sacred architecture. It gives visitors insight into how worship, identity, and royal memory were preserved in Bagan through smaller but highly expressive monuments.",
+    "preservationInfo": "The stone fabric of Nanpaya has survived for centuries, though erosion and environmental wear remain ongoing concerns. Conservation efforts aim to protect its carvings and ensure safe access.",
+    "bestTimeToVisit": "The temple is pleasant to visit in the cool season or during the early part of the day when the carved details are easier to appreciate.",
+    "visitorLocation": "Myinkaba area, south of Old Bagan, Myanmar.",
+    "openingHours": "6:00 AM - 6:00 PM",
+    "dressCode": "Visitors should remove footwear and wear respectful clothing that covers shoulders and knees.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is allowed; avoid touching carved surfaces and use low-impact settings indoors.",
+    "finalWords": "Nanpaya Temple is proof that Bagan's cultural richness is not limited to large skyline monuments. Its stone artistry and historical associations make it one of the plain's most memorable smaller temples.",
+    "uniqueFeatures": [
+      {
+        "title": "Stone Construction",
+        "description": "Nanpaya is especially valued for carved sandstone details rather than large-scale brick massing."
+      },
+      {
+        "title": "Mon Artistic Influence",
+        "description": "Its design preserves a strong connection to the Mon cultural tradition."
+      },
+      {
+        "title": "Manuha Association",
+        "description": "The temple is traditionally linked with the story of the Mon king Manuha."
+      },
+      {
+        "title": "Intimate Interior",
+        "description": "Small scale and detailed carving create a close, contemplative visitor experience."
+      }
+    ],
+    "height": "18m"
+  },
+  {
+    "id": "mahabodhi",
+    "name": "Mahabodhi Temple",
+    "description": "Mahabodhi Temple is one of Bagan's most visually distinctive shrines because its design was inspired by the famous Mahabodhi Temple at Bodh Gaya in India. Its tall tower and niche-covered exterior make it stand apart from the more familiar Bagan temple silhouettes.",
+    "category": "Temple",
+    "latitude": 21.1768,
+    "longitude": 94.8783,
+    "imageUrl": "assets/images/pagodas/Ananda Temple/ananda-temple-4899166_1280.jpg",
+    "images": [
+      "assets/images/pagodas/Ananda Temple/ananda-temple-4899166_1280.jpg",
+      "assets/images/pagodas/Thatbyinnyu Temple/df0ebad94c9d9d41e52b1d2c74fdead2.jpg"
+    ],
+    "historicalInfo": "The temple dates to the early 13th century, when connections between Bagan and wider Buddhist centers were still strong. By adopting a design inspired by Bodh Gaya, the monument expressed both religious prestige and an active awareness of pan-Buddhist sacred geography.",
+    "architecturalStyle": "Mahabodhi is characterized by a tall, tapering tower covered with many small niches that once held or suggested Buddha images. The form is unusually vertical for Bagan and reflects clear North Indian influence translated into local materials and building practice.",
+    "yearBuilt": 1218,
+    "legends": "Because it echoes one of the holiest Buddhist sites in the world, Mahabodhi came to symbolize a spiritual link between Bagan and the place of the Buddha's enlightenment. This association gave the temple special intellectual and devotional prestige.",
+    "religiousImportance": "The temple represents the transmission of Buddhist ideas, art, and sacred memory across regions. Visiting Mahabodhi offers a reminder that Bagan was not isolated, but part of a larger Buddhist world.",
+    "preservationInfo": "The tall superstructure has required stabilization after repeated earthquakes and centuries of exposure. Preservation work has aimed to secure the tower and conserve its niche-rich exterior.",
+    "bestTimeToVisit": "Cool-season mornings or late afternoons are best for seeing the tower form in softer light.",
+    "visitorLocation": "Northeast sector of the Bagan archaeological zone, Myanmar.",
+    "openingHours": "6:00 AM - 6:00 PM",
+    "dressCode": "Modest dress and bare feet are expected in sacred areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is allowed, especially around the exterior tower, but visitors should remain respectful in worship spaces.",
+    "finalWords": "Mahabodhi Temple broadens the story of Bagan by showing how the city absorbed ideas from the wider Buddhist world and reshaped them into something local and memorable.",
+    "uniqueFeatures": [
+      {
+        "title": "Bodh Gaya Inspiration",
+        "description": "Its design directly recalls the famed Mahabodhi Temple in India."
+      },
+      {
+        "title": "Vertical Tower Form",
+        "description": "The temple's tall profile differs sharply from many lower, broader Bagan temples."
+      },
+      {
+        "title": "Niche-Covered Exterior",
+        "description": "Rows of niches create a richly textured facade."
+      },
+      {
+        "title": "Pan-Buddhist Symbolism",
+        "description": "The monument expresses Bagan's connection to the wider Buddhist sacred world."
+      }
+    ],
+    "height": "43m"
+  },
+  {
+    "id": "myazedi",
+    "name": "Myazedi Pagoda",
+    "description": "Myazedi Pagoda is a comparatively small monument with enormous historical importance. It is best known for the nearby Myazedi inscription, a multilingual record often compared to a linguistic key for early Myanmar history.",
+    "category": "Stupa",
+    "latitude": 21.1607,
+    "longitude": 94.9052,
+    "imageUrl": "assets/images/pagodas/Mahezedi Pagoda/Mahazedi_Pagoda_(Bagan).jpg",
+    "images": [
+      "assets/images/pagodas/Mahezedi Pagoda/Mahazedi_Pagoda_(Bagan).jpg",
+      "assets/images/pagodas/Lawkananda Pagoda/20102959715_e7e032d5af_b.jpg"
+    ],
+    "historicalInfo": "The pagoda dates to the early 12th century and is associated with Prince Rajakumar, the son of King Kyanzittha. Its fame today rests especially on the nearby inscription written in multiple languages, which has been crucial for the study of old Burmese and the history of Pagan.",
+    "architecturalStyle": "Myazedi follows a modest stupa form rather than the grand scale of Bagan's best-known monuments. Its significance comes less from size and more from its historical context, epigraphic setting, and close relationship to the surrounding Myinkaba monuments.",
+    "yearBuilt": 1113,
+    "legends": "Stories around the pagoda often focus on filial devotion, royal memory, and the pious acts of Prince Rajakumar. Those associations have made the site especially meaningful to historians as well as pilgrims.",
+    "religiousImportance": "The monument reflects the idea that a pagoda can become sacred not only through architecture, but also through the records, offerings, and acts of merit connected with it over time.",
+    "preservationInfo": "The pagoda and its inscriptional context require careful protection because their value is both architectural and documentary. Conservation efforts focus on safeguarding the physical fabric and historical setting.",
+    "bestTimeToVisit": "Morning visits are well suited for exploring the nearby inscription site and surrounding monuments in a quieter atmosphere.",
+    "visitorLocation": "Myinkaba area, close to Manuha and Nanpaya, Myanmar.",
+    "openingHours": "6:00 AM - 6:00 PM",
+    "dressCode": "Dress respectfully and remove footwear in active sacred areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is allowed, but visitors should avoid interfering with conservation-sensitive features.",
+    "finalWords": "Myazedi Pagoda shows that some of Bagan's most important places are valued not for scale alone, but for the history, language, and memory preserved around them.",
+    "uniqueFeatures": [
+      {
+        "title": "Historic Inscription",
+        "description": "The nearby Myazedi inscription is one of the most important written records from Pagan."
+      },
+      {
+        "title": "Prince Rajakumar Connection",
+        "description": "The site is tied to royal patronage and acts of filial devotion."
+      },
+      {
+        "title": "Epigraphic Importance",
+        "description": "It is central to the study of early Myanmar language and history."
+      },
+      {
+        "title": "Quiet Monument Scale",
+        "description": "Its relatively modest form gives the site an intimate historical atmosphere."
+      }
+    ],
+    "height": "30m"
+  },
+  {
+    "id": "payathonzu",
+    "name": "Payathonzu Temple",
+    "description": "Payathonzu Temple, often translated as the Three-Buddha Temple, is one of the notable monuments in the Minnanthu area of Bagan. The complex is known for its linked shrines, unusual layout, and traces of decorative painting that hint at cross-cultural artistic exchange.",
+    "category": "Temple",
+    "latitude": 21.1546,
+    "longitude": 94.9097,
+    "imageUrl": "assets/images/pagodas/Thambula/thambula-temple.jpg",
+    "images": [
+      "assets/images/pagodas/Thambula/thambula-temple.jpg",
+      "assets/images/pagodas/Sulamani Temple/sulamani-temple-bagan-myanmar-sunset-asia-82328684.webp"
+    ],
+    "historicalInfo": "The monument is generally dated to the late 12th or early 13th century, during a period when Bagan architecture was experimenting with increasingly complex plans. Its linked sanctuaries suggest a deliberate attempt to create a more layered ritual and spatial experience.",
+    "architecturalStyle": "Payathonzu is distinctive for its three connected shrine spaces and elongated composition. The surviving decorative traces and the arrangement of interior chambers make it different from the single-core temple pattern seen in many other Bagan monuments.",
+    "yearBuilt": 1200,
+    "legends": "Its popular English name reflects the tradition that three sacred images or three linked devotional spaces defined the shrine. This triple arrangement gives the monument a memorable identity within the Minnanthu temple group.",
+    "religiousImportance": "The complex likely supported devotional practice through multiple connected sanctuaries, offering a more processional and contemplative form of worship. It remains valuable as an example of how ritual design could shape architecture in late Bagan.",
+    "preservationInfo": "The temple has suffered from seismic stress and general weathering, and parts of the structure are more fragile than those of larger monuments. Preservation work focuses on stabilizing the linked halls and conserving decorative remains.",
+    "bestTimeToVisit": "The Minnanthu monuments are especially pleasant in the cooler months or during the softer light of the morning.",
+    "visitorLocation": "Minnanthu area, southeast of Old Bagan, Myanmar.",
+    "openingHours": "6:00 AM - 6:00 PM",
+    "dressCode": "Respectful clothing and bare feet are expected in sacred zones.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is usually permitted, but fragile surfaces and restricted areas should be respected.",
+    "finalWords": "Payathonzu Temple is a rewarding stop for visitors who want to see a different side of Bagan: more experimental in plan, quieter in setting, and rich in architectural character.",
+    "uniqueFeatures": [
+      {
+        "title": "Three Linked Shrines",
+        "description": "The connected sanctuary spaces give the monument its name and spatial identity."
+      },
+      {
+        "title": "Minnanthu Setting",
+        "description": "It belongs to one of Bagan's quieter but historically rich temple zones."
+      },
+      {
+        "title": "Decorative Traces",
+        "description": "Remains of painting and interior ornament suggest sophisticated artistic programs."
+      },
+      {
+        "title": "Unusual Plan",
+        "description": "Its elongated composition differs from more common single-core temple layouts."
+      }
+    ],
+    "height": "19m"
+  },
+  {
+    "id": "tayokpye",
+    "name": "Tayok Pye Temple",
+    "description": "Tayok Pye Temple is a late Bagan monument known for its tall brick massing, quiet interior spaces, and relative distance from the busiest visitor routes. Though less famous than Bagan's landmark temples, it offers a strong example of the atmosphere and craftsmanship of the city's later period.",
+    "category": "Temple",
+    "latitude": 21.1812,
+    "longitude": 94.8811,
+    "imageUrl": "assets/images/pagodas/Htilominlo Temple/dee6e00eeb4074ee20f833988c05180f.jpg",
+    "images": [
+      "assets/images/pagodas/Htilominlo Temple/dee6e00eeb4074ee20f833988c05180f.jpg",
+      "assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-1-600x400.jpg"
+    ],
+    "historicalInfo": "The temple is usually assigned to the late 12th or early 13th century, when Bagan builders continued refining brick temple forms even as the kingdom approached a period of decline. Tayok Pye illustrates how architectural ambition remained alive in the later Pagan centuries.",
+    "architecturalStyle": "The building uses a tall brick body, vaulted interior spaces, and a strong vertical outline. While not as elaborate as some of the great royal foundations, its proportions and masonry give it a disciplined, stately character.",
+    "yearBuilt": 1200,
+    "legends": "Its name has encouraged later stories about foreign links, travelers, or unusual patrons, though the monument is best understood as part of Bagan's own evolving late-temple tradition.",
+    "religiousImportance": "Tayok Pye reflects the continuity of sacred building in Bagan beyond the most famous early monuments. Its quieter atmosphere makes it especially suitable for visitors seeking contemplation away from busier shrine compounds.",
+    "preservationInfo": "The temple has required ongoing maintenance because of age, weather, and earthquake effects. Preservation has focused on structural safety and careful retention of original brick fabric.",
+    "bestTimeToVisit": "Morning and late afternoon are the most comfortable times to enjoy the temple's setting and exterior massing.",
+    "visitorLocation": "Northern sector of the Bagan plain, Myanmar.",
+    "openingHours": "6:00 AM - 6:00 PM",
+    "dressCode": "Visitors should wear modest clothing and remove footwear before entering sacred areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is allowed, but please respect local guidance in any restored or restricted sections.",
+    "finalWords": "Tayok Pye Temple may not be the most photographed monument in Bagan, but it rewards attention with calm space, strong architecture, and a clear sense of the city's later history.",
+    "uniqueFeatures": [
+      {
+        "title": "Late Bagan Character",
+        "description": "The temple represents the continued vitality of sacred building in Bagan's later centuries."
+      },
+      {
+        "title": "Quiet Setting",
+        "description": "Its less crowded location offers a more reflective visitor experience."
+      },
+      {
+        "title": "Strong Brick Massing",
+        "description": "The monument is defined by a disciplined, vertical brick composition."
+      },
+      {
+        "title": "Contemplative Interior",
+        "description": "Its interior spaces favor calm movement and quiet observation."
+      }
+    ],
+    "height": "24m"
+  },
+  {
+    "id": "bulethi",
+    "name": "Bulethi Pagoda",
+    "description": "Bulethi Pagoda is a small hilltop monument in Bagan best known today for its elevated position and broad views over the central plain. It is frequently visited as a scenic stop because nearby major temples and the open agricultural landscape can be seen from its surroundings.",
+    "category": "Pagoda",
+    "latitude": 21.1619,
+    "longitude": 94.8783,
+    "imageUrl": "assets/images/pagodas/Pyathetgyi/Pyathadar-Pyathatgyi-Temple.jpg",
+    "images": [
+      "assets/images/pagodas/Pyathetgyi/Pyathadar-Pyathatgyi-Temple.jpg",
+      "assets/images/pagodas/Pyathetgyi/2244810100_e0d8d158d5_b.jpg"
+    ],
+    "historicalInfo": "Bulethi is generally treated as one of the smaller monuments of the Bagan plain rather than a major royal foundation. Its present fame comes mainly from its landscape position, but it still belongs to the wider sacred geography that made Bagan one of the great Buddhist capitals of Southeast Asia.",
+    "architecturalStyle": "The monument follows the compact Bagan pagoda form, with a solid mass rising from terraces on slightly higher ground. Its simple shape is less elaborate than the great temples, but the raised site gives it unusual visual prominence.",
+    "legends": "Modern travel culture has closely linked Bulethi with sunrise and sunset viewing, giving it a reputation far larger than its architectural scale. That scenic identity is now part of how many visitors remember the monument.",
+    "religiousImportance": "Even though Bulethi is often approached as a viewpoint, it remains part of Bagan's sacred monument landscape and should still be treated as a religious site with respect.",
+    "preservationInfo": "Like many smaller Bagan monuments, Bulethi has experienced weathering and earthquake stress over time. Conservation rules in Bagan have increasingly focused on protecting monuments from unsafe climbing and visitor damage.",
+    "bestTimeToVisit": "Early morning and late afternoon offer the best light and the most comfortable temperatures.",
+    "visitorLocation": "Central Bagan plain near Pyathetgyi, Myanmar.",
+    "openingHours": "Generally visited during daylight hours.",
+    "dressCode": "Modest clothing is recommended; footwear should be removed if entering sacred interior areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is normally allowed, but visitors should follow current monument-access restrictions.",
+    "finalWords": "Bulethi Pagoda is valued less for monumental scale than for setting: a modest Bagan shrine that helps visitors understand how densely the sacred plain was once built.",
+    "uniqueFeatures": [
+      {
+        "title": "Hilltop Position",
+        "description": "Its slightly elevated setting gives it an outsized presence in the surrounding landscape."
+      },
+      {
+        "title": "Scenic Identity",
+        "description": "It is widely known among travelers as a sunrise and sunset stop."
+      },
+      {
+        "title": "Compact Form",
+        "description": "The monument represents a smaller and simpler pagoda type within the Bagan plain."
+      },
+      {
+        "title": "Landscape Context",
+        "description": "It helps reveal the spacing of nearby temples, fields, and paths across central Bagan."
+      }
+    ]
+  },
+  {
+    "id": "northguni",
+    "name": "North Guni Temple (Myauk Guni) Sunset Pagoda",
+    "description": "North Guni Temple, also called Myauk Guni, is one of the quieter monuments near Old Bagan and became especially popular for panoramic sunset views before climbing restrictions were introduced across the archaeological zone. It remains a recognizable stop for visitors interested in smaller temples beyond Bagan's best-known landmarks.",
+    "category": "Temple",
+    "latitude": 21.1612,
+    "longitude": 94.8724,
+    "imageUrl": "assets/images/pagodas/Htilominlo Temple/dee6e00eeb4074ee20f833988c05180f.jpg",
+    "images": [
+      "assets/images/pagodas/Htilominlo Temple/dee6e00eeb4074ee20f833988c05180f.jpg",
+      "assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-1-600x400.jpg"
+    ],
+    "historicalInfo": "The temple is usually assigned to Bagan's later building period, broadly around the 12th century. Although it is not documented as one of the great royal monuments, it forms part of the dense network of shrines that once structured devotion, travel, and settlement across Old Bagan.",
+    "architecturalStyle": "North Guni is a brick temple with an upper mass that once made it attractive as a lookout. Its proportions are more modest than the great central temples, but it still shows the practical, durable masonry that characterizes Bagan architecture.",
+    "legends": "Its modern identity as a sunset temple has largely overshadowed any older local stories. In recent decades, travelers came to associate Myauk Guni with quiet evening views over the plain.",
+    "religiousImportance": "North Guni reflects the everyday sacred landscape of Bagan, where many medium and small temples supported worship outside the most famous royal foundations.",
+    "preservationInfo": "The monument has suffered from age, weather, and earthquakes, including damage associated with Bagan's seismic history. Current conservation practice prioritizes structural safety and discourages climbing on fragile upper terraces.",
+    "bestTimeToVisit": "Late afternoon remains the most atmospheric time to see the monument and the surrounding plain.",
+    "visitorLocation": "Old Bagan area, near other central plain monuments, Myanmar.",
+    "openingHours": "Generally visited during daylight hours.",
+    "dressCode": "Visitors should wear respectful clothing and remove footwear in sacred zones.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is usually permitted, but restricted areas and monument-protection rules should be respected.",
+    "finalWords": "North Guni Temple is a good example of how Bagan's lesser-known monuments still combine history, atmosphere, and a strong sense of place.",
+    "uniqueFeatures": [
+      {
+        "title": "Sunset Reputation",
+        "description": "The temple became well known as one of Bagan's quieter sunset-view monuments."
+      },
+      {
+        "title": "Later Bagan Temple",
+        "description": "Its form fits the broad development of Bagan's later brick temple tradition."
+      },
+      {
+        "title": "Modest Scale",
+        "description": "It offers a more intimate experience than the larger royal monuments."
+      },
+      {
+        "title": "Old Bagan Setting",
+        "description": "Its location helps connect visitors with the dense sacred landscape around Old Bagan."
+      }
+    ]
+  },
+  {
+    "id": "southguni",
+    "name": "South Guni Temple (Taung Guni)",
+    "description": "South Guni Temple, or Taung Guni, stands near the central Bagan plain and is often mentioned together with North Guni because both became known for elevated views over nearby temples and fields. It is a smaller monument, but one that contributes strongly to the atmosphere of Bagan's interior landscape.",
+    "category": "Temple",
+    "latitude": 21.1588,
+    "longitude": 94.8735,
+    "imageUrl": "assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-2-600x400.jpg",
+    "images": [
+      "assets/images/pagodas/Shwe Gu Gyi/Shwegugyi-Temple-2-600x400.jpg",
+      "assets/images/pagodas/Sulamani Temple/7e5692c46b129496fc9c5a5e966b4621.jpg"
+    ],
+    "historicalInfo": "Taung Guni is generally described as a Bagan-period temple rather than a major court-sponsored showpiece. Its value lies in illustrating how extensively the plain was filled with shrines of varying scale that supported Buddhist devotion in the Pagan era.",
+    "architecturalStyle": "The temple uses the durable brick construction common in Bagan. Its profile is simpler than that of the great multi-storeyed temples, yet its elevated upper structure helped make it visually memorable.",
+    "legends": "In present-day visitor culture, South Guni is remembered mainly for the experience of viewing Bagan's sunrise or sunset from the monument area rather than for a single dominant historical legend.",
+    "religiousImportance": "As with many lesser-known Bagan temples, South Guni helps represent the broader devotional network of the ancient city rather than a single royal cult center.",
+    "preservationInfo": "Earthquakes and long-term weathering have affected the structure, and monument management in Bagan now puts greater emphasis on preservation and safe access than on unrestricted climbing.",
+    "bestTimeToVisit": "Morning and late afternoon provide the best atmosphere and softer light for the surrounding plain.",
+    "visitorLocation": "Central plain near Old Bagan, Myanmar.",
+    "openingHours": "Generally visited during daylight hours.",
+    "dressCode": "Modest dress is expected, and footwear should be removed in sacred areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is usually allowed, but visitors should respect all current site restrictions.",
+    "finalWords": "South Guni Temple rewards visitors who want to understand Bagan beyond its most famous monuments, especially through the quieter spatial experience of the central plain.",
+    "uniqueFeatures": [
+      {
+        "title": "Paired Identity",
+        "description": "It is commonly discussed together with nearby North Guni."
+      },
+      {
+        "title": "Landscape Views",
+        "description": "The monument became known for broad views over the temple plain."
+      },
+      {
+        "title": "Smaller Bagan Monument",
+        "description": "Its scale helps illustrate the diversity of Bagan's surviving sacred architecture."
+      },
+      {
+        "title": "Quiet Atmosphere",
+        "description": "It offers a less crowded experience than the best-known major temples."
+      }
+    ]
+  },
+  {
+    "id": "thitsarwadi",
+    "name": "Thitsarwadi Temple The Balloon Temple",
+    "description": "Thitsarwadi Temple is a lesser-known Bagan monument that became familiar to many travelers because of its proximity to hot-air-balloon flight paths over the plain. The site is remembered more for its setting and viewing atmosphere than for monumental scale.",
+    "category": "Temple",
+    "latitude": 21.1559,
+    "longitude": 94.8765,
+    "imageUrl": "assets/images/pagodas/Pyathetgyi/images.jpg",
+    "images": [
+      "assets/images/pagodas/Pyathetgyi/images.jpg",
+      "assets/images/pagodas/Pyathetgyi/19143645858_a8d4458a88_z.jpg"
+    ],
+    "historicalInfo": "Thitsarwadi belongs to the wider Bagan monument field, where numerous smaller shrines filled the plain between major royal temples. While not among the most extensively studied structures, it reflects the same Buddhist building tradition that transformed Bagan into one of the region's great sacred landscapes.",
+    "architecturalStyle": "The temple appears in the compact brick-built tradition of Bagan's smaller monuments. Its interest lies less in lavish ornament than in how it sits within the open plain and interacts visually with the sky and surrounding monuments.",
+    "legends": "Its nickname, the Balloon Temple, is a modern one tied to the era of sunrise balloon flights over Bagan. That association has made it especially memorable to contemporary visitors.",
+    "religiousImportance": "Though often discussed in travel terms, Thitsarwadi remains part of Bagan's sacred and archaeological landscape and should be approached as a religious monument.",
+    "preservationInfo": "Like many smaller temples in Bagan, the structure is vulnerable to weathering and past earthquake damage. Visitor management now favors preservation and controlled access.",
+    "bestTimeToVisit": "Sunrise season in the cooler months offers the clearest atmosphere and the strongest visual connection with balloon activity over the plain.",
+    "visitorLocation": "Central Bagan plain, Myanmar.",
+    "openingHours": "Generally visited during daylight hours.",
+    "dressCode": "Respectful clothing is recommended, with shoes removed in sacred interior areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is usually allowed; drone or restricted-access rules should be followed where posted.",
+    "finalWords": "Thitsarwadi Temple shows how even Bagan's smaller monuments can gain a strong identity through setting, atmosphere, and the living experience of the landscape around them.",
+    "uniqueFeatures": [
+      {
+        "title": "Balloon-Era Nickname",
+        "description": "Its modern nickname reflects the visibility of hot-air balloons in this part of Bagan."
+      },
+      {
+        "title": "Open Plain Setting",
+        "description": "The temple is strongly defined by its relationship to the surrounding open landscape."
+      },
+      {
+        "title": "Smaller Shrine Type",
+        "description": "It represents the many modest Bagan monuments that fill the gaps between major temples."
+      },
+      {
+        "title": "Atmospheric Sunrise Stop",
+        "description": "The site is especially associated with early-morning light and wide views."
+      }
+    ]
+  },
+  {
+    "id": "wetkyiingubyaukgyi",
+    "name": "Gu Byauk Gyi Temple (Wetkyi-In)",
+    "description": "Gu Byauk Gyi at Wetkyi-In is one of Bagan's important mural temples, known for its Indian-influenced superstructure and interior painting program. It is distinct from the better-known Myinkaba Gubyaukgyi and is usually identified by its Wetkyi-In location near Nyaung-U.",
+    "category": "Temple",
+    "latitude": 21.1889,
+    "longitude": 94.8948,
+    "imageUrl": "assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple.jpg",
+    "images": [
+      "assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple.jpg",
+      "assets/images/pagodas/Gu Byauk Gyi Pagoda/Gubyaukgyi-Bagan-Myanmar-02-gje.jpg",
+      "assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple1.jpg"
+    ],
+    "historicalInfo": "The Wetkyi-In Gubyaukgyi is generally dated to the late 12th or early 13th century. Scholars and guide literature regularly note its importance for interior mural painting and for the way it reflects artistic links between Bagan and eastern India.",
+    "architecturalStyle": "The temple combines a square shrine plan with a prominent tower form that shows North Indian influence. Inside, mural cycles once covered major surfaces, making the monument especially valuable for the study of Bagan painting.",
+    "legends": "Because another famous Gubyaukgyi stands at Myinkaba, the Wetkyi-In monument is often remembered through the need to distinguish the two. Its location name has become part of its historical identity.",
+    "religiousImportance": "The monument is significant both as a sacred shrine and as a major witness to narrative and devotional art in Bagan. Its mural program connects architecture, image-making, and Buddhist teaching.",
+    "preservationInfo": "The temple is particularly sensitive because of its interior paintings. Conservation concerns focus not only on structural stability but also on protecting murals from light, moisture, and visitor impact.",
+    "bestTimeToVisit": "Cool-season mornings are ideal, especially for exterior viewing before the midday heat.",
+    "visitorLocation": "Wetkyi-In area near Nyaung-U, Bagan, Myanmar.",
+    "openingHours": "Generally visited during daylight hours, subject to conservation access rules.",
+    "dressCode": "Visitors should dress modestly and remove footwear before entering sacred interior spaces.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography policies may be stricter inside mural areas; flash should be avoided wherever paintings survive.",
+    "finalWords": "Gu Byauk Gyi at Wetkyi-In is one of the monuments that shows Bagan at its most intellectually and artistically ambitious, where architecture and painting worked together to shape devotion.",
+    "uniqueFeatures": [
+      {
+        "title": "Mural Temple",
+        "description": "It is valued for its surviving interior paintings and narrative imagery."
+      },
+      {
+        "title": "Indian Influence",
+        "description": "Its superstructure reflects architectural links with eastern Indian temple traditions."
+      },
+      {
+        "title": "Wetkyi-In Identity",
+        "description": "The location name distinguishes it from the Myinkaba Gubyaukgyi."
+      },
+      {
+        "title": "Art Historical Value",
+        "description": "The monument is an important source for the study of Bagan painting and religious storytelling."
+      }
+    ]
+  },
+  {
+    "id": "abeyadana",
+    "name": "Abeyadana Temple",
+    "description": "Abeyadana Temple is one of Bagan's most important early 12th-century monuments, admired especially for its mural paintings and for the unusual presence of both Buddhist and Hindu imagery within the decorative program. The temple stands near Myinkaba and is closely tied to Queen Abeyadana, from whom it takes its name.",
+    "category": "Temple",
+    "latitude": 21.1582,
+    "longitude": 94.8623,
+    "imageUrl": "assets/images/pagodas/Gu Byauk Gyi Pagoda/le-merite-de-ce-temple.jpg",
+    "images": [
+      "assets/images/pagodas/Gu Byauk Gyi Pagoda/le-merite-de-ce-temple.jpg",
+      "assets/images/pagodas/Thambula/thambula-temple.jpg"
+    ],
+    "historicalInfo": "Abeyadana Temple is usually dated to 1102-1103 CE during the reign of King Kyansittha. It is associated with Queen Abeyadana and is especially notable for inscriptions and murals that suggest a cosmopolitan religious environment in early Pagan, where Buddhist devotion coexisted with imagery linked to Hindu deities and esoteric traditions.",
+    "architecturalStyle": "The temple belongs to the early Bagan gu-hpaya tradition, with a compact shrine body, vaulted interior spaces, and rich mural surfaces. Its artistic program is more important than sheer scale, and the interior decoration gives the monument exceptional scholarly value.",
+    "yearBuilt": 1102,
+    "legends": "The temple's identity is strongly shaped by its royal connection to Queen Abeyadana. That association has helped preserve the monument's reputation as one of Bagan's most distinctive female-linked foundations.",
+    "religiousImportance": "Abeyadana is important not only as a Buddhist temple but also as evidence of the plural religious world of early Pagan. Its murals reveal how visual culture could absorb a range of sacred symbols while remaining centered on Buddhist devotion.",
+    "preservationInfo": "The monument is highly significant for its paintings, so conservation has focused on protecting interior surfaces as well as the brick structure. Visitors are expected to be especially careful in mural areas.",
+    "bestTimeToVisit": "Morning visits are best for a quieter experience and softer exterior light.",
+    "visitorLocation": "Myinkaba area, south of Old Bagan, Myanmar.",
+    "openingHours": "Generally visited during daylight hours, depending on conservation access.",
+    "dressCode": "Respectful dress is required, and footwear must be removed before entering sacred spaces.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Flash photography should be avoided because of the temple's fragile mural paintings.",
+    "finalWords": "Abeyadana Temple is one of the clearest reminders that Bagan was not only a city of brick monuments, but also a place of layered ideas, royal patronage, and sophisticated sacred art.",
+    "uniqueFeatures": [
+      {
+        "title": "Queen's Foundation",
+        "description": "The temple is traditionally linked to Queen Abeyadana."
+      },
+      {
+        "title": "Hybrid Iconography",
+        "description": "Its mural program is famous for combining Buddhist and Hindu imagery."
+      },
+      {
+        "title": "Early 12th-Century Date",
+        "description": "It belongs to the important building phase under King Kyansittha."
+      },
+      {
+        "title": "Interior Murals",
+        "description": "The paintings make it one of Bagan's most significant art-historical monuments."
+      }
+    ]
+  },
+  {
+    "id": "lemyethna",
+    "name": "Lemyethna Temple",
+    "description": "Lemyethna Temple is a late Bagan monument valued for its compact but elegant form and for the inscriptional evidence that gives it an unusually clear historical date. It stands within the wider southeastern monument zone of Bagan, where many later temples survive in quieter settings.",
+    "category": "Temple",
+    "latitude": 21.1517,
+    "longitude": 94.9087,
+    "imageUrl": "assets/images/pagodas/Htilominlo Temple/22e84597c74e80b981d1e58f5b33f339.jpg",
+    "images": [
+      "assets/images/pagodas/Htilominlo Temple/22e84597c74e80b981d1e58f5b33f339.jpg",
+      "assets/images/pagodas/Ananda Temple/Ananda-Temple-in-Bagan-1000x565.jpg"
+    ],
+    "historicalInfo": "An inscription connects Lemyethna Temple with the year 1223 CE and names the donors as the minister Anandathura and his wife. This makes it especially valuable for understanding the patronage of late Bagan monuments outside the most famous royal projects.",
+    "architecturalStyle": "Lemyethna is a four-faced temple, and its name is often understood in relation to that four-sided plan. The monument shows the refined brick construction and measured proportions typical of later Bagan architecture.",
+    "yearBuilt": 1223,
+    "legends": "Its name and plan have encouraged the simple popular reading of the monument as a 'four-faced' temple, reinforcing the relationship between architectural form and local memory.",
+    "religiousImportance": "Lemyethna demonstrates that important acts of Buddhist merit-making in Bagan were sponsored not only by kings but also by high-ranking officials and their families.",
+    "preservationInfo": "The temple has endured centuries of weathering and earthquakes, but its historical importance has made it a recognized monument within Bagan's conservation landscape.",
+    "bestTimeToVisit": "The cooler months and the gentler morning light make the southeastern zone more comfortable to explore.",
+    "visitorLocation": "Southeastern Bagan plain, Myanmar.",
+    "openingHours": "Generally visited during daylight hours.",
+    "dressCode": "Visitors should wear modest clothing and remove footwear before entering sacred sections.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is typically permitted unless conservation rules indicate otherwise.",
+    "finalWords": "Lemyethna Temple is especially rewarding for visitors interested in the later centuries of Bagan, when elite donors continued to sponsor refined monuments even as the kingdom changed.",
+    "uniqueFeatures": [
+      {
+        "title": "Inscribed Date",
+        "description": "An inscription gives the temple a securely attested year of 1223."
+      },
+      {
+        "title": "Ministerial Patronage",
+        "description": "It was founded by the minister Anandathura and his wife rather than by a king."
+      },
+      {
+        "title": "Four-Faced Plan",
+        "description": "Its name is closely associated with its four-sided architectural form."
+      },
+      {
+        "title": "Late Bagan Refinement",
+        "description": "The monument exemplifies the controlled elegance of later Bagan brick temples."
+      }
+    ]
+  },
+  {
+    "id": "nandamannya",
+    "name": "Nandamannya Temple",
+    "description": "Nandamannya Temple is one of the notable late Bagan monuments in the Minnanthu area, especially appreciated for its surviving interior paintings and relatively intimate scale. It is often paired in visitor itineraries with other southeastern temples such as Payathonzu and Thambula.",
+    "category": "Temple",
+    "latitude": 21.1528,
+    "longitude": 94.9068,
+    "imageUrl": "assets/images/pagodas/Thambula/istockphoto-90658155-612x612.jpg",
+    "images": [
+      "assets/images/pagodas/Thambula/istockphoto-90658155-612x612.jpg",
+      "assets/images/pagodas/Sulamani Temple/f8c78d47d5b874f6e2791396bdc5d436.jpg"
+    ],
+    "historicalInfo": "Nandamannya is generally assigned to the mid-13th century, a period when Bagan's builders and painters were still producing refined religious monuments even as the kingdom moved toward its later phase. The temple is especially known for mural remains that preserve aspects of late Bagan painting.",
+    "architecturalStyle": "The temple is relatively compact, but its interior decorative program gives it importance beyond its size. Its brick construction and shrine layout fit the broader late Bagan temple tradition of the Minnanthu zone.",
+    "legends": "Modern interest in Nandamannya centers more on its artistic value than on a dominant local legend. Its identity is closely tied to the mural-rich southeastern temple group.",
+    "religiousImportance": "Nandamannya reflects the continued vitality of Buddhist image-making and temple patronage in late Pagan. It demonstrates that sacred art remained central to devotional life even in smaller monuments.",
+    "preservationInfo": "As with other painted temples, preservation work is concerned with protecting interior surfaces as well as structural stability. Visitor behavior can have a direct impact on the survival of murals.",
+    "bestTimeToVisit": "Morning is an excellent time to visit the Minnanthu area before heat builds across the open plain.",
+    "visitorLocation": "Minnanthu area, southeast of Old Bagan, Myanmar.",
+    "openingHours": "Generally visited during daylight hours, depending on site access.",
+    "dressCode": "Modest clothing is expected, and footwear should be removed before entering sacred interior areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Flash should be avoided where mural paintings survive.",
+    "finalWords": "Nandamannya Temple is one of the monuments that shows how much artistic richness survives in Bagan beyond the most famous skyline-defining temples.",
+    "uniqueFeatures": [
+      {
+        "title": "Late Bagan Murals",
+        "description": "It is especially valued for interior paintings from Bagan's later period."
+      },
+      {
+        "title": "Minnanthu Context",
+        "description": "The temple belongs to one of Bagan's most rewarding southeastern monument zones."
+      },
+      {
+        "title": "Compact Scale",
+        "description": "Its smaller size makes the decorative interior feel especially intimate."
+      },
+      {
+        "title": "Art Historical Importance",
+        "description": "The surviving paintings help document the development of late Bagan visual culture."
+      }
+    ]
+  },
+  {
+    "id": "somingyi",
+    "name": "Somingyi Pagoda",
+    "description": "Somingyi Pagoda is one of the lesser-known Bagan monuments in the Myinkaba zone, valued today for its relative quiet and for its place within a cluster of religious remains that also includes monastic structures. It is not one of Bagan's grand headline monuments, but it contributes to the layered sacred topography of the southern plain.",
+    "category": "Pagoda",
+    "latitude": 21.1604,
+    "longitude": 94.8557,
+    "imageUrl": "assets/images/pagodas/Mahezedi Pagoda/Mahazedi_Pagoda_(Bagan).jpg",
+    "images": [
+      "assets/images/pagodas/Mahezedi Pagoda/Mahazedi_Pagoda_(Bagan).jpg",
+      "assets/images/pagodas/Lawkananda Pagoda/20102959715_e7e032d5af_b.jpg"
+    ],
+    "historicalInfo": "Guide literature generally places Somingyi in the Bagan period and often associates it broadly with the 12th century. The monument is usually discussed as part of a local group of structures rather than as an isolated major foundation.",
+    "architecturalStyle": "Somingyi follows the brick-built Bagan religious tradition and is best understood through its site context rather than through monumental size. Its form reflects the wide range of pagoda types that once filled the Bagan plain.",
+    "legends": "No major legend dominates the monument's modern identity; instead, Somingyi is remembered through its association with the nearby monastery and quieter Myinkaba-side setting.",
+    "religiousImportance": "The pagoda represents the everyday sacred density of Bagan, where devotional monuments of different scales stood alongside monastic and residential religious spaces.",
+    "preservationInfo": "As a smaller monument, Somingyi depends on ongoing structural maintenance and broader archaeological-zone protection to prevent cumulative weather and visitor damage.",
+    "bestTimeToVisit": "Morning and late afternoon are best for a quieter visit and more comfortable temperatures.",
+    "visitorLocation": "Myinkaba area, south of Old Bagan, Myanmar.",
+    "openingHours": "Generally visited during daylight hours.",
+    "dressCode": "Visitors should dress modestly and remove footwear where required in sacred areas.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is usually permitted unless local restrictions are posted.",
+    "finalWords": "Somingyi Pagoda is a useful reminder that Bagan's significance lies not only in its celebrated temples, but also in the quieter monuments that complete the sacred landscape.",
+    "uniqueFeatures": [
+      {
+        "title": "Myinkaba-Side Setting",
+        "description": "It belongs to the southern sector of Bagan's monument field."
+      },
+      {
+        "title": "Cluster Context",
+        "description": "The monument is best understood together with nearby religious and monastic remains."
+      },
+      {
+        "title": "Quieter Experience",
+        "description": "It offers a calmer visit than the busiest major temples."
+      },
+      {
+        "title": "Everyday Sacred Landscape",
+        "description": "It reflects the dense spread of small and medium monuments across Bagan."
+      }
+    ]
+  },
+  {
+    "id": "kyaukguumin",
+    "name": "Kyauk Gu U Min (The Cave Temple)",
+    "description": "Kyauk Gu U Min is one of Bagan's most distinctive monuments because it combines a cave-like setting with substantial stone construction, something exceptionally rare in a landscape dominated by brick architecture. The site stands toward the eastern extent of the archaeological zone and is often described as one of Bagan's notable cave temples.",
+    "category": "Temple",
+    "latitude": 21.1797,
+    "longitude": 94.9189,
+    "imageUrl": "assets/images/pagodas/Iza Gawna Pagoda/shin-izza-gawna-temple.jpg",
+    "images": [
+      "assets/images/pagodas/Iza Gawna Pagoda/shin-izza-gawna-temple.jpg",
+      "assets/images/pagodas/Gu Byauk Gyi Pagoda/gubyaukgyi-temple1.jpg"
+    ],
+    "historicalInfo": "Kyauk Gu U Min is regularly listed among the very small number of surviving stone monuments in Bagan. Its name, which includes the sense of a rock cave or stone cave passage, matches the monument's unusual setting and construction character within the Bagan plain.",
+    "architecturalStyle": "Unlike the standard brick temples of Bagan, Kyauk Gu U Min is notable for its stone-built and cave-associated qualities. This gives it a very different atmosphere from the lofty brick gu temples more commonly seen in Old Bagan.",
+    "legends": "Its cave-like setting naturally encouraged a sense of mystery, and its unusual architecture has long made it stand out in descriptions of Bagan. The monument's identity is shaped less by one court legend than by its remarkable physical form.",
+    "religiousImportance": "Cave shrines often carried strong associations with meditation and retreat, so Kyauk Gu U Min broadens the picture of how sacred space was imagined in Pagan beyond freestanding temples and stupas.",
+    "preservationInfo": "Because it combines stone and cave-like conditions, conservation concerns differ somewhat from those at ordinary brick shrines and may include moisture, surface erosion, and access management in tighter spaces.",
+    "bestTimeToVisit": "Morning is often the most comfortable time to visit eastern-zone monuments before heat intensifies.",
+    "visitorLocation": "Eastern edge of the Bagan archaeological zone, Myanmar.",
+    "openingHours": "Generally visited during daylight hours, subject to local access conditions.",
+    "dressCode": "Visitors should dress modestly and remove footwear where entry into sacred areas is permitted.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Photography is usually allowed, but care should be taken in confined or fragile interior areas.",
+    "finalWords": "Kyauk Gu U Min is one of the best monuments for understanding how varied Bagan architecture could be, especially when local stone, cave space, and Buddhist devotion came together in one site.",
+    "uniqueFeatures": [
+      {
+        "title": "Stone Construction",
+        "description": "It is one of the very few Bagan monuments strongly associated with stone building."
+      },
+      {
+        "title": "Cave Temple Character",
+        "description": "Its cave-like setting sets it apart from the open brick temples of the plain."
+      },
+      {
+        "title": "Eastern Boundary Marker",
+        "description": "The site is often referenced in descriptions of the eastern reach of Bagan's monument field."
+      },
+      {
+        "title": "Meditative Atmosphere",
+        "description": "The enclosed spatial quality creates a very different sacred experience from larger exterior-focused temples."
+      }
+    ]
+  },
+  {
+    "id": "pahtothamya",
+    "name": "Pahto Thamya Temple",
+    "description": "Pahto Thamya Temple is one of Bagan's historically important early temples and is especially valued for preserving some of the city's earliest mural traditions. Located west of Nathlaung Kyaung in Old Bagan, it is a key monument for studying the formative phase of Pagan temple art.",
+    "category": "Temple",
+    "latitude": 21.167,
+    "longitude": 94.858,
+    "imageUrl": "assets/images/pagodas/Thatbyinnyu Temple/df0ebad94c9d9d41e52b1d2c74fdead2.jpg",
+    "images": [
+      "assets/images/pagodas/Thatbyinnyu Temple/df0ebad94c9d9d41e52b1d2c74fdead2.jpg",
+      "assets/images/pagodas/Shwe Gu Gyi/White_Temple_(8404485009).jpg"
+    ],
+    "historicalInfo": "Pahto Thamya is widely regarded as an early Bagan temple, often dated to the 11th century. Art-historical writing frequently highlights the monument because its murals preserve evidence for some of the earliest painting styles in Pagan and for outside artistic influences active during the kingdom's formative centuries.",
+    "architecturalStyle": "The temple belongs to the early gu-hpaya tradition, with enclosed shrine space and a strong emphasis on interior wall surfaces. Its value lies as much in painted decoration as in its brick architecture.",
+    "legends": "Although not surrounded by as much popular legend as some of Bagan's great royal monuments, Pahto Thamya has long been treated by scholars and guides as a foundational temple for understanding Bagan's artistic beginnings.",
+    "religiousImportance": "The monument is important because it preserves early evidence of how Buddhist teachings, image worship, and narrative art were brought together in temple interiors during the rise of Pagan.",
+    "preservationInfo": "Because of its mural significance, Pahto Thamya requires careful protection of interior surfaces as well as structural conservation. Visitor access may be shaped by painting-preservation needs.",
+    "bestTimeToVisit": "Morning visits are ideal for combining Old Bagan exploration with softer exterior light.",
+    "visitorLocation": "Old Bagan, west of Nathlaung Kyaung, Myanmar.",
+    "openingHours": "Generally visited during daylight hours, depending on conservation access.",
+    "dressCode": "Visitors should wear modest clothing and remove footwear before entering sacred spaces.",
+    "entranceFee": "Included in the Bagan Archaeological Zone pass.",
+    "photographyRules": "Flash should be avoided in mural areas to reduce risk to fragile painted surfaces.",
+    "finalWords": "Pahto Thamya Temple is one of the essential monuments for anyone who wants to understand not just the scale of Bagan, but the early artistic ideas that helped define it.",
+    "uniqueFeatures": [
+      {
+        "title": "Early Mural Temple",
+        "description": "It is especially important for preserving some of Bagan's earliest temple painting traditions."
+      },
+      {
+        "title": "Old Bagan Location",
+        "description": "The temple stands in the historic core west of Nathlaung Kyaung."
+      },
+      {
+        "title": "Formative-Period Importance",
+        "description": "It helps document the early development of Pagan religious art and architecture."
+      },
+      {
+        "title": "Interior-Focused Significance",
+        "description": "Its scholarly importance depends heavily on the enclosed shrine and mural program."
+      }
+    ]
   }
 ]

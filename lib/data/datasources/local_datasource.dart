@@ -191,6 +191,21 @@ class DatabaseService {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  Future<int> deletePagodasNotIn(Set<String> validIds) async {
+    final db = await database;
+
+    if (validIds.isEmpty) {
+      return db.delete(AppConstants.tablePagodas);
+    }
+
+    final placeholders = List.filled(validIds.length, '?').join(', ');
+    return db.delete(
+      AppConstants.tablePagodas,
+      where: 'id NOT IN ($placeholders)',
+      whereArgs: validIds.toList(),
+    );
+  }
+
   Future<List<Pagoda>> getAllPagodas({String? ownerUserId}) async {
     final db = await database;
     final favoriteIds = await _getFavoriteIdsForOwner(

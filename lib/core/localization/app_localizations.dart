@@ -152,8 +152,6 @@ class AppLocalizations {
         return translate('category.pagoda');
       case 'Stupa':
         return translate('category.stupa');
-      case 'Monastery':
-        return translate('category.monastery');
       default:
         return category;
     }

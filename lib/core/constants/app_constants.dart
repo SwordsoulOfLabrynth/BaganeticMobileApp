@@ -39,7 +39,6 @@ class AppConstants {
     'Temple',
     'Pagoda',
     'Stupa',
-    'Monastery',
   ];
 
   // Assets
