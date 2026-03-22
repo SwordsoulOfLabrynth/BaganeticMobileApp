@@ -5,11 +5,13 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../../data/models/trip_model.dart';
 import '../../data/datasources/local_datasource.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/services/firebase_service.dart';
 import '../../core/services/logger.dart';
 
 class TripProvider with ChangeNotifier {
   final DatabaseService _db = DatabaseService();
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final FirebaseService _firebaseService = FirebaseService();
 
   List<Trip> _trips = [];
   bool _isLoading = false;
@@ -48,6 +50,7 @@ class TripProvider with ChangeNotifier {
         return;
       }
       _trips = await _db.getAllTrips(ownerUserId: _currentOwnerId);
+      unawaited(_syncTripsToCloud(_trips));
     } catch (e) {
       Logger.error('Error loading trips', e);
     } finally {
@@ -63,6 +66,7 @@ class TripProvider with ChangeNotifier {
     try {
       final scopedTrip = trip.copyWith(ownerUserId: _currentOwnerId);
       await _db.insertTrip(scopedTrip);
+      await _syncSingleTrip(scopedTrip);
       await loadTrips();
     } catch (e) {
       Logger.error('Error saving trip', e);
@@ -76,6 +80,7 @@ class TripProvider with ChangeNotifier {
     }
     try {
       await _db.deleteTrip(id, ownerUserId: _currentOwnerId);
+      await _deleteSyncedTrip(id);
       await loadTrips();
     } catch (e) {
       Logger.error('Error deleting trip', e);
@@ -92,5 +97,36 @@ class TripProvider with ChangeNotifier {
   void dispose() {
     _authSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> _syncTripsToCloud(List<Trip> trips) async {
+    if (!canManageTrips || !_firebaseService.isFirebaseAvailable) {
+      return;
+    }
+    for (final trip in trips) {
+      await _syncSingleTrip(trip);
+    }
+  }
+
+  Future<void> _syncSingleTrip(Trip trip) async {
+    if (!canManageTrips || !_firebaseService.isFirebaseAvailable) {
+      return;
+    }
+    try {
+      await _firebaseService.syncTrip(_currentOwnerId, trip.toJson());
+    } catch (e, stackTrace) {
+      Logger.error('Error syncing trip to Firestore', e, stackTrace);
+    }
+  }
+
+  Future<void> _deleteSyncedTrip(String tripId) async {
+    if (!canManageTrips || !_firebaseService.isFirebaseAvailable) {
+      return;
+    }
+    try {
+      await _firebaseService.deleteTrip(_currentOwnerId, tripId);
+    } catch (e, stackTrace) {
+      Logger.error('Error deleting synced trip from Firestore', e, stackTrace);
+    }
   }
 }

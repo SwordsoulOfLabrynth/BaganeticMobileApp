@@ -241,4 +241,13 @@ class FirebaseService {
         .doc(tripData['id'])
         .set(tripData);
   }
+
+  Future<void> deleteTrip(String uid, String tripId) async {
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('trips')
+        .doc(tripId)
+        .delete();
+  }
 }

@@ -16,12 +16,18 @@ migrate_working_dir/
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea/*
+!.idea/runConfigurations/
+.idea/runConfigurations/*
+!.idea/runConfigurations/main_dart.xml
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
 #.vscode/
+
+# Local Flutter dart-define secrets
+/config/dart_defines.local.env
 
 # Flutter/Dart/Pub related
 **/doc/api/

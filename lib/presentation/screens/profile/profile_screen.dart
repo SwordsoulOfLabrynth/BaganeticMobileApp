@@ -42,7 +42,6 @@ class ProfileScreen extends StatelessWidget {
               _buildSettingsTile(
                 icon: Icons.info,
                 title: l10n.translate('profile.about'),
-                subtitle: 'v1.0.0',
                 onTap: () => _showAboutDialog(context),
               ),
               const SizedBox(height: 16),
@@ -285,16 +284,22 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final l10n = context.l10n;
     showAboutDialog(
       context: context,
       applicationName: 'Baganetic',
-      applicationVersion: 'v1.0.0',
       applicationIcon: const Icon(
         Icons.temple_buddhist,
         size: 48,
         color: Color(0xFFD4AF37),
       ),
-      children: [Text(context.l10n.translate('home.welcomeBody'))],
+      children: [
+        Text(l10n.translate('profile.aboutSummary')),
+        const SizedBox(height: 12),
+        Text(l10n.translate('profile.aboutBody')),
+        const SizedBox(height: 12),
+        Text(l10n.translate('profile.aboutFooter')),
+      ],
     );
   }
 }

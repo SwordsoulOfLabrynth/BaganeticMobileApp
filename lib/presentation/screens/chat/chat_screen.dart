@@ -1,79 +1,85 @@
-import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../data/models/pagoda_model.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/services/logger.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/responsive.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
+import '../../providers/trip_provider.dart';
 import '../../widgets/sign_in_required_view.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final AIEntryContext entryContext;
+
+  const ChatScreen({
+    super.key,
+    this.entryContext = const AIEntryContext.global(),
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  static const String _historyPrefsKey = 'chat_history_v1';
-
   final AIChatbotService _chatbotService = AIChatbotService();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final List<AIChatMessage> _pendingMessages = [];
+  final List<AIChatMessage> _sessionMessages = [];
+  final Uuid _uuid = const Uuid();
 
-  final List<AIChatMessage> _messages = [];
+  StreamSubscription<List<AIChatMessage>>? _messageSub;
+  List<AIChatMessage> _messages = const [];
   bool _isSending = false;
-  bool _isLoadingHistory = true;
+  bool _didWarnAboutSync = false;
 
   @override
   void initState() {
     super.initState();
-    _loadHistory();
+    _messageSub = _chatbotService.messageStream().listen(
+      (messages) {
+        if (!mounted) return;
+        setState(() {
+          _messages = messages;
+        });
+        _scrollToBottom();
+      },
+      onError: (error, stackTrace) {
+        Logger.warn('AI chat Firestore stream failed: $error');
+        if (!mounted) return;
+        setState(() {
+          _messages = const [];
+        });
+        if (_didWarnAboutSync) {
+          return;
+        }
+        _didWarnAboutSync = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Cloud chat sync is unavailable. Messages will stay in this session only.',
+            ),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
+    _messageSub?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadHistory() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_historyPrefsKey);
-      if (raw != null && raw.isNotEmpty) {
-        final decoded = jsonDecode(raw) as List<dynamic>;
-        _messages
-          ..clear()
-          ..addAll(
-            decoded.whereType<Map<String, dynamic>>().map(
-              AIChatMessage.fromJson,
-            ),
-          );
-      }
-    } catch (_) {
-      _messages.clear();
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingHistory = false;
-        });
-        _scrollToBottom(jump: true);
-      }
-    }
-  }
-
-  Future<void> _persistHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = jsonEncode(_messages.map((m) => m.toJson()).toList());
-    await prefs.setString(_historyPrefsKey, encoded);
   }
 
   Future<void> _clearHistory() async {
@@ -102,11 +108,14 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
+    await _chatbotService.clearHistory();
+    if (!mounted) {
+      return;
+    }
     setState(() {
-      _messages.clear();
+      _sessionMessages.clear();
+      _pendingMessages.clear();
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_historyPrefsKey);
   }
 
   Future<void> _sendMessage() async {
@@ -114,18 +123,30 @@ class _ChatScreenState extends State<ChatScreen> {
     if (prompt.isEmpty || _isSending) {
       return;
     }
+    if (!_chatbotService.isConfigured) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.translate('chat.setupRequiredBody')),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+      return;
+    }
 
+    final requestId = _uuid.v4().replaceAll('-', '');
     final userMessage = AIChatMessage(
+      id: requestId,
       role: AIChatMessage.roleUser,
       text: prompt,
       createdAt: DateTime.now(),
     );
+    final historyForRequest = _conversationHistory();
 
     _messageController.clear();
     FocusScope.of(context).unfocus();
 
     setState(() {
-      _messages.add(userMessage);
+      _pendingMessages.add(userMessage);
       _isSending = true;
     });
     final pagodas = context
@@ -143,41 +164,81 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         )
         .toList(growable: false);
-    final languageCode = Localizations.localeOf(context).languageCode;
+    final tripProvider = context.read<TripProvider>();
+    AITripContext? tripContext;
+    final tripId = widget.entryContext.tripId;
+    if (tripId != null) {
+      for (final trip in tripProvider.trips) {
+        if (trip.id == tripId) {
+          tripContext = AITripContext.fromTrip(trip);
+          break;
+        }
+      }
+    }
     _scrollToBottom();
-    await _persistHistory();
     if (!mounted) return;
 
     try {
-      final reply = await _chatbotService.generateReply(
+      final result = await _chatbotService.generateReply(
         prompt: prompt,
-        history: List<AIChatMessage>.from(_messages),
-        languageCode: languageCode,
+        requestId: requestId,
         pagodaContext: pagodas,
+        entryContext: widget.entryContext,
+        tripContext: tripContext,
+        historyOverride: historyForRequest,
       );
       if (!mounted) return;
 
+      final assistantMessage = AIChatMessage(
+        id: '${requestId}_assistant',
+        role: AIChatMessage.roleAssistant,
+        text: result.reply,
+        createdAt: result.createdAt,
+      );
       setState(() {
-        _messages.add(
-          AIChatMessage(
-            role: AIChatMessage.roleAssistant,
-            text: reply,
-            createdAt: DateTime.now(),
-          ),
-        );
+        _upsertSessionMessage(userMessage);
+        _upsertSessionMessage(assistantMessage);
+        _pendingMessages.removeWhere((message) => message.id == requestId);
         _isSending = false;
       });
       _scrollToBottom();
-      await _persistHistory();
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
+        _pendingMessages.removeWhere((message) => message.id == requestId);
         _isSending = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.translate('chat.sendError'))),
+        SnackBar(
+          content: Text(_readableErrorMessage(context, error)),
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
+  }
+
+  List<AIChatMessage> _mergedMessages() {
+    final deduped = <String, AIChatMessage>{};
+
+    void addAll(Iterable<AIChatMessage> source) {
+      for (final message in source) {
+        deduped[message.id] = message;
+      }
+    }
+
+    addAll(_messages);
+    addAll(_sessionMessages);
+    addAll(_pendingMessages);
+
+    final merged = deduped.values.toList(growable: false)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return merged;
+  }
+
+  List<AIChatMessage> _conversationHistory() {
+    return _mergedMessages()
+        .where((message) => message.text.trim().isNotEmpty)
+        .toList(growable: false);
   }
 
   String _buildPagodaSummary(Pagoda pagoda) {
@@ -198,6 +259,35 @@ class _ChatScreenState extends State<ChatScreen> {
       return compact;
     }
     return '${compact.substring(0, maxChars - 1)}…';
+  }
+
+  String _readableErrorMessage(BuildContext context, Object error) {
+    if (error is TimeoutException) {
+      return 'The AI request timed out. Check your connection and try again.';
+    }
+    if (error is SocketException) {
+      return 'Cannot reach the AI service. Check your network connection.';
+    }
+
+    final text = error.toString().trim();
+    final cleaned = text
+        .replaceFirst(RegExp(r'^Bad state:\s*'), '')
+        .replaceFirst(RegExp(r'^Exception:\s*'), '')
+        .trim();
+
+    if (cleaned.isNotEmpty) {
+      return cleaned;
+    }
+    return context.l10n.translate('chat.sendError');
+  }
+
+  void _upsertSessionMessage(AIChatMessage message) {
+    final index = _sessionMessages.indexWhere((item) => item.id == message.id);
+    if (index >= 0) {
+      _sessionMessages[index] = message;
+      return;
+    }
+    _sessionMessages.add(message);
   }
 
   void _scrollToBottom({bool jump = false}) {
@@ -224,13 +314,15 @@ class _ChatScreenState extends State<ChatScreen> {
     final isSignedIn = context.select<AuthProvider, bool>(
       (auth) => auth.user != null,
     );
+    final isAiConfigured = _chatbotService.isConfigured;
+    final messages = _mergedMessages();
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.translate('chat.title')),
         actions: [
           if (isSignedIn)
             IconButton(
-              onPressed: _messages.isEmpty ? null : _clearHistory,
+              onPressed: messages.isEmpty ? null : _clearHistory,
               icon: const Icon(Icons.delete_sweep_outlined),
               tooltip: l10n.translate('chat.clear'),
             ),
@@ -240,13 +332,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ? ResponsiveContent(
               child: Column(
                 children: [
-                  Expanded(child: _buildMessagesBody(context)),
-                  _buildComposer(context),
+                  Expanded(child: _buildMessagesBody(context, messages)),
+                  if (!isAiConfigured) _buildSetupNotice(context),
+                  _buildComposer(context, enabled: isAiConfigured),
                 ],
               ),
             )
           : SignInRequiredView(
-              icon: Icons.auto_awesome_outlined,
+              icon: Icons.support_agent_outlined,
               message: l10n.translate('chat.signInPrompt'),
               onSignIn: () {
                 AuthGate.openSignIn(context);
@@ -255,13 +348,53 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessagesBody(BuildContext context) {
-    final l10n = context.l10n;
-    if (_isLoadingHistory) {
-      return const Center(child: CircularProgressIndicator());
-    }
+  Widget _buildSetupNotice(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    if (_messages.isEmpty) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.key_off_outlined, color: colorScheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.translate('chat.setupRequiredTitle'),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  context.l10n.translate('chat.setupRequiredBody'),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessagesBody(
+    BuildContext context,
+    List<AIChatMessage> messages,
+  ) {
+    final l10n = context.l10n;
+    if (messages.isEmpty) {
       return Center(
         child: Padding(
           padding: Responsive.pagePadding(context),
@@ -269,7 +402,7 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.auto_awesome,
+                Icons.support_agent_outlined,
                 size: 52,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -295,9 +428,9 @@ class _ChatScreenState extends State<ChatScreen> {
     return ListView.builder(
       controller: _scrollController,
       padding: Responsive.pagePadding(context),
-      itemCount: _messages.length + (_isSending ? 1 : 0),
+      itemCount: messages.length + (_isSending ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index >= _messages.length) {
+        if (index >= messages.length) {
           return Align(
             alignment: Alignment.centerLeft,
             child: Padding(
@@ -309,12 +442,12 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           );
         }
-        return _ChatBubble(message: _messages[index]);
+        return _ChatBubble(message: messages[index]);
       },
     );
   }
 
-  Widget _buildComposer(BuildContext context) {
+  Widget _buildComposer(BuildContext context, {required bool enabled}) {
     final l10n = context.l10n;
     return SafeArea(
       top: false,
@@ -331,21 +464,24 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
+                enabled: enabled && !_isSending,
                 maxLines: 4,
                 minLines: 1,
                 textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _sendMessage(),
+                onSubmitted: enabled ? (_) => _sendMessage() : null,
                 decoration: InputDecoration(
-                  hintText: l10n.translate('chat.inputHint'),
+                  hintText: enabled
+                      ? l10n.translate('chat.inputHint')
+                      : l10n.translate('chat.setupRequiredTitle'),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             IconButton(
-              onPressed: _isSending ? null : _sendMessage,
+              onPressed: enabled && !_isSending ? _sendMessage : null,
               icon: Icon(
                 Icons.send,
-                color: _isSending
+                color: !enabled || _isSending
                     ? Theme.of(context).disabledColor
                     : Theme.of(context).colorScheme.primary,
               ),

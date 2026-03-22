@@ -8,6 +8,9 @@ class AppConstants {
   static const String users = 'users';
   static const String trips = 'trips';
   static const String favorites = 'favorites';
+  static const String feedbacks = 'feedbacks';
+  static const String roadReports = 'roadReports';
+  static const String aiChatMessages = 'aiChatMessages';
 
   // Database
   static const String dbName = 'baganetic.db';

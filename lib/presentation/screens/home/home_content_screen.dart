@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/pagoda_provider.dart';
+import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/utils/ai_assistant_launcher.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
-import '../chat/chat_screen.dart';
-import '../../../core/utils/auth_gate.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
@@ -286,19 +286,11 @@ class HomeContentScreen extends StatelessWidget {
               child: _buildQuickActionCard(
                 context,
                 l10n.translate('chat.title'),
-                Icons.auto_awesome,
-                () async {
-                  final canOpen = await AuthGate.ensureSignedIn(
-                    context,
-                    featureName: l10n.translate('chat.title'),
-                  );
-                  if (!canOpen || !context.mounted) {
-                    return;
-                  }
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const ChatScreen()),
-                  );
-                },
+                Icons.support_agent_outlined,
+                () => AIAssistantLauncher.open(
+                  context,
+                  entryContext: const AIEntryContext.global(),
+                ),
               ),
             ),
           ],

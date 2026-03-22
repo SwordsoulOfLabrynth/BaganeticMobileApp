@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/utils/auth_gate.dart';
+import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/utils/ai_assistant_launcher.dart';
 import 'home_content_screen.dart';
-import '../chat/chat_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
@@ -52,16 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openChat(BuildContext context) async {
-    final canOpen = await AuthGate.ensureSignedIn(
+    await AIAssistantLauncher.open(
       context,
-      featureName: context.l10n.translate('chat.title'),
+      entryContext: const AIEntryContext.global(),
     );
-    if (!canOpen || !context.mounted) {
-      return;
-    }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ChatScreen()));
   }
 
   @override
@@ -106,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openChat(context),
-        icon: const Icon(Icons.auto_awesome),
+        icon: const Icon(Icons.support_agent_outlined),
         label: Text(context.l10n.translate('chat.fabLabel')),
       ),
       body: Row(
@@ -130,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openChat(context),
-        icon: const Icon(Icons.auto_awesome),
+        icon: const Icon(Icons.support_agent_outlined),
         label: Text(context.l10n.translate('chat.fabLabel')),
       ),
       body: Stack(fit: StackFit.expand, children: [_screens[_currentIndex]]),

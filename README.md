@@ -17,6 +17,8 @@ modules are planned and not yet integrated into the UI.
 - Route rendering on the map using an offline graph with fallback routing
 - Local database (SQLite) for pagodas, trips, and favorites
 - Firebase email/password authentication plus guest mode
+- Signed-in AI travel assistant grounded with pagoda, trip, and road context
+- Pagoda-linked road safety reports
 - Bilingual UI (English and Myanmar)
 
 ## Future Work
@@ -34,6 +36,7 @@ modules are planned and not yet integrated into the UI.
 - Maps: flutter_map with OpenStreetMap tiles
 - Offline tiles: flutter_map_tile_caching
 - Routing: A* (pagoda graph) + offline route graph rendering
+- AI chat: direct NVIDIA API call from Flutter for demo builds
 - Sharing: screenshot + share_plus
 
 ## Requirements
@@ -57,6 +60,26 @@ Run the app:
 ```bash
 flutter run
 ```
+
+Run with AI enabled:
+```bash
+flutter run --dart-define=NVIDIA_API_KEY=your_nvidia_key --dart-define=NVIDIA_MODEL=meta/llama-3.1-8b-instruct
+```
+
+Without `NVIDIA_API_KEY`, the rest of the app still works but AI chat stays disabled.
+
+Use a local ignored config file for team development:
+1. Copy `config/dart_defines.example.env` to `config/dart_defines.local.env`
+2. Set your own `NVIDIA_API_KEY`
+3. Run from the command line with:
+```bash
+flutter run --dart-define-from-file=config/dart_defines.local.env
+```
+4. Or use the IDE Run icon:
+   Android Studio uses the shared `main.dart` run configuration in `.idea/runConfigurations/main_dart.xml`
+   VS Code can use the `main.dart (Local AI)` launch config in `.vscode/launch.json`
+
+Hot reload still works for normal code changes. If you change `NVIDIA_API_KEY` or `NVIDIA_MODEL`, stop and run again because `String.fromEnvironment` values are loaded at app start.
 
 ## Data and Offline Behavior
 - Sample pagoda data lives in `assets/data/sample_pagodas.json` and is loaded

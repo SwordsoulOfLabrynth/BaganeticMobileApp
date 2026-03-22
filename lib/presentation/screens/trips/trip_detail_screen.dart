@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import '../../../core/utils/platform_file_stub.dart'
     if (dart.library.io) '../../../core/utils/platform_file_io.dart'
     as platform_file;
+import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/utils/ai_assistant_launcher.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
@@ -56,6 +58,13 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         appBar: AppBar(
           title: Text(_trip.name),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.support_agent_outlined),
+              onPressed: () => AIAssistantLauncher.open(
+                context,
+                entryContext: AIEntryContext.trip(_trip.id),
+              ),
+            ),
             IconButton(icon: const Icon(Icons.edit), onPressed: _editTrip),
             if (_isExporting)
               const Padding(

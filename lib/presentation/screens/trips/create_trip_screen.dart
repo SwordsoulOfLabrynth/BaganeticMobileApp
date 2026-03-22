@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/utils/auth_gate.dart';
+import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/utils/ai_assistant_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
@@ -358,6 +360,20 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           title: Text(
             l10n.translate(isEditing ? 'trip.editTitle' : 'trip.createTitle'),
           ),
+          actions: [
+            IconButton(
+              onPressed: () => AIAssistantLauncher.open(
+                context,
+                entryContext: widget.existingTrip != null
+                    ? AIEntryContext.trip(widget.existingTrip!.id)
+                    : widget.initialPagoda != null
+                    ? AIEntryContext.pagoda(widget.initialPagoda!.id)
+                    : const AIEntryContext.global(),
+              ),
+              icon: const Icon(Icons.support_agent_outlined),
+              tooltip: l10n.translate('chat.fabLabel'),
+            ),
+          ],
         ),
         body: SignInRequiredView(
           icon: Icons.route,
@@ -375,6 +391,18 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           l10n.translate(isEditing ? 'trip.editTitle' : 'trip.createTitle'),
         ),
         actions: [
+          IconButton(
+            onPressed: () => AIAssistantLauncher.open(
+              context,
+              entryContext: widget.existingTrip != null
+                  ? AIEntryContext.trip(widget.existingTrip!.id)
+                  : widget.initialPagoda != null
+                  ? AIEntryContext.pagoda(widget.initialPagoda!.id)
+                  : const AIEntryContext.global(),
+            ),
+            icon: const Icon(Icons.support_agent_outlined),
+            tooltip: l10n.translate('chat.fabLabel'),
+          ),
           if (_isCalculatingRoute)
             const Padding(
               padding: EdgeInsets.all(16),

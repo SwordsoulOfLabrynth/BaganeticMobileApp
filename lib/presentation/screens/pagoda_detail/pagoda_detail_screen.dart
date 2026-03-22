@@ -5,10 +5,13 @@ import '../../../data/models/pagoda_model.dart';
 import '../../../data/models/feedback_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/feedback_provider.dart';
+import '../../../core/services/ai_chatbot_service.dart';
+import '../../../core/utils/ai_assistant_launcher.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../trips/create_trip_screen.dart';
 import '../home/home_screen.dart';
+import '../../widgets/pagoda_road_reports_section.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/helpers.dart';
@@ -278,6 +281,14 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
             ),
             actions: [
               IconButton(
+                onPressed: () => AIAssistantLauncher.open(
+                  context,
+                  entryContext: AIEntryContext.pagoda(pagoda.id),
+                ),
+                icon: const Icon(Icons.support_agent_outlined),
+                tooltip: l10n.translate('chat.fabLabel'),
+              ),
+              IconButton(
                 icon: Icon(
                   isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: isFavorite ? Colors.red : Colors.white,
@@ -517,6 +528,8 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                       currentUserId: currentUserId,
                       isSignedIn: isSignedIn,
                     ),
+                    SizedBox(height: Responsive.spacing(context)),
+                    PagodaRoadReportsSection(pagoda: pagoda),
                     SizedBox(height: Responsive.largeSpacing(context)),
                     SizedBox(
                       width: double.infinity,

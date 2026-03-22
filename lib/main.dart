@@ -17,7 +17,6 @@ import 'presentation/providers/feedback_provider.dart';
 import 'presentation/providers/language_provider.dart';
 import 'presentation/providers/pagoda_provider.dart';
 import 'presentation/providers/trip_provider.dart';
-import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'core/services/offline_map_service.dart';
@@ -129,7 +128,7 @@ class MyApp extends StatelessWidget {
               }
               return supportedLocales.first;
             },
-            home: const SplashScreen(),
+            home: const HomeScreen(),
             routes: {
               '/login': (context) => const LoginScreen(),
               '/home': (context) => const HomeScreen(),
