@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import '../models/pagoda_model.dart';
 import '../models/trip_model.dart';
 import '../models/feedback_model.dart';
+import '../models/community_post_model.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/logger.dart';
 import '../../core/utils/image_path_utils.dart';
@@ -17,6 +18,8 @@ import 'migrations/migration_v7.dart';
 import 'migrations/migration_v8.dart';
 import 'migrations/migration_v9.dart';
 import 'migrations/migration_v10.dart';
+import 'migrations/migration_v11.dart';
+import 'migrations/migration_v12.dart';
 
 class DatabaseService {
   static Database? _database;
@@ -60,6 +63,8 @@ class DatabaseService {
       MigrationToV8(),
       MigrationToV9(),
       MigrationToV10(),
+      MigrationToV11(),
+      MigrationToV12(),
     ]..sort((a, b) => a.targetVersion.compareTo(b.targetVersion));
 
     for (final migration in migrations) {
@@ -153,6 +158,56 @@ class DatabaseService {
         createdAt TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableCommunityPosts} (
+        id TEXT PRIMARY KEY,
+        authorUserId TEXT NOT NULL,
+        authorName TEXT NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        tags TEXT NOT NULL DEFAULT '[]',
+        status TEXT NOT NULL DEFAULT 'active',
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableCommunityComments} (
+        id TEXT PRIMARY KEY,
+        postId TEXT NOT NULL,
+        authorUserId TEXT NOT NULL,
+        authorName TEXT NOT NULL,
+        body TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableCommunityPostVotes} (
+        postId TEXT NOT NULL,
+        userId TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        PRIMARY KEY (postId, userId)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableAiChatMessagesLocal} (
+        id TEXT PRIMARY KEY,
+        ownerUserId TEXT NOT NULL,
+        role TEXT NOT NULL,
+        text TEXT NOT NULL,
+        requestId TEXT,
+        contextType TEXT,
+        pagodaId TEXT,
+        tripId TEXT,
+        createdAt TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> _onOpen(Database db) async {
@@ -161,6 +216,8 @@ class DatabaseService {
       await MigrationToV7().migrate(db);
       await MigrationToV9().migrate(db);
       await MigrationToV10().migrate(db);
+      await MigrationToV11().migrate(db);
+      await MigrationToV12().migrate(db);
     } catch (e, stackTrace) {
       Logger.error('Database schema self-heal failed', e, stackTrace);
     }
@@ -629,6 +686,10 @@ class DatabaseService {
     await db.delete(AppConstants.tableTrips);
     await db.delete(AppConstants.tableTripStops);
     await db.delete(AppConstants.tableFeedbacks);
+    await db.delete(AppConstants.tableCommunityPostVotes);
+    await db.delete(AppConstants.tableCommunityComments);
+    await db.delete(AppConstants.tableCommunityPosts);
+    await db.delete(AppConstants.tableAiChatMessagesLocal);
   }
 
   // Feedback CRUD operations
@@ -658,6 +719,225 @@ class DatabaseService {
       AppConstants.tableFeedbacks,
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<void> insertCommunityPost(CommunityPost post) async {
+    final db = await database;
+    await db.insert(
+      AppConstants.tableCommunityPosts,
+      {
+        'id': post.id,
+        'authorUserId': post.authorUserId,
+        'authorName': post.authorName,
+        'type': post.type,
+        'title': post.title,
+        'body': post.body,
+        'tags': jsonEncode(post.tags),
+        'status': post.status,
+        'createdAt': post.createdAt.toIso8601String(),
+        'updatedAt': post.updatedAt.toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<CommunityPost>> getCommunityPosts({String? currentUserId}) async {
+    final db = await database;
+    final resolvedUserId = currentUserId ?? '';
+    final rows = await db.rawQuery(
+      '''
+      SELECT p.*,
+        COALESCE((
+          SELECT COUNT(*)
+          FROM ${AppConstants.tableCommunityComments} c
+          WHERE c.postId = p.id
+        ), 0) AS commentCount,
+        COALESCE((
+          SELECT COUNT(*)
+          FROM ${AppConstants.tableCommunityPostVotes} v
+          WHERE v.postId = p.id
+        ), 0) AS upvoteCount,
+        CASE WHEN EXISTS(
+          SELECT 1
+          FROM ${AppConstants.tableCommunityPostVotes} v
+          WHERE v.postId = p.id AND v.userId = ?
+        ) THEN 1 ELSE 0 END AS isUpvoted
+      FROM ${AppConstants.tableCommunityPosts} p
+      WHERE p.status = ?
+      ORDER BY datetime(p.updatedAt) DESC, datetime(p.createdAt) DESC
+      ''',
+      [resolvedUserId, CommunityPost.statusActive],
+    );
+
+    return rows
+        .map((row) => CommunityPost.fromJson({...row, 'tags': row['tags']}))
+        .toList(growable: false);
+  }
+
+  Future<CommunityPost?> getCommunityPostById(
+    String id, {
+    String? currentUserId,
+  }) async {
+    final db = await database;
+    final resolvedUserId = currentUserId ?? '';
+    final rows = await db.rawQuery(
+      '''
+      SELECT p.*,
+        COALESCE((
+          SELECT COUNT(*)
+          FROM ${AppConstants.tableCommunityComments} c
+          WHERE c.postId = p.id
+        ), 0) AS commentCount,
+        COALESCE((
+          SELECT COUNT(*)
+          FROM ${AppConstants.tableCommunityPostVotes} v
+          WHERE v.postId = p.id
+        ), 0) AS upvoteCount,
+        CASE WHEN EXISTS(
+          SELECT 1
+          FROM ${AppConstants.tableCommunityPostVotes} v
+          WHERE v.postId = p.id AND v.userId = ?
+        ) THEN 1 ELSE 0 END AS isUpvoted
+      FROM ${AppConstants.tableCommunityPosts} p
+      WHERE p.id = ?
+      LIMIT 1
+      ''',
+      [resolvedUserId, id],
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+    return CommunityPost.fromJson({...rows.first, 'tags': rows.first['tags']});
+  }
+
+  Future<void> insertCommunityComment(CommunityComment comment) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.insert(
+        AppConstants.tableCommunityComments,
+        {
+          'id': comment.id,
+          'postId': comment.postId,
+          'authorUserId': comment.authorUserId,
+          'authorName': comment.authorName,
+          'body': comment.body,
+          'createdAt': comment.createdAt.toIso8601String(),
+          'updatedAt': comment.updatedAt.toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      await txn.update(
+        AppConstants.tableCommunityPosts,
+        {'updatedAt': comment.updatedAt.toIso8601String()},
+        where: 'id = ?',
+        whereArgs: [comment.postId],
+      );
+    });
+  }
+
+  Future<List<CommunityComment>> getCommunityComments(String postId) async {
+    final db = await database;
+    final rows = await db.query(
+      AppConstants.tableCommunityComments,
+      where: 'postId = ?',
+      whereArgs: [postId],
+      orderBy: 'datetime(createdAt) ASC',
+    );
+    return rows
+        .map((row) => CommunityComment.fromJson(row))
+        .toList(growable: false);
+  }
+
+  Future<void> toggleCommunityPostUpvote(
+    String postId, {
+    required String userId,
+  }) async {
+    if (userId.isEmpty) {
+      return;
+    }
+    final db = await database;
+    await db.transaction((txn) async {
+      final existing = await txn.query(
+        AppConstants.tableCommunityPostVotes,
+        where: 'postId = ? AND userId = ?',
+        whereArgs: [postId, userId],
+        limit: 1,
+      );
+
+      if (existing.isEmpty) {
+        await txn.insert(
+          AppConstants.tableCommunityPostVotes,
+          {
+            'postId': postId,
+            'userId': userId,
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      } else {
+        await txn.delete(
+          AppConstants.tableCommunityPostVotes,
+          where: 'postId = ? AND userId = ?',
+          whereArgs: [postId, userId],
+        );
+      }
+    });
+  }
+
+  Future<void> insertLocalAiChatMessage({
+    required String ownerUserId,
+    required String id,
+    required String role,
+    required String text,
+    required DateTime createdAt,
+    String? requestId,
+    String? contextType,
+    String? pagodaId,
+    String? tripId,
+  }) async {
+    final db = await database;
+    await db.insert(
+      AppConstants.tableAiChatMessagesLocal,
+      {
+        'id': id,
+        'ownerUserId': ownerUserId,
+        'role': role,
+        'text': text,
+        'requestId': requestId,
+        'contextType': contextType,
+        'pagodaId': pagodaId,
+        'tripId': tripId,
+        'createdAt': createdAt.toIso8601String(),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getLocalAiChatMessages({
+    required String ownerUserId,
+    int? limit,
+  }) async {
+    final db = await database;
+    final effectiveLimit = limit == null || limit <= 0 ? null : limit;
+    final rows = await db.query(
+      AppConstants.tableAiChatMessagesLocal,
+      where: 'ownerUserId = ?',
+      whereArgs: [ownerUserId],
+      orderBy: 'datetime(createdAt) DESC',
+      limit: effectiveLimit,
+    );
+    return rows;
+  }
+
+  Future<void> clearLocalAiChatMessages({required String ownerUserId}) async {
+    final db = await database;
+    await db.delete(
+      AppConstants.tableAiChatMessagesLocal,
+      where: 'ownerUserId = ?',
+      whereArgs: [ownerUserId],
     );
   }
 }

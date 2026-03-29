@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:http/http.dart' as http;
 
 import '../constants/app_constants.dart';
+import '../../data/datasources/local_datasource.dart';
 import '../../data/models/road_report_model.dart';
 import '../../data/models/trip_model.dart';
 import 'firestore_instance.dart';
@@ -182,6 +183,44 @@ class AIRoadReportContext {
   }
 }
 
+class AICommunityPostContext {
+  final String id;
+  final String authorName;
+  final String type;
+  final String title;
+  final String body;
+  final List<String> tags;
+  final DateTime createdAt;
+  final int upvoteCount;
+  final int commentCount;
+
+  const AICommunityPostContext({
+    required this.id,
+    required this.authorName,
+    required this.type,
+    required this.title,
+    required this.body,
+    this.tags = const [],
+    required this.createdAt,
+    this.upvoteCount = 0,
+    this.commentCount = 0,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'authorName': authorName,
+      'type': type,
+      'title': title,
+      'body': body,
+      'tags': tags,
+      'createdAt': createdAt.toIso8601String(),
+      'upvoteCount': upvoteCount,
+      'commentCount': commentCount,
+    };
+  }
+}
+
 class AIChatMessage {
   static const String roleUser = 'user';
   static const String roleAssistant = 'assistant';
@@ -215,6 +254,15 @@ class AIChatMessage {
     final data = doc.data();
     return AIChatMessage(
       id: doc.id,
+      role: data['role'] as String? ?? roleAssistant,
+      text: data['text'] as String? ?? '',
+      createdAt: _parseDate(data['createdAt']),
+    );
+  }
+
+  factory AIChatMessage.fromLocalJson(Map<String, dynamic> data) {
+    return AIChatMessage(
+      id: data['id'] as String? ?? '',
       role: data['role'] as String? ?? roleAssistant,
       text: data['text'] as String? ?? '',
       createdAt: _parseDate(data['createdAt']),
@@ -281,13 +329,16 @@ class AIChatbotService {
     FirebaseFirestore? firestore,
     firebase_auth.FirebaseAuth? auth,
     http.Client? httpClient,
+    DatabaseService? databaseService,
   }) : _firestore = firestore ?? FirestoreInstance.instance,
        _auth = auth ?? firebase_auth.FirebaseAuth.instance,
-       _httpClient = httpClient ?? http.Client();
+       _httpClient = httpClient ?? http.Client(),
+       _localDb = databaseService ?? DatabaseService();
 
   final FirebaseFirestore _firestore;
   final firebase_auth.FirebaseAuth _auth;
   final http.Client _httpClient;
+  final DatabaseService _localDb;
 
   String? get currentUserId => _auth.currentUser?.uid;
   bool get isConfigured => _directNvidiaApiKey.trim().isNotEmpty;
@@ -312,10 +363,19 @@ class AIChatbotService {
         );
   }
 
+  Future<List<AIChatMessage>> localFallbackMessages() async {
+    final uid = currentUserId;
+    if (uid == null) {
+      return const [];
+    }
+    return _loadLocalFallbackMessages(uid);
+  }
+
   Future<AIReplyResult> generateReply({
     required String prompt,
     required String requestId,
     required List<AIPagodaContext> pagodaContext,
+    List<AICommunityPostContext> communityContext = const [],
     AIEntryContext entryContext = const AIEntryContext.global(),
     AITripContext? tripContext,
     List<AIChatMessage>? historyOverride,
@@ -337,9 +397,16 @@ class AIChatbotService {
       final history = historyOverride != null
           ? _normalizeHistory(historyOverride)
           : await _loadRecentHistorySafe(uid);
+      final relevantPagodas = _selectRelevantPagodas(
+        prompt: prompt,
+        pagodas: pagodaContext,
+        entryContext: entryContext,
+        tripContext: tripContext,
+      );
       final roadReports = await _loadRelevantRoadReportsSafe(
         entryContext: entryContext,
         tripContext: tripContext,
+        promptPagodaIds: relevantPagodas.map((pagoda) => pagoda.id).toSet(),
       );
       await _writeMessageSafe(
         uid,
@@ -358,6 +425,7 @@ class AIChatbotService {
         directNvidiaKey: directNvidiaKey,
         history: history,
         pagodaContext: pagodaContext,
+        communityContext: communityContext,
         entryContext: entryContext,
         tripContext: tripContext,
         roadReports: roadReports,
@@ -387,6 +455,7 @@ class AIChatbotService {
     required String directNvidiaKey,
     required List<AIChatMessage> history,
     required List<AIPagodaContext> pagodaContext,
+    required List<AICommunityPostContext> communityContext,
     required AIEntryContext entryContext,
     required AITripContext? tripContext,
     required List<AIRoadReportContext> roadReports,
@@ -400,6 +469,13 @@ class AIChatbotService {
     );
     final relevantRoadReports = _selectRelevantRoadReports(
       roadReports: roadReports,
+      entryContext: entryContext,
+      tripContext: tripContext,
+    );
+    final relevantCommunityPosts = _selectRelevantCommunityPosts(
+      prompt: prompt,
+      communityPosts: communityContext,
+      relevantPagodas: relevantPagodas,
       entryContext: entryContext,
       tripContext: tripContext,
     );
@@ -426,6 +502,7 @@ class AIChatbotService {
                   pagodas: relevantPagodas,
                   tripContext: tripContext,
                   roadReports: relevantRoadReports,
+                  communityPosts: relevantCommunityPosts,
                 ),
               },
               ...history.map(
@@ -470,6 +547,7 @@ class AIChatbotService {
         'pagodaCount': relevantPagodas.length,
         'tripCount': tripContext == null ? 0 : 1,
         'roadReportCount': relevantRoadReports.length,
+        'communityPostCount': relevantCommunityPosts.length,
       },
     );
   }
@@ -479,6 +557,8 @@ class AIChatbotService {
     if (uid == null) {
       throw StateError('Sign in is required to clear synced history.');
     }
+
+    await _clearLocalFallbackMessages(uid);
 
     try {
       final snapshot = await _firestore
@@ -518,7 +598,7 @@ class AIChatbotService {
           'AI history sync unavailable, continuing without Firestore history: '
           '${e.message ?? e.code}',
         );
-        return const [];
+        return _loadLocalFallbackMessages(uid);
       }
       Logger.error('Failed to load AI history', e, stackTrace);
       rethrow;
@@ -545,11 +625,13 @@ class AIChatbotService {
   Future<List<AIRoadReportContext>> _loadRelevantRoadReportsSafe({
     required AIEntryContext entryContext,
     required AITripContext? tripContext,
+    Set<String> promptPagodaIds = const <String>{},
   }) async {
     try {
       return await _loadRelevantRoadReports(
         entryContext: entryContext,
         tripContext: tripContext,
+        promptPagodaIds: promptPagodaIds,
       );
     } on FirebaseException catch (e, stackTrace) {
       if (_isPermissionDenied(e)) {
@@ -567,11 +649,13 @@ class AIChatbotService {
   Future<List<AIRoadReportContext>> _loadRelevantRoadReports({
     required AIEntryContext entryContext,
     required AITripContext? tripContext,
+    Set<String> promptPagodaIds = const <String>{},
   }) async {
     final pagodaIds = <String>{
       if ((entryContext.pagodaId ?? '').isNotEmpty) entryContext.pagodaId!,
       if (tripContext != null)
         ...tripContext.stops.map((stop) => stop.pagodaId),
+      ...promptPagodaIds,
     };
     if (pagodaIds.isEmpty) {
       return const [];
@@ -603,6 +687,12 @@ class AIChatbotService {
     required AIEntryContext entryContext,
     required String requestId,
   }) async {
+    await _writeMessageLocalSafe(
+      uid,
+      message,
+      entryContext: entryContext,
+      requestId: requestId,
+    );
     try {
       await _writeMessage(
         uid,
@@ -613,7 +703,7 @@ class AIChatbotService {
     } on FirebaseException catch (e, stackTrace) {
       if (_isPermissionDenied(e)) {
         Logger.warn(
-          'AI chat sync unavailable, keeping message in session only: '
+          'AI chat sync unavailable, keeping message in local storage only: '
           '${e.message ?? e.code}',
         );
         return;
@@ -650,6 +740,62 @@ class AIChatbotService {
         .where((message) => message.text.trim().isNotEmpty)
         .toList(growable: false)
         .takeLast(_historyLimit);
+  }
+
+  Future<List<AIChatMessage>> _loadLocalFallbackMessages(String uid) async {
+    try {
+      final rows = await _localDb.getLocalAiChatMessages(
+        ownerUserId: uid,
+        limit: _historyLimit * 2,
+      );
+      final messages =
+          rows
+              .map((row) => AIChatMessage.fromLocalJson(row))
+              .where((message) => message.text.trim().isNotEmpty)
+              .toList(growable: false)
+            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      return messages.takeLast(_historyLimit);
+    } on UnsupportedError {
+      return const [];
+    } catch (e, stackTrace) {
+      Logger.error('Failed to load local AI chat history', e, stackTrace);
+      return const [];
+    }
+  }
+
+  Future<void> _writeMessageLocalSafe(
+    String uid,
+    AIChatMessage message, {
+    required AIEntryContext entryContext,
+    required String requestId,
+  }) async {
+    try {
+      await _localDb.insertLocalAiChatMessage(
+        ownerUserId: uid,
+        id: message.id,
+        role: message.role,
+        text: message.text,
+        createdAt: message.createdAt,
+        requestId: requestId,
+        contextType: entryContext.type.name,
+        pagodaId: entryContext.pagodaId,
+        tripId: entryContext.tripId,
+      );
+    } on UnsupportedError {
+      return;
+    } catch (e, stackTrace) {
+      Logger.error('Failed to persist local AI chat history', e, stackTrace);
+    }
+  }
+
+  Future<void> _clearLocalFallbackMessages(String uid) async {
+    try {
+      await _localDb.clearLocalAiChatMessages(ownerUserId: uid);
+    } on UnsupportedError {
+      return;
+    } catch (e, stackTrace) {
+      Logger.error('Failed to clear local AI chat history', e, stackTrace);
+    }
   }
 
   bool _isPermissionDenied(FirebaseException exception) {
@@ -819,23 +965,35 @@ class AIChatbotService {
 
     final tripPagodaIds =
         tripContext?.stops.map((stop) => stop.pagodaId).toSet() ?? <String>{};
-    final loweredPrompt = prompt.toLowerCase();
+    final normalizedPrompt = _normalizeSearchText(prompt);
+    final promptTokens = _keywordTokens(prompt);
     final scored =
         pagodas
             .map((pagoda) {
               var score = 0;
+              final normalizedName = _normalizeSearchText(pagoda.name);
+              final normalizedId = _normalizeSearchText(pagoda.id);
               if ((entryContext.pagodaId ?? '').isNotEmpty &&
                   pagoda.id == entryContext.pagodaId) {
-                score += 10;
+                score += 16;
               }
               if (tripPagodaIds.contains(pagoda.id)) {
-                score += 7;
+                score += 10;
               }
-              if (loweredPrompt.contains(pagoda.name.toLowerCase())) {
-                score += 8;
+              if (normalizedPrompt.contains(normalizedName) &&
+                  normalizedName.isNotEmpty) {
+                score += 12;
               }
-              if (loweredPrompt.contains(pagoda.id.toLowerCase())) {
-                score += 6;
+              if (normalizedPrompt.contains(normalizedId) &&
+                  normalizedId.isNotEmpty) {
+                score += 12;
+              }
+              for (final token in _keywordTokens(
+                '${pagoda.id} ${pagoda.name}',
+              )) {
+                if (token.length >= 4 && promptTokens.contains(token)) {
+                  score += 4;
+                }
               }
               return (pagoda: pagoda, score: score);
             })
@@ -851,6 +1009,88 @@ class AIChatbotService {
       return selected;
     }
     return pagodas.take(4).toList(growable: false);
+  }
+
+  List<AICommunityPostContext> _selectRelevantCommunityPosts({
+    required String prompt,
+    required List<AICommunityPostContext> communityPosts,
+    required List<AIPagodaContext> relevantPagodas,
+    required AIEntryContext entryContext,
+    required AITripContext? tripContext,
+  }) {
+    if (communityPosts.isEmpty) {
+      return const [];
+    }
+
+    final promptText = _normalizeSearchText(prompt);
+    final promptTokens = _keywordTokens(prompt);
+    final targetTerms = <String>{
+      ...relevantPagodas.map((pagoda) => _normalizeSearchText(pagoda.id)),
+      ...relevantPagodas.map((pagoda) => _normalizeSearchText(pagoda.name)),
+      if ((entryContext.pagodaId ?? '').isNotEmpty)
+        _normalizeSearchText(entryContext.pagodaId!),
+      if (tripContext != null)
+        ...tripContext.stops.map((stop) => _normalizeSearchText(stop.pagodaId)),
+    }.where((term) => term.isNotEmpty).toSet();
+
+    final scored =
+        communityPosts
+            .map((post) {
+              final searchable = _normalizeSearchText(
+                [
+                  post.title,
+                  post.body,
+                  post.authorName,
+                  post.tags.join(' '),
+                ].join(' '),
+              );
+              var score = 0;
+              if (promptText.isNotEmpty && searchable.contains(promptText)) {
+                score += 16;
+              }
+              for (final term in targetTerms) {
+                if (term.length >= 4 && searchable.contains(term)) {
+                  score += 8;
+                }
+              }
+              for (final token in promptTokens) {
+                if (token.length >= 4 && searchable.contains(token)) {
+                  score += 2;
+                }
+              }
+              for (final tag in post.tags) {
+                final normalizedTag = _normalizeSearchText(tag);
+                if (normalizedTag.isNotEmpty &&
+                    promptTokens.contains(normalizedTag)) {
+                  score += 4;
+                }
+              }
+              return (post: post, score: score);
+            })
+            .toList(growable: false)
+          ..sort((a, b) {
+            final scoreCompare = b.score.compareTo(a.score);
+            if (scoreCompare != 0) {
+              return scoreCompare;
+            }
+            final votesCompare = b.post.upvoteCount.compareTo(
+              a.post.upvoteCount,
+            );
+            if (votesCompare != 0) {
+              return votesCompare;
+            }
+            return b.post.createdAt.compareTo(a.post.createdAt);
+          });
+
+    final selected = scored
+        .where((item) => item.score > 0)
+        .take(6)
+        .map((item) => item.post)
+        .toList(growable: false);
+    if (selected.isNotEmpty) {
+      return selected;
+    }
+    return const [];
   }
 
   List<AIRoadReportContext> _selectRelevantRoadReports({
@@ -885,6 +1125,7 @@ class AIChatbotService {
     required List<AIPagodaContext> pagodas,
     required AITripContext? tripContext,
     required List<AIRoadReportContext> roadReports,
+    required List<AICommunityPostContext> communityPosts,
   }) {
     final pagodaBlock = pagodas.isEmpty
         ? '- No pagoda context supplied.'
@@ -922,11 +1163,23 @@ class AIChatbotService {
               )
               .join('\n');
 
+    final communityBlock = communityPosts.isEmpty
+        ? '- No relevant community posts supplied.'
+        : communityPosts
+              .map(
+                (post) =>
+                    '- ${post.title} (${post.type}, by ${post.authorName}, '
+                    '${post.upvoteCount} upvotes, ${post.commentCount} comments): '
+                    '${post.body}${post.tags.isEmpty ? '' : ' [tags: ${post.tags.join(', ')}]'}',
+              )
+              .join('\n');
+
     return [
       "You are Baganetic's in-app travel assistant for Bagan pagodas.",
       'Stay inside the Bagan travel domain and answer concisely.',
-      'Use the provided pagoda, trip, and road report context when relevant.',
+      'Use the provided pagoda, trip, road report, and community context when relevant.',
       'Road reports are informational only. Warn users, but do not claim automatic rerouting.',
+      'Community posts are user-submitted and unverified. Present them as community reports, not confirmed facts.',
       'If facts are missing, say so clearly rather than inventing details.',
       'Entry context type: ${entryContext.type.name}',
       '',
@@ -938,7 +1191,26 @@ class AIChatbotService {
       '',
       'Road report context:',
       roadReportBlock,
+      '',
+      'Community feed context:',
+      communityBlock,
     ].join('\n');
+  }
+
+  String _normalizeSearchText(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  Set<String> _keywordTokens(String text) {
+    return _normalizeSearchText(text)
+        .split(' ')
+        .map((token) => token.trim())
+        .where((token) => token.isNotEmpty)
+        .toSet();
   }
 }
 

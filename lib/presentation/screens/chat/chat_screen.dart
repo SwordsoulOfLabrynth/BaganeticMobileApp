@@ -12,6 +12,7 @@ import '../../../core/services/logger.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/responsive.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/community_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../widgets/sign_in_required_view.dart';
@@ -39,11 +40,11 @@ class _ChatScreenState extends State<ChatScreen> {
   StreamSubscription<List<AIChatMessage>>? _messageSub;
   List<AIChatMessage> _messages = const [];
   bool _isSending = false;
-  bool _didWarnAboutSync = false;
 
   @override
   void initState() {
     super.initState();
+    unawaited(_loadLocalFallbackMessages());
     _messageSub = _chatbotService.messageStream().listen(
       (messages) {
         if (!mounted) return;
@@ -55,21 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
       onError: (error, stackTrace) {
         Logger.warn('AI chat Firestore stream failed: $error');
         if (!mounted) return;
-        setState(() {
-          _messages = const [];
-        });
-        if (_didWarnAboutSync) {
-          return;
-        }
-        _didWarnAboutSync = true;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Cloud chat sync is unavailable. Messages will stay in this session only.',
-            ),
-            duration: Duration(seconds: 5),
-          ),
-        );
+        unawaited(_loadLocalFallbackMessages());
       },
     );
   }
@@ -109,6 +96,10 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     await _chatbotService.clearHistory();
+    if (!mounted) {
+      return;
+    }
+    await _loadLocalFallbackMessages();
     if (!mounted) {
       return;
     }
@@ -165,6 +156,24 @@ class _ChatScreenState extends State<ChatScreen> {
         )
         .toList(growable: false);
     final tripProvider = context.read<TripProvider>();
+    final communityPosts = context
+        .read<CommunityProvider>()
+        .allPosts
+        .take(60)
+        .map(
+          (post) => AICommunityPostContext(
+            id: post.id,
+            authorName: post.authorName,
+            type: post.type,
+            title: _compactText(post.title, maxChars: 120),
+            body: _compactText(post.body, maxChars: 220),
+            tags: post.tags,
+            createdAt: post.createdAt,
+            upvoteCount: post.upvoteCount,
+            commentCount: post.commentCount,
+          ),
+        )
+        .toList(growable: false);
     AITripContext? tripContext;
     final tripId = widget.entryContext.tripId;
     if (tripId != null) {
@@ -183,6 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
         prompt: prompt,
         requestId: requestId,
         pagodaContext: pagodas,
+        communityContext: communityPosts,
         entryContext: widget.entryContext,
         tripContext: tripContext,
         historyOverride: historyForRequest,
@@ -288,6 +298,16 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
     _sessionMessages.add(message);
+  }
+
+  Future<void> _loadLocalFallbackMessages() async {
+    final localMessages = await _chatbotService.localFallbackMessages();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _messages = localMessages;
+    });
   }
 
   void _scrollToBottom({bool jump = false}) {

@@ -4,6 +4,7 @@ import '../../../core/utils/ai_assistant_launcher.dart';
 import 'home_content_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
 import '../map/map_screen.dart';
+import '../community/community_feed_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
@@ -42,7 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeContentScreen(onNavigateToTab: _onNavigateToTab), // 0
     const PagodasListScreen(), // 1
     MapScreen(initialPagoda: widget.initialMapPagoda), // 2
-    const ProfileScreen(), // 3
+    const CommunityFeedScreen(), // 3
+    const ProfileScreen(), // 4
   ];
 
   void _onTabSelected(int index) {
@@ -62,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    // Navigation order: Home, Pagodas, Map, Profile
+    // Navigation order: Home, Pagodas, Map, Community, Profile
     final navigationItems = [
       NavigationItem(
         icon: Icons.home,
@@ -80,9 +82,14 @@ class _HomeScreenState extends State<HomeScreen> {
         index: 2,
       ),
       NavigationItem(
+        icon: Icons.forum_outlined,
+        label: l10n.translate('nav.community'),
+        index: 3,
+      ),
+      NavigationItem(
         icon: Icons.person,
         label: l10n.translate('nav.profile'),
-        index: 3,
+        index: 4,
       ),
     ];
 

@@ -266,7 +266,7 @@ class HomeContentScreen extends StatelessWidget {
                 l10n.translate('home.actionProfile'),
                 Icons.person,
                 () {
-                  onNavigateToTab(3);
+                  onNavigateToTab(4);
                 },
               ),
             ),
@@ -278,6 +278,17 @@ class HomeContentScreen extends StatelessWidget {
                 Icons.map,
                 () {
                   onNavigateToTab(2);
+                },
+              ),
+            ),
+            SizedBox(
+              width: cardWidth,
+              child: _buildQuickActionCard(
+                context,
+                l10n.translate('home.actionCommunity'),
+                Icons.forum_outlined,
+                () {
+                  onNavigateToTab(3);
                 },
               ),
             ),
