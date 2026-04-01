@@ -1,172 +1,149 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+
 import '../../data/models/pagoda_model.dart';
 import 'helpers.dart';
 
 typedef PathDistanceCalculator = double Function(Pagoda a, Pagoda b);
 
-class PathNode {
-  final Pagoda pagoda;
-  double g; // Cost from start
-  double h; // Heuristic to goal
-  PathNode? parent;
+class PathSearchResult {
+  final List<Pagoda> path;
+  final double distanceKm;
 
-  PathNode({
-    required this.pagoda,
-    this.g = double.infinity,
-    this.h = 0,
-    this.parent,
-  });
+  const PathSearchResult({required this.path, required this.distanceKm});
 
-  double get f => g + h;
+  const PathSearchResult.empty() : path = const [], distanceKm = 0;
+
+  bool get isEmpty => path.isEmpty;
 }
 
 class PathfindingService {
-  static const double _defaultNeighborRadiusKm = 5.0;
-  static const int _fallbackNeighborCount = 3;
+  static const String _graphAssetPath = 'assets/data/pagoda_route_graph.json';
   static const double _improvementEpsilonKm = 0.0005;
 
-  static List<Pagoda> findPath(
-    Pagoda start,
-    Pagoda goal,
-    List<Pagoda> allPagodas, {
-    double neighborRadiusKm = _defaultNeighborRadiusKm,
-    int fallbackNeighborCount = _fallbackNeighborCount,
-  }) {
-    // Create nodes map
-    final Map<String, PathNode> nodes = {};
-    for (var pagoda in allPagodas) {
-      nodes[pagoda.id] = PathNode(pagoda: pagoda);
+  static PagodaRouteGraphData? _cachedGraph;
+
+  static Future<PagodaRouteGraphData?> loadGraph() async {
+    final cached = _cachedGraph;
+    if (cached != null) {
+      return cached;
     }
 
-    // Initialize start node
-    final startNode = nodes[start.id]!;
-    startNode.g = 0;
-    startNode.h = Helpers.calculateDistance(
-      start.latitude,
-      start.longitude,
-      goal.latitude,
-      goal.longitude,
-    );
+    try {
+      final raw = await rootBundle.loadString(_graphAssetPath);
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final graph = PagodaRouteGraphData.fromJson(decoded);
+      _cachedGraph = graph;
+      return graph;
+    } catch (_) {
+      return null;
+    }
+  }
 
-    // Priority queue (open set). We push updated priorities as new items and
-    // skip stale entries on pop, so no full-queue resort is needed.
+  static Future<PathSearchResult> findPath(
+    Pagoda start,
+    Pagoda goal,
+    List<Pagoda> allPagodas,
+  ) async {
+    if (start.id == goal.id) {
+      return PathSearchResult(path: [start], distanceKm: 0);
+    }
+
+    final graph = await loadGraph();
+    if (graph == null) {
+      return _buildDirectFallbackResult(start, goal);
+    }
+
+    final pagodasById = <String, Pagoda>{
+      for (final pagoda in allPagodas) pagoda.id: pagoda,
+    };
+
+    if (!graph.nodes.containsKey(start.id) ||
+        !graph.nodes.containsKey(goal.id)) {
+      return _buildDirectFallbackResult(start, goal);
+    }
+
+    final gScores = <String, double>{start.id: 0};
+    final previous = <String, String?>{};
     final openSet = PriorityQueue<_PathQueueItem>((a, b) {
       return a.fScore.compareTo(b.fScore);
     });
-    openSet.add(_PathQueueItem(nodeId: start.id, fScore: startNode.f));
 
-    final Set<String> closedSet = {};
+    openSet.add(
+      _PathQueueItem(nodeId: start.id, fScore: _heuristic(start, goal)),
+    );
+
+    final closedSet = <String>{};
 
     while (openSet.isNotEmpty) {
       final currentItem = openSet.removeFirst();
-      final current = nodes[currentItem.nodeId];
-      if (current == null) {
-        continue;
-      }
-      if (closedSet.contains(current.pagoda.id)) {
-        continue;
-      }
-      if (currentItem.fScore > current.f + _improvementEpsilonKm) {
-        // Stale queue item.
+      if (closedSet.contains(currentItem.nodeId)) {
         continue;
       }
 
-      // Check if we reached the goal
-      if (current.pagoda.id == goal.id) {
-        return _reconstructPath(current);
+      final currentPagoda = pagodasById[currentItem.nodeId];
+      final currentG = gScores[currentItem.nodeId];
+      if (currentPagoda == null || currentG == null) {
+        continue;
       }
 
-      closedSet.add(current.pagoda.id);
+      final currentF = currentG + _heuristic(currentPagoda, goal);
+      if (currentItem.fScore > currentF + _improvementEpsilonKm) {
+        continue;
+      }
 
-      // Get neighbors (pagodas within 5km)
-      var neighbors = _getNeighbors(
-        current.pagoda,
-        allPagodas,
-        nodes,
-        neighborRadiusKm: neighborRadiusKm,
-        fallbackNeighborCount: fallbackNeighborCount,
-      );
-
-      for (var neighbor in neighbors) {
-        if (closedSet.contains(neighbor.pagoda.id)) continue;
-
-        double distance = Helpers.calculateDistance(
-          current.pagoda.latitude,
-          current.pagoda.longitude,
-          neighbor.pagoda.latitude,
-          neighbor.pagoda.longitude,
+      if (currentItem.nodeId == goal.id) {
+        final path = _reconstructPath(
+          startId: start.id,
+          goalId: goal.id,
+          previous: previous,
+          pagodasById: pagodasById,
         );
+        return PathSearchResult(path: path, distanceKm: currentG);
+      }
 
-        double tentativeG = current.g + distance;
+      closedSet.add(currentItem.nodeId);
 
-        if (tentativeG < neighbor.g) {
-          neighbor.parent = current;
-          neighbor.g = tentativeG;
-          neighbor.h = Helpers.calculateDistance(
-            neighbor.pagoda.latitude,
-            neighbor.pagoda.longitude,
-            goal.latitude,
-            goal.longitude,
-          );
+      final neighbors = graph.adjacency[currentItem.nodeId] ?? const [];
+      for (final edge in neighbors) {
+        if (closedSet.contains(edge.to)) {
+          continue;
+        }
 
-          openSet.add(
-            _PathQueueItem(nodeId: neighbor.pagoda.id, fScore: neighbor.f),
-          );
+        final neighborPagoda = pagodasById[edge.to];
+        if (neighborPagoda == null) {
+          continue;
+        }
+
+        final tentativeG = currentG + edge.weight;
+        if (tentativeG < (gScores[edge.to] ?? double.infinity)) {
+          gScores[edge.to] = tentativeG;
+          previous[edge.to] = currentItem.nodeId;
+
+          final fScore = tentativeG + _heuristic(neighborPagoda, goal);
+          openSet.add(_PathQueueItem(nodeId: edge.to, fScore: fScore));
         }
       }
     }
 
-    // No path found, return empty list
-    return [];
+    return _buildDirectFallbackResult(start, goal);
   }
 
-  static List<PathNode> _getNeighbors(
-    Pagoda current,
-    List<Pagoda> allPagodas,
-    Map<String, PathNode> nodes, {
-    double neighborRadiusKm = _defaultNeighborRadiusKm,
-    int fallbackNeighborCount = _fallbackNeighborCount,
+  static double calculatePathDistance(
+    List<Pagoda> path, {
+    PathDistanceCalculator? distanceCalculator,
   }) {
-    List<PathNode> neighbors = [];
-    List<MapEntry<Pagoda, double>> candidates = [];
-
-    for (var pagoda in allPagodas) {
-      if (pagoda.id == current.id) continue;
-
-      double distance = Helpers.calculateDistance(
-        current.latitude,
-        current.longitude,
-        pagoda.latitude,
-        pagoda.longitude,
-      );
-
-      // Only consider pagodas within 5km as neighbors
-      if (distance <= neighborRadiusKm) {
-        neighbors.add(nodes[pagoda.id]!);
-      }
-
-      candidates.add(MapEntry(pagoda, distance));
+    if (path.length < 2) {
+      return 0;
     }
 
-    if (neighbors.isEmpty && fallbackNeighborCount > 0) {
-      candidates.sort((a, b) => a.value.compareTo(b.value));
-      for (final entry in candidates.take(fallbackNeighborCount)) {
-        neighbors.add(nodes[entry.key.id]!);
-      }
+    final distance = distanceCalculator ?? _haversineDistance;
+    var totalDistance = 0.0;
+    for (var i = 0; i < path.length - 1; i++) {
+      totalDistance += distance(path[i], path[i + 1]);
     }
-
-    return neighbors;
-  }
-
-  static List<Pagoda> _reconstructPath(PathNode goalNode) {
-    List<Pagoda> path = [];
-    PathNode? current = goalNode;
-
-    while (current != null) {
-      path.insert(0, current.pagoda);
-      current = current.parent;
-    }
-
-    return path;
+    return totalDistance;
   }
 
   static List<Pagoda> optimizeRouteOrder(
@@ -179,7 +156,6 @@ class PathfindingService {
 
     final distance = distanceCalculator ?? _haversineDistance;
 
-    // Build initial order using nearest-neighbor heuristic.
     final initial = keepFirst
         ? _nearestNeighborOrder(pagodas.first, pagodas, distance: distance)
         : _nearestNeighborOrder(
@@ -188,19 +164,17 @@ class PathfindingService {
             distance: distance,
           );
 
-    // Improve with 2-opt local search.
     final optimized = List<Pagoda>.from(initial);
-    final int n = optimized.length;
-    // Start from index 1 when keepFirst to preserve the first stop.
-    final int startIdx = keepFirst ? 1 : 0;
-    int iterations = 0;
-    bool improved = true;
+    final n = optimized.length;
+    final startIdx = keepFirst ? 1 : 0;
+    var iterations = 0;
+    var improved = true;
 
     while (improved && iterations < maxIterations) {
       improved = false;
       iterations += 1;
-      for (int i = startIdx; i < n - 1; i++) {
-        for (int k = i + 1; k < n; k++) {
+      for (var i = startIdx; i < n - 1; i++) {
+        for (var k = i + 1; k < n; k++) {
           final delta = _twoOptDelta(optimized, i, k, distance);
           if (delta < -_improvementEpsilonKm) {
             _reverseSegment(optimized, i, k);
@@ -213,19 +187,54 @@ class PathfindingService {
     return optimized;
   }
 
+  static double _heuristic(Pagoda from, Pagoda goal) {
+    return Helpers.calculateDistance(
+      from.latitude,
+      from.longitude,
+      goal.latitude,
+      goal.longitude,
+    );
+  }
+
+  static List<Pagoda> _reconstructPath({
+    required String startId,
+    required String goalId,
+    required Map<String, String?> previous,
+    required Map<String, Pagoda> pagodasById,
+  }) {
+    final path = <Pagoda>[];
+    String? currentId = goalId;
+
+    while (currentId != null) {
+      final pagoda = pagodasById[currentId];
+      if (pagoda == null) {
+        return [];
+      }
+      path.insert(0, pagoda);
+      if (currentId == startId) {
+        break;
+      }
+      currentId = previous[currentId];
+    }
+
+    if (path.isEmpty || path.first.id != startId) {
+      return [];
+    }
+
+    return path;
+  }
+
   static List<Pagoda> _nearestNeighborOrder(
     Pagoda start,
     List<Pagoda> candidates, {
     required PathDistanceCalculator distance,
   }) {
-    final List<Pagoda> ordered = [start];
-    final List<Pagoda> pool = candidates
-        .where((pagoda) => pagoda.id != start.id)
-        .toList();
+    final ordered = <Pagoda>[start];
+    final pool = candidates.where((pagoda) => pagoda.id != start.id).toList();
 
     while (pool.isNotEmpty) {
       final current = ordered.last;
-      double minDistance = double.infinity;
+      var minDistance = double.infinity;
       Pagoda? nearest;
       for (final pagoda in pool) {
         final currentDistance = distance(current, pagoda);
@@ -257,7 +266,7 @@ class PathfindingService {
         pagodas.length;
 
     Pagoda best = pagodas.first;
-    double bestDistance = double.infinity;
+    var bestDistance = double.infinity;
     for (final pagoda in pagodas) {
       final centroidDistance = Helpers.calculateDistance(
         pagoda.latitude,
@@ -280,10 +289,10 @@ class PathfindingService {
     int k,
     PathDistanceCalculator distance,
   ) {
-    final Pagoda b = route[i];
-    final Pagoda c = route[k];
+    final b = route[i];
+    final c = route[k];
     final Pagoda? a = i > 0 ? route[i - 1] : null;
-    final Pagoda? d = (k + 1 < route.length) ? route[k + 1] : null;
+    final Pagoda? d = k + 1 < route.length ? route[k + 1] : null;
 
     var oldDistance = 0.0;
     var newDistance = 0.0;
@@ -319,23 +328,119 @@ class PathfindingService {
     );
   }
 
-  static double calculatePathDistance(
-    List<Pagoda> path, {
-    PathDistanceCalculator? distanceCalculator,
-  }) {
-    if (path.length < 2) return 0;
-    final distance = distanceCalculator ?? _haversineDistance;
-
-    double totalDistance = 0;
-    for (int i = 0; i < path.length - 1; i++) {
-      totalDistance += distance(path[i], path[i + 1]);
-    }
-
-    return totalDistance;
+  static PathSearchResult _buildDirectFallbackResult(
+    Pagoda start,
+    Pagoda goal,
+  ) {
+    return PathSearchResult(
+      path: [start, goal],
+      distanceKm: _haversineDistance(start, goal),
+    );
   }
 }
 
-/// Binary min-heap priority queue – O(log n) insert and extract-min.
+class PagodaRouteGraphData {
+  final int version;
+  final Map<String, PagodaRouteGraphNode> nodes;
+  final Map<String, List<PagodaRouteGraphEdge>> adjacency;
+
+  PagodaRouteGraphData({
+    required this.version,
+    required this.nodes,
+    required this.adjacency,
+  });
+
+  factory PagodaRouteGraphData.fromJson(Map<String, dynamic> json) {
+    final nodeList = (json['nodes'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(PagodaRouteGraphNode.fromJson)
+        .toList();
+    final nodes = {for (final node in nodeList) node.pagodaId: node};
+
+    final edgeList = (json['edges'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(PagodaRouteGraphEdge.fromJson)
+        .toList();
+
+    final adjacency = <String, List<PagodaRouteGraphEdge>>{};
+    for (final edge in edgeList) {
+      adjacency.putIfAbsent(edge.from, () => []).add(edge);
+      adjacency.putIfAbsent(edge.to, () => []).add(edge.reversed());
+    }
+
+    return PagodaRouteGraphData(
+      version: json['version'] as int? ?? 0,
+      nodes: nodes,
+      adjacency: adjacency,
+    );
+  }
+}
+
+class PagodaRouteGraphNode {
+  final String pagodaId;
+  final String roadNodeId;
+  final double lat;
+  final double lng;
+  final double accessGapKm;
+
+  const PagodaRouteGraphNode({
+    required this.pagodaId,
+    required this.roadNodeId,
+    required this.lat,
+    required this.lng,
+    required this.accessGapKm,
+  });
+
+  factory PagodaRouteGraphNode.fromJson(Map<String, dynamic> json) {
+    return PagodaRouteGraphNode(
+      pagodaId: json['pagodaId'] as String,
+      roadNodeId: json['roadNodeId'] as String,
+      lat: (json['lat'] as num).toDouble(),
+      lng: (json['lng'] as num).toDouble(),
+      accessGapKm: (json['accessGapKm'] as num).toDouble(),
+    );
+  }
+}
+
+class PagodaRouteGraphEdge {
+  final String from;
+  final String to;
+  final double weight;
+  final double roadDistanceKm;
+
+  const PagodaRouteGraphEdge({
+    required this.from,
+    required this.to,
+    required this.weight,
+    required this.roadDistanceKm,
+  });
+
+  factory PagodaRouteGraphEdge.fromJson(Map<String, dynamic> json) {
+    return PagodaRouteGraphEdge(
+      from: json['from'] as String,
+      to: json['to'] as String,
+      weight: (json['weight'] as num).toDouble(),
+      roadDistanceKm: (json['roadDistanceKm'] as num).toDouble(),
+    );
+  }
+
+  PagodaRouteGraphEdge reversed() {
+    return PagodaRouteGraphEdge(
+      from: to,
+      to: from,
+      weight: weight,
+      roadDistanceKm: roadDistanceKm,
+    );
+  }
+}
+
+class _PathQueueItem {
+  final String nodeId;
+  final double fScore;
+
+  const _PathQueueItem({required this.nodeId, required this.fScore});
+}
+
 class PriorityQueue<T> {
   final List<T> _items = [];
   final Comparator<T> _comparator;
@@ -371,7 +476,7 @@ class PriorityQueue<T> {
   void _siftDown(int index) {
     final length = _items.length;
     while (true) {
-      int smallest = index;
+      var smallest = index;
       final left = 2 * index + 1;
       final right = 2 * index + 2;
       if (left < length && _comparator(_items[left], _items[smallest]) < 0) {
@@ -391,11 +496,4 @@ class PriorityQueue<T> {
     _items[a] = _items[b];
     _items[b] = temp;
   }
-}
-
-class _PathQueueItem {
-  final String nodeId;
-  final double fScore;
-
-  const _PathQueueItem({required this.nodeId, required this.fScore});
 }

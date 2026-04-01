@@ -8,6 +8,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/services/offline_route_service.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/helpers.dart';
+import '../../../core/utils/pathfinding.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../data/models/pagoda_model.dart';
 import '../../../data/models/trip_model.dart';
@@ -20,7 +21,7 @@ import '../trips/create_trip_screen.dart';
 import '../trips/trip_detail_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 
-enum MapTripMode { browse, trips }
+enum MapTripMode { browse, path, trips }
 
 class MapScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -42,8 +43,16 @@ class _MapScreenState extends State<MapScreen>
   Pagoda? _selectedPagoda;
   Trip? _selectedTrip;
   List<LatLng> _tripRoute = [];
-  bool _isRouteLoading = false;
-  bool _isRouteFallback = false;
+  bool _isTripRouteLoading = false;
+  bool _isTripRouteFallback = false;
+  Pagoda? _pathStartPagoda;
+  Pagoda? _pathEndPagoda;
+  List<Pagoda> _shortestPathPagodas = [];
+  double _shortestPathDistanceKm = 0;
+  List<LatLng> _shortestPathRoute = [];
+  bool _isPathRouteLoading = false;
+  bool _isPathRouteFallback = false;
+  bool _hasAttemptedPathSearch = false;
   late MapTripMode _mode;
   late final AnimationController _pulseController;
 
@@ -79,7 +88,7 @@ class _MapScreenState extends State<MapScreen>
     if (mode == MapTripMode.trips) {
       final canContinue = await AuthGate.ensureSignedIn(
         context,
-        featureName: context.l10n.translate('map.tripsTitle'),
+        featureName: context.l10n.translate('map.planTrip'),
       );
       if (!canContinue || !mounted) {
         return;
@@ -89,8 +98,11 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _mode = mode;
     });
-    if (_mode != MapTripMode.browse && _selectedTrip != null) {
+    if (_mode == MapTripMode.trips && _selectedTrip != null) {
       _loadTripRoute(_selectedTrip!);
+    }
+    if (_mode == MapTripMode.path && _shortestPathRoute.isNotEmpty) {
+      _focusRoute(_shortestPathRoute);
     }
   }
 
@@ -101,16 +113,16 @@ class _MapScreenState extends State<MapScreen>
     if (points.isEmpty) {
       setState(() {
         _tripRoute = [];
-        _isRouteFallback = false;
-        _isRouteLoading = false;
+        _isTripRouteFallback = false;
+        _isTripRouteLoading = false;
       });
       return;
     }
 
     setState(() {
       _tripRoute = points;
-      _isRouteFallback = false;
-      _isRouteLoading = true;
+      _isTripRouteFallback = false;
+      _isTripRouteLoading = true;
     });
 
     final route = await OfflineRouteService.instance.buildRouteForPoints(
@@ -121,8 +133,8 @@ class _MapScreenState extends State<MapScreen>
     final resolved = route.isEmpty ? points : route;
     setState(() {
       _tripRoute = resolved;
-      _isRouteFallback = route.isEmpty;
-      _isRouteLoading = false;
+      _isTripRouteFallback = route.isEmpty;
+      _isTripRouteLoading = false;
     });
     _focusRoute(resolved);
   }
@@ -145,6 +157,185 @@ class _MapScreenState extends State<MapScreen>
       _selectedTrip = trip;
     });
     _loadTripRoute(trip);
+  }
+
+  void _clearPathSelection() {
+    setState(() {
+      _pathStartPagoda = null;
+      _pathEndPagoda = null;
+      _shortestPathPagodas = [];
+      _shortestPathDistanceKm = 0;
+      _shortestPathRoute = [];
+      _isPathRouteLoading = false;
+      _isPathRouteFallback = false;
+      _hasAttemptedPathSearch = false;
+    });
+  }
+
+  void _focusPagoda(Pagoda pagoda) {
+    _mapController.move(
+      LatLng(pagoda.latitude, pagoda.longitude),
+      AppConstants.defaultZoom + 2,
+    );
+  }
+
+  void _setPathStart(Pagoda? pagoda) {
+    if (pagoda != null && _pathEndPagoda?.id == pagoda.id) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('map.pathSelectDifferent'),
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _pathStartPagoda = pagoda;
+      _shortestPathPagodas = [];
+      _shortestPathDistanceKm = 0;
+      _shortestPathRoute = [];
+      _isPathRouteLoading = false;
+      _isPathRouteFallback = false;
+      _hasAttemptedPathSearch = false;
+    });
+
+    if (pagoda != null) {
+      _focusPagoda(pagoda);
+    }
+  }
+
+  void _setPathEnd(Pagoda? pagoda) {
+    if (pagoda != null && _pathStartPagoda?.id == pagoda.id) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('map.pathSelectDifferent'),
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _pathEndPagoda = pagoda;
+      _shortestPathPagodas = [];
+      _shortestPathDistanceKm = 0;
+      _shortestPathRoute = [];
+      _isPathRouteLoading = false;
+      _isPathRouteFallback = false;
+      _hasAttemptedPathSearch = false;
+    });
+
+    if (pagoda != null) {
+      _focusPagoda(pagoda);
+    }
+  }
+
+  Future<void> _swapPathEndpoints(List<Pagoda> allPagodas) async {
+    final start = _pathStartPagoda;
+    final end = _pathEndPagoda;
+    if (start == null || end == null) {
+      return;
+    }
+
+    setState(() {
+      _pathStartPagoda = end;
+      _pathEndPagoda = start;
+    });
+    await _loadShortestPath(allPagodas);
+  }
+
+  void _handlePathPagodaTap(Pagoda pagoda) {
+    if (_pathStartPagoda == null || _pathEndPagoda != null) {
+      setState(() {
+        _pathStartPagoda = pagoda;
+        _pathEndPagoda = null;
+        _shortestPathPagodas = [];
+        _shortestPathDistanceKm = 0;
+        _shortestPathRoute = [];
+        _isPathRouteLoading = false;
+        _isPathRouteFallback = false;
+        _hasAttemptedPathSearch = false;
+      });
+      _focusPagoda(pagoda);
+      return;
+    }
+
+    if (_pathStartPagoda?.id == pagoda.id) {
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('map.pathSelectDifferent'),
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _pathEndPagoda = pagoda;
+      _shortestPathPagodas = [];
+      _shortestPathDistanceKm = 0;
+      _shortestPathRoute = [];
+      _isPathRouteLoading = false;
+      _isPathRouteFallback = false;
+      _hasAttemptedPathSearch = false;
+    });
+    _focusPagoda(pagoda);
+  }
+
+  Future<void> _loadShortestPath(List<Pagoda> allPagodas) async {
+    final start = _pathStartPagoda;
+    final end = _pathEndPagoda;
+    if (start == null || end == null) {
+      return;
+    }
+
+    setState(() {
+      _isPathRouteLoading = true;
+      _isPathRouteFallback = false;
+      _shortestPathPagodas = [];
+      _shortestPathDistanceKm = 0;
+      _shortestPathRoute = [];
+      _hasAttemptedPathSearch = true;
+    });
+
+    final result = await PathfindingService.findPath(start, end, allPagodas);
+    if (result.isEmpty) {
+      if (!mounted ||
+          _pathStartPagoda?.id != start.id ||
+          _pathEndPagoda?.id != end.id) {
+        return;
+      }
+
+      setState(() {
+        _isPathRouteLoading = false;
+      });
+      Helpers.showSnackBar(
+        context,
+        context.l10n.translate('trip.noRouteFound'),
+        isError: true,
+      );
+      return;
+    }
+
+    final points = result.path
+        .map((pagoda) => LatLng(pagoda.latitude, pagoda.longitude))
+        .toList();
+    final route = await OfflineRouteService.instance.buildRouteForPoints(
+      points,
+    );
+    if (!mounted ||
+        _pathStartPagoda?.id != start.id ||
+        _pathEndPagoda?.id != end.id) {
+      return;
+    }
+
+    final resolved = route.isEmpty ? points : route;
+    setState(() {
+      _shortestPathPagodas = result.path;
+      _shortestPathDistanceKm = result.distanceKm;
+      _shortestPathRoute = resolved;
+      _isPathRouteFallback = route.isEmpty;
+      _isPathRouteLoading = false;
+    });
+    _focusRoute(resolved);
   }
 
   Future<void> _openCreateTrip() async {
@@ -244,8 +435,8 @@ class _MapScreenState extends State<MapScreen>
       setState(() {
         _selectedTrip = null;
         _tripRoute = [];
-        _isRouteFallback = false;
-        _isRouteLoading = false;
+        _isTripRouteFallback = false;
+        _isTripRouteLoading = false;
       });
     }
   }
@@ -266,10 +457,15 @@ class _MapScreenState extends State<MapScreen>
 
           final isLoggedIn = authProvider.user != null;
           final pagodas = pagodaProvider.allPagodas;
-          final showTrip = _mode != MapTripMode.browse && _selectedTrip != null;
-          final markers = showTrip && _selectedTrip != null
-              ? _buildTripMarkers(_selectedTrip!)
-              : _buildPagodaMarkers(pagodas);
+          final showTrip = _mode == MapTripMode.trips && _selectedTrip != null;
+          final showPath =
+              _mode == MapTripMode.path && _shortestPathRoute.isNotEmpty;
+          final markers = switch (_mode) {
+            MapTripMode.path => _buildPathMarkers(pagodas),
+            MapTripMode.trips when showTrip && _selectedTrip != null =>
+              _buildTripMarkers(_selectedTrip!),
+            _ => _buildPagodaMarkers(pagodas),
+          };
 
           return Stack(
             children: [
@@ -311,6 +507,18 @@ class _MapScreenState extends State<MapScreen>
                         ),
                       ],
                     ),
+                  if (showPath)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: _shortestPathRoute,
+                          color: const Color(0xFFFF7F11),
+                          strokeWidth: 6,
+                          borderStrokeWidth: 4,
+                          borderColor: Colors.black.withValues(alpha: 0.15),
+                        ),
+                      ],
+                    ),
                   MarkerLayer(markers: markers),
                 ],
               ),
@@ -338,7 +546,8 @@ class _MapScreenState extends State<MapScreen>
                     child: _buildPagodaInfo(_selectedPagoda!),
                   ),
                 ),
-              if (showTrip && _isRouteFallback)
+              if ((showTrip && _isTripRouteFallback) ||
+                  (_mode == MapTripMode.path && _isPathRouteFallback))
                 Positioned(
                   top: 72,
                   right: 16,
@@ -363,7 +572,9 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ),
                 ),
-              if (_mode != MapTripMode.browse)
+              if (_mode == MapTripMode.path)
+                Positioned.fill(child: _buildPathPanel(pagodas)),
+              if (_mode == MapTripMode.trips)
                 Positioned.fill(
                   child: _buildTripPanel(tripProvider, isLoggedIn: isLoggedIn),
                 ),
@@ -380,7 +591,9 @@ class _MapScreenState extends State<MapScreen>
     final isSelected = MapTripMode.values.map((mode) => _mode == mode).toList();
     final l10n = context.l10n;
     final availableWidth = MediaQuery.sizeOf(context).width - 32;
-    final tabMinWidth = (availableWidth / 2).clamp(96, 170).toDouble();
+    final tabMinWidth = (availableWidth / MapTripMode.values.length)
+        .clamp(88, 150)
+        .toDouble();
     final isCompact = Responsive.isCompact(context);
 
     return Material(
@@ -405,15 +618,433 @@ class _MapScreenState extends State<MapScreen>
             label: l10n.translate('map.mode.browse'),
             icon: Icons.map_outlined,
           ),
-          _ModeChip(label: l10n.translate('map.mode.trips'), icon: Icons.route),
+          _ModeChip(
+            label: l10n.translate('map.mode.path'),
+            icon: Icons.alt_route,
+          ),
+          _ModeChip(label: l10n.translate('map.planTrip'), icon: Icons.route),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPathPanel(List<Pagoda> pagodas) {
+    final l10n = context.l10n;
+    final sortedPagodas = [...pagodas]
+      ..sort(
+        (a, b) => l10n
+            .pagodaName(a.id, a.name)
+            .compareTo(l10n.pagodaName(b.id, b.name)),
+      );
+    final hasSelection = _pathStartPagoda != null || _pathEndPagoda != null;
+    final canFind =
+        _pathStartPagoda != null &&
+        _pathEndPagoda != null &&
+        _pathStartPagoda!.id != _pathEndPagoda!.id;
+    final hasPath = _shortestPathPagodas.length >= 2;
+    final pathDistance = hasPath ? _shortestPathDistanceKm : 0.0;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.34,
+      minChildSize: 0.16,
+      maxChildSize: 0.66,
+      builder: (context, scrollController) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 18,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          children: [
+            Center(
+              child: Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBF4),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFE7D5BC)),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.translate('map.pathTitle'),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF8D5E2F),
+                          ),
+                        ),
+                      ),
+                      if (_isPathRouteLoading)
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.translate('map.pathHelp'),
+                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                  ),
+                  const SizedBox(height: 14),
+                  _buildPathDropdown(
+                    label: l10n.translate('map.pathStart'),
+                    value: _pathStartPagoda,
+                    pagodas: sortedPagodas,
+                    onChanged: _setPathStart,
+                    accentColor: Colors.green,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPathDropdown(
+                    label: l10n.translate('map.pathEnd'),
+                    value: _pathEndPagoda,
+                    pagodas: sortedPagodas,
+                    onChanged: _setPathEnd,
+                    accentColor: Colors.red,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.translate('map.pathTapHint'),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: canFind && !_isPathRouteLoading
+                              ? () => _loadShortestPath(pagodas)
+                              : null,
+                          icon: const Icon(Icons.alt_route),
+                          label: Text(l10n.translate('map.pathFind')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFAA7739),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: hasSelection || hasPath
+                              ? _clearPathSelection
+                              : null,
+                          icon: const Icon(Icons.close),
+                          label: Text(l10n.translate('map.pathClear')),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF8D5E2F),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: canFind
+                          ? () => _swapPathEndpoints(pagodas)
+                          : null,
+                      icon: const Icon(Icons.swap_horiz),
+                      label: Text(l10n.translate('common.swap')),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            if (_isPathRouteLoading)
+              _buildPathMessageCard(
+                icon: Icons.alt_route,
+                message: l10n.translate('map.pathFinding'),
+              )
+            else if (hasPath) ...[
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFAA7739), Color(0xFF8D5E2F)],
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.translate('map.pathRouteFound'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildPathSummaryItem(
+                            icon: Icons.straighten,
+                            label: l10n.translate('map.pathDistanceLabel'),
+                            value: Helpers.formatDistance(
+                              context,
+                              pathDistance,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildPathSummaryItem(
+                            icon: Icons.temple_buddhist,
+                            label: l10n.translate('map.pathStopsLabel'),
+                            value: _shortestPathPagodas.length.toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                l10n.translate('map.pathRouteList'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF8D5E2F),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ..._shortestPathPagodas.asMap().entries.map(
+                (entry) => _buildPathStepCard(
+                  pagoda: entry.value,
+                  index: entry.key,
+                  total: _shortestPathPagodas.length,
+                ),
+              ),
+            ] else if (_hasAttemptedPathSearch)
+              _buildPathMessageCard(
+                icon: Icons.error_outline,
+                message: l10n.translate('trip.noRouteFound'),
+                iconColor: Colors.red,
+              )
+            else
+              _buildPathMessageCard(
+                icon: Icons.touch_app,
+                message: l10n.translate('map.pathSelectPrompt'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPathDropdown({
+    required String label,
+    required Pagoda? value,
+    required List<Pagoda> pagodas,
+    required ValueChanged<Pagoda?> onChanged,
+    required Color accentColor,
+  }) {
+    return DropdownButtonFormField<String>(
+      initialValue: value?.id,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: accentColor, fontWeight: FontWeight.w600),
+        prefixIcon: Icon(Icons.temple_buddhist, color: accentColor),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: accentColor.withValues(alpha: 0.25)),
+        ),
+      ),
+      items: [
+        DropdownMenuItem<String>(
+          value: null,
+          child: Text(context.l10n.translate('map.pathChoosePagoda')),
+        ),
+        ...pagodas.map(
+          (pagoda) => DropdownMenuItem<String>(
+            value: pagoda.id,
+            child: Text(context.l10n.pagodaName(pagoda.id, pagoda.name)),
+          ),
+        ),
+      ],
+      onChanged: (selectedId) {
+        Pagoda? selected;
+        for (final pagoda in pagodas) {
+          if (pagoda.id == selectedId) {
+            selected = pagoda;
+            break;
+          }
+        }
+        onChanged(selected);
+      },
+    );
+  }
+
+  Widget _buildPathSummaryItem({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPathStepCard({
+    required Pagoda pagoda,
+    required int index,
+    required int total,
+  }) {
+    final isStart = index == 0;
+    final isEnd = index == total - 1;
+    final color = isStart
+        ? Colors.green
+        : isEnd
+        ? Colors.red
+        : Colors.blue;
+    final typeLabel = isStart
+        ? context.l10n.translate('map.pathStartPoint')
+        : isEnd
+        ? context.l10n.translate('map.pathEndPoint')
+        : context.l10n.translate('map.pathWaypoint');
+
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _focusPagoda(pagoda),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: color,
+                child: Text(
+                  '${index + 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.pagodaName(pagoda.id, pagoda.name),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      typeLabel,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                isStart
+                    ? Icons.play_arrow
+                    : isEnd
+                    ? Icons.flag
+                    : Icons.place_outlined,
+                color: color,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPathMessageCard({
+    required IconData icon,
+    required String message,
+    Color? iconColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 30, color: iconColor ?? Colors.grey[600]),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[700]),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildTripPanel(TripProvider provider, {required bool isLoggedIn}) {
-    final label = context.l10n.translate('map.tripsTitle');
-    final helper = context.l10n.translate('map.tripsHelp');
+    final label = context.l10n.translate('map.planTrip');
+    final helper = context.l10n.translate('map.planHelp');
 
     return DraggableScrollableSheet(
       initialChildSize: 0.2,
@@ -459,7 +1090,7 @@ class _MapScreenState extends State<MapScreen>
                             ),
                           ),
                         ),
-                        if (_isRouteLoading)
+                        if (_isTripRouteLoading)
                           const SizedBox(
                             width: 18,
                             height: 18,
@@ -657,7 +1288,8 @@ class _MapScreenState extends State<MapScreen>
                     setState(() {
                       _selectedTrip = null;
                       _tripRoute = [];
-                      _isRouteFallback = false;
+                      _isTripRouteFallback = false;
+                      _isTripRouteLoading = false;
                     });
                   },
                 ),
@@ -743,6 +1375,34 @@ class _MapScreenState extends State<MapScreen>
           },
           child: _MapMarker(
             isSelected: _selectedPagoda?.id == pagoda.id,
+            pulse: _pulseController,
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  List<Marker> _buildPathMarkers(List<Pagoda> pagodas) {
+    final pathIndexes = <String, int>{};
+    for (var i = 0; i < _shortestPathPagodas.length; i++) {
+      pathIndexes[_shortestPathPagodas[i].id] = i;
+    }
+
+    return pagodas.map((pagoda) {
+      final isStart = _pathStartPagoda?.id == pagoda.id;
+      final isEnd = _pathEndPagoda?.id == pagoda.id;
+      final pathIndex = pathIndexes[pagoda.id];
+
+      return Marker(
+        point: LatLng(pagoda.latitude, pagoda.longitude),
+        width: 44,
+        height: 44,
+        child: GestureDetector(
+          onTap: () => _handlePathPagodaTap(pagoda),
+          child: _PathMapMarker(
+            isStart: isStart,
+            isEnd: isEnd,
+            pathOrder: pathIndex == null || isStart || isEnd ? null : pathIndex,
             pulse: _pulseController,
           ),
         ),
@@ -875,6 +1535,14 @@ class _MapScreenState extends State<MapScreen>
           ),
           SizedBox(height: Responsive.smallSpacing(context)),
         ],
+        if (_mode == MapTripMode.path && _shortestPathRoute.isNotEmpty) ...[
+          FloatingActionButton.small(
+            heroTag: 'focus-shortest-path',
+            onPressed: () => _focusRoute(_shortestPathRoute),
+            child: const Icon(Icons.alt_route),
+          ),
+          SizedBox(height: Responsive.smallSpacing(context)),
+        ],
         if (_selectedPagoda != null && _mode == MapTripMode.browse) ...[
           FloatingActionButton.small(
             heroTag: 'selected-pagoda',
@@ -930,6 +1598,89 @@ class _ModeChip extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PathMapMarker extends StatelessWidget {
+  final bool isStart;
+  final bool isEnd;
+  final int? pathOrder;
+  final Animation<double> pulse;
+
+  const _PathMapMarker({
+    required this.isStart,
+    required this.isEnd,
+    required this.pathOrder,
+    required this.pulse,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isPathNode = pathOrder != null;
+    final markerColor = isStart
+        ? Colors.green
+        : isEnd
+        ? Colors.red
+        : isPathNode
+        ? Colors.blue
+        : const Color(0xFF8B4513);
+
+    final child = isStart
+        ? const Text(
+            'A',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          )
+        : isEnd
+        ? const Text(
+            'B',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          )
+        : isPathNode
+        ? Text(
+            '$pathOrder',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        : const Icon(Icons.temple_buddhist, color: Colors.white, size: 20);
+
+    final marker = Container(
+      decoration: BoxDecoration(
+        color: markerColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: Center(child: child),
+    );
+
+    if (!isStart && !isEnd) {
+      return marker;
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        ScaleTransition(
+          scale: Tween<double>(
+            begin: 0.8,
+            end: 1.4,
+          ).animate(CurvedAnimation(parent: pulse, curve: Curves.easeOut)),
+          child: FadeTransition(
+            opacity: Tween<double>(begin: 0.45, end: 0.0).animate(pulse),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: markerColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ),
+        marker,
+      ],
     );
   }
 }

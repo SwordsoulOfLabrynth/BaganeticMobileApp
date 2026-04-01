@@ -2,6 +2,6 @@
   <configuration default="false" name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
     <option name="additionalArgs" value="--dart-define-from-file=config/dart_defines.local.env" />
     <option name="filePath" value="$PROJECT_DIR$/lib/main.dart" />
-    <method />
+    <method v="2" />
   </configuration>
 </component>

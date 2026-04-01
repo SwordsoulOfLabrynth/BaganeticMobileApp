@@ -1,0 +1,337 @@
+{
+  "version": 1,
+  "sourceGraphVersion": 1,
+  "topologySource": "pagoda_route_topology.csv",
+  "pairwiseCostSource": "pagoda_pairwise_costs.csv",
+  "snapStrategy": "nearest_node_in_largest_component",
+  "nodes": [
+    {
+      "pagodaId": "alodawpyae",
+      "name": "Alodawpyae Pagoda",
+      "lat": 21.176739,
+      "lng": 94.882814,
+      "roadNodeId": "1177289696",
+      "accessGapKm": 0.043027
+    },
+    {
+      "pagodaId": "ananda",
+      "name": "Ananda Temple",
+      "lat": 21.170806,
+      "lng": 94.867856,
+      "roadNodeId": "7016070610",
+      "accessGapKm": 0.093658
+    },
+    {
+      "pagodaId": "bupaya",
+      "name": "Bu Paya",
+      "lat": 21.1763128,
+      "lng": 94.857903,
+      "roadNodeId": "8530727978",
+      "accessGapKm": 0.044061
+    },
+    {
+      "pagodaId": "dhammayangyi",
+      "name": "Dhammayangyi Temple",
+      "lat": 21.161975,
+      "lng": 94.872919,
+      "roadNodeId": "2637733411",
+      "accessGapKm": 0.099713
+    },
+    {
+      "pagodaId": "dhammayazaka",
+      "name": "Dhammayazaka",
+      "lat": 21.145071,
+      "lng": 94.883451,
+      "roadNodeId": "2462207020",
+      "accessGapKm": 0.087508
+    },
+    {
+      "pagodaId": "gawdawpalin",
+      "name": "Gawdawpalin Temple",
+      "lat": 21.17,
+      "lng": 94.856667,
+      "roadNodeId": "8530546910",
+      "accessGapKm": 0.065576
+    },
+    {
+      "pagodaId": "gubyaukgyi",
+      "name": "Gu Byauk Gyi Pagoda",
+      "lat": 21.157222,
+      "lng": 94.860833,
+      "roadNodeId": "1737259439",
+      "accessGapKm": 0.028744
+    },
+    {
+      "pagodaId": "htilominlo",
+      "name": "Htilominlo Temple",
+      "lat": 21.178531,
+      "lng": 94.879398,
+      "roadNodeId": "2462208351",
+      "accessGapKm": 0.064364
+    },
+    {
+      "pagodaId": "izagawna",
+      "name": "Iza Gawna Pagoda",
+      "lat": 21.17025,
+      "lng": 94.90586,
+      "roadNodeId": "1737556821",
+      "accessGapKm": 0.055351
+    },
+    {
+      "pagodaId": "lawkananda",
+      "name": "Lawkananda Pagoda",
+      "lat": 21.127222,
+      "lng": 94.850556,
+      "roadNodeId": "6225325939",
+      "accessGapKm": 2.266231
+    },
+    {
+      "pagodaId": "mahazedi",
+      "name": "Mahazedi Pagoda",
+      "lat": 21.1645,
+      "lng": 94.86229,
+      "roadNodeId": "2457814455",
+      "accessGapKm": 0.019735
+    },
+    {
+      "pagodaId": "manuha",
+      "name": "Manuha Temple",
+      "lat": 21.153408,
+      "lng": 94.859152,
+      "roadNodeId": "597205432",
+      "accessGapKm": 0.133078
+    },
+    {
+      "pagodaId": "pyathetgyi",
+      "name": "Pyathetgyi Temple",
+      "lat": 21.15829,
+      "lng": 94.88957,
+      "roadNodeId": "4615858156",
+      "accessGapKm": 0.083196
+    },
+    {
+      "pagodaId": "seinnyetnyiama",
+      "name": "Sein Nyet Nyi Ama Gu Phaya",
+      "lat": 21.14151,
+      "lng": 94.85896,
+      "roadNodeId": "2457894648",
+      "accessGapKm": 1.154742
+    },
+    {
+      "pagodaId": "shwegugyi",
+      "name": "Shwe Gu Gyi",
+      "lat": 21.170744,
+      "lng": 94.862406,
+      "roadNodeId": "2091625952",
+      "accessGapKm": 0.021477
+    },
+    {
+      "pagodaId": "shwezigon",
+      "name": "Shwezigon Pagoda",
+      "lat": 21.195278,
+      "lng": 94.893889,
+      "roadNodeId": "8530489294",
+      "accessGapKm": 0.124568
+    },
+    {
+      "pagodaId": "sulamani",
+      "name": "Sulamani Temple",
+      "lat": 21.1649,
+      "lng": 94.8814,
+      "roadNodeId": "1584896533",
+      "accessGapKm": 0.112668
+    },
+    {
+      "pagodaId": "thambula",
+      "name": "Thambula Temple",
+      "lat": 21.162594,
+      "lng": 94.903672,
+      "roadNodeId": "8531639704",
+      "accessGapKm": 0.005506
+    },
+    {
+      "pagodaId": "thatbinnyu",
+      "name": "Thatbyinnyu Temple",
+      "lat": 21.16875,
+      "lng": 94.86295,
+      "roadNodeId": "7315351330",
+      "accessGapKm": 0.048633
+    }
+  ],
+  "edges": [
+    {
+      "from": "alodawpyae",
+      "to": "htilominlo",
+      "weight": 0.716734,
+      "roadDistanceKm": 0.609342
+    },
+    {
+      "from": "alodawpyae",
+      "to": "izagawna",
+      "weight": 5.260075,
+      "roadDistanceKm": 5.161697
+    },
+    {
+      "from": "alodawpyae",
+      "to": "shwezigon",
+      "weight": 2.83646,
+      "roadDistanceKm": 2.668865
+    },
+    {
+      "from": "alodawpyae",
+      "to": "sulamani",
+      "weight": 3.44924,
+      "roadDistanceKm": 3.293545
+    },
+    {
+      "from": "ananda",
+      "to": "dhammayangyi",
+      "weight": 1.468133,
+      "roadDistanceKm": 1.274762
+    },
+    {
+      "from": "ananda",
+      "to": "htilominlo",
+      "weight": 2.284987,
+      "roadDistanceKm": 2.126964
+    },
+    {
+      "from": "ananda",
+      "to": "shwegugyi",
+      "weight": 0.912006,
+      "roadDistanceKm": 0.79687
+    },
+    {
+      "from": "ananda",
+      "to": "thatbinnyu",
+      "weight": 1.025193,
+      "roadDistanceKm": 0.882901
+    },
+    {
+      "from": "bupaya",
+      "to": "gawdawpalin",
+      "weight": 0.853958,
+      "roadDistanceKm": 0.744321
+    },
+    {
+      "from": "bupaya",
+      "to": "shwegugyi",
+      "weight": 1.096463,
+      "roadDistanceKm": 1.030926
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "dhammayazaka",
+      "weight": 2.839486,
+      "roadDistanceKm": 2.652264
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "gubyaukgyi",
+      "weight": 2.424289,
+      "roadDistanceKm": 2.295831
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "mahazedi",
+      "weight": 1.583795,
+      "roadDistanceKm": 1.464346
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "sulamani",
+      "weight": 1.518866,
+      "roadDistanceKm": 1.306485
+    },
+    {
+      "from": "dhammayazaka",
+      "to": "manuha",
+      "weight": 5.34022,
+      "roadDistanceKm": 5.119634
+    },
+    {
+      "from": "dhammayazaka",
+      "to": "pyathetgyi",
+      "weight": 4.868586,
+      "roadDistanceKm": 4.697882
+    },
+    {
+      "from": "dhammayazaka",
+      "to": "seinnyetnyiama",
+      "weight": 6.980489,
+      "roadDistanceKm": 5.738239
+    },
+    {
+      "from": "gawdawpalin",
+      "to": "shwegugyi",
+      "weight": 0.913031,
+      "roadDistanceKm": 0.825978
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "mahazedi",
+      "weight": 1.471682,
+      "roadDistanceKm": 1.423202
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "manuha",
+      "weight": 0.608864,
+      "roadDistanceKm": 0.447041
+    },
+    {
+      "from": "htilominlo",
+      "to": "shwezigon",
+      "weight": 2.88991,
+      "roadDistanceKm": 2.700977
+    },
+    {
+      "from": "izagawna",
+      "to": "shwezigon",
+      "weight": 7.727396,
+      "roadDistanceKm": 7.547477
+    },
+    {
+      "from": "izagawna",
+      "to": "thambula",
+      "weight": 1.079736,
+      "roadDistanceKm": 1.018878
+    },
+    {
+      "from": "lawkananda",
+      "to": "seinnyetnyiama",
+      "weight": 3.979624,
+      "roadDistanceKm": 0.558651
+    },
+    {
+      "from": "mahazedi",
+      "to": "thatbinnyu",
+      "weight": 0.629588,
+      "roadDistanceKm": 0.56122
+    },
+    {
+      "from": "manuha",
+      "to": "seinnyetnyiama",
+      "weight": 5.449269,
+      "roadDistanceKm": 4.16145
+    },
+    {
+      "from": "pyathetgyi",
+      "to": "sulamani",
+      "weight": 1.707822,
+      "roadDistanceKm": 1.511957
+    },
+    {
+      "from": "pyathetgyi",
+      "to": "thambula",
+      "weight": 3.074659,
+      "roadDistanceKm": 2.985957
+    },
+    {
+      "from": "shwegugyi",
+      "to": "thatbinnyu",
+      "weight": 0.433693,
+      "roadDistanceKm": 0.363583
+    }
+  ]
+}

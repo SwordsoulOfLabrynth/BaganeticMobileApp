@@ -397,17 +397,7 @@ class AIChatbotService {
       final history = historyOverride != null
           ? _normalizeHistory(historyOverride)
           : await _loadRecentHistorySafe(uid);
-      final relevantPagodas = _selectRelevantPagodas(
-        prompt: prompt,
-        pagodas: pagodaContext,
-        entryContext: entryContext,
-        tripContext: tripContext,
-      );
-      final roadReports = await _loadRelevantRoadReportsSafe(
-        entryContext: entryContext,
-        tripContext: tripContext,
-        promptPagodaIds: relevantPagodas.map((pagoda) => pagoda.id).toSet(),
-      );
+      const roadReports = <AIRoadReportContext>[];
       await _writeMessageSafe(
         uid,
         AIChatMessage(
@@ -620,65 +610,6 @@ class AIChatbotService {
         .toList(growable: false)
         .reversed
         .toList(growable: false);
-  }
-
-  Future<List<AIRoadReportContext>> _loadRelevantRoadReportsSafe({
-    required AIEntryContext entryContext,
-    required AITripContext? tripContext,
-    Set<String> promptPagodaIds = const <String>{},
-  }) async {
-    try {
-      return await _loadRelevantRoadReports(
-        entryContext: entryContext,
-        tripContext: tripContext,
-        promptPagodaIds: promptPagodaIds,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (_isPermissionDenied(e)) {
-        Logger.warn(
-          'Road report sync unavailable, continuing without Firestore road reports: '
-          '${e.message ?? e.code}',
-        );
-        return const [];
-      }
-      Logger.error('Failed to load road reports', e, stackTrace);
-      rethrow;
-    }
-  }
-
-  Future<List<AIRoadReportContext>> _loadRelevantRoadReports({
-    required AIEntryContext entryContext,
-    required AITripContext? tripContext,
-    Set<String> promptPagodaIds = const <String>{},
-  }) async {
-    final pagodaIds = <String>{
-      if ((entryContext.pagodaId ?? '').isNotEmpty) entryContext.pagodaId!,
-      if (tripContext != null)
-        ...tripContext.stops.map((stop) => stop.pagodaId),
-      ...promptPagodaIds,
-    };
-    if (pagodaIds.isEmpty) {
-      return const [];
-    }
-
-    final reports = <AIRoadReportContext>[];
-    for (final pagodaId in pagodaIds) {
-      final snapshot = await _firestore
-          .collection(AppConstants.roadReports)
-          .where('pagodaId', isEqualTo: pagodaId)
-          .limit(12)
-          .get();
-      for (final doc in snapshot.docs) {
-        final report = RoadReport.fromJson(doc.data(), id: doc.id);
-        if (!report.isActive) {
-          continue;
-        }
-        reports.add(AIRoadReportContext.fromRoadReport(report));
-      }
-    }
-
-    reports.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return reports.take(12).toList(growable: false);
   }
 
   Future<void> _writeMessageSafe(
@@ -1153,16 +1084,6 @@ class AIChatbotService {
         : '- ${tripContext.name}: '
               '${tripContext.stops.map((stop) => stop.pagodaName).join(' -> ')}';
 
-    final roadReportBlock = roadReports.isEmpty
-        ? '- No active road reports supplied.'
-        : roadReports
-              .map(
-                (report) =>
-                    '- ${report.pagodaName}: ${report.category} '
-                    '(${report.severity}) - ${report.note}',
-              )
-              .join('\n');
-
     final communityBlock = communityPosts.isEmpty
         ? '- No relevant community posts supplied.'
         : communityPosts
@@ -1177,8 +1098,7 @@ class AIChatbotService {
     return [
       "You are Baganetic's in-app travel assistant for Bagan pagodas.",
       'Stay inside the Bagan travel domain and answer concisely.',
-      'Use the provided pagoda, trip, road report, and community context when relevant.',
-      'Road reports are informational only. Warn users, but do not claim automatic rerouting.',
+      'Use the provided pagoda, trip, and community context when relevant.',
       'Community posts are user-submitted and unverified. Present them as community reports, not confirmed facts.',
       'If facts are missing, say so clearly rather than inventing details.',
       'Entry context type: ${entryContext.type.name}',
@@ -1188,9 +1108,6 @@ class AIChatbotService {
       '',
       'Trip context:',
       tripBlock,
-      '',
-      'Road report context:',
-      roadReportBlock,
       '',
       'Community feed context:',
       communityBlock,

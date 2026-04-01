@@ -1,0 +1,30 @@
+from,fromName,to,toName,straightLineKm,roadDistanceKm,fromAccessGapKm,toAccessGapKm,weight
+alodawpyae,Alodawpyae Pagoda,htilominlo,Htilominlo Temple,0.406393,0.609342,0.043027,0.064364,0.716734
+alodawpyae,Alodawpyae Pagoda,izagawna,Iza Gawna Pagoda,2.496163,5.161697,0.043027,0.055351,5.260075
+alodawpyae,Alodawpyae Pagoda,shwezigon,Shwezigon Pagoda,2.35967,2.668865,0.043027,0.124568,2.83646
+alodawpyae,Alodawpyae Pagoda,sulamani,Sulamani Temple,1.324578,3.293545,0.043027,0.112668,3.44924
+ananda,Ananda Temple,dhammayangyi,Dhammayangyi Temple,1.113498,1.274762,0.093658,0.099713,1.468133
+ananda,Ananda Temple,htilominlo,Htilominlo Temple,1.473122,2.126964,0.093658,0.064364,2.284987
+ananda,Ananda Temple,shwegugyi,Shwe Gu Gyi,0.565154,0.79687,0.093658,0.021477,0.912006
+ananda,Ananda Temple,thatbinnyu,Thatbyinnyu Temple,0.557718,0.882901,0.093658,0.048633,1.025193
+bupaya,Bu Paya,gawdawpalin,Gawdawpalin Temple,0.713556,0.744321,0.044061,0.065576,0.853958
+bupaya,Bu Paya,shwegugyi,Shwe Gu Gyi,0.775526,1.030926,0.044061,0.021477,1.096463
+dhammayangyi,Dhammayangyi Temple,dhammayazaka,Dhammayazaka,2.173923,2.652264,0.099713,0.087508,2.839486
+dhammayangyi,Dhammayangyi Temple,gubyaukgyi,Gu Byauk Gyi Pagoda,1.360174,2.295831,0.099713,0.028744,2.424289
+dhammayangyi,Dhammayangyi Temple,mahazedi,Mahazedi Pagoda,1.13738,1.464346,0.099713,0.019735,1.583795
+dhammayangyi,Dhammayangyi Temple,sulamani,Sulamani Temple,0.937657,1.306485,0.099713,0.112668,1.518866
+dhammayazaka,Dhammayazaka,manuha,Manuha Temple,2.685047,5.119634,0.087508,0.133078,5.34022
+dhammayazaka,Dhammayazaka,pyathetgyi,Pyathetgyi Temple,1.601012,4.697882,0.087508,0.083196,4.868586
+dhammayazaka,Dhammayazaka,seinnyetnyiama,Sein Nyet Nyi Ama Gu Phaya,2.57063,5.738239,0.087508,1.154742,6.980489
+gawdawpalin,Gawdawpalin Temple,shwegugyi,Shwe Gu Gyi,0.600803,0.825978,0.065576,0.021477,0.913031
+gubyaukgyi,Gu Byauk Gyi Pagoda,mahazedi,Mahazedi Pagoda,0.82326,1.423202,0.028744,0.019735,1.471682
+gubyaukgyi,Gu Byauk Gyi Pagoda,manuha,Manuha Temple,0.458527,0.447041,0.028744,0.133078,0.608864
+htilominlo,Htilominlo Temple,shwezigon,Shwezigon Pagoda,2.392691,2.700977,0.064364,0.124568,2.88991
+izagawna,Iza Gawna Pagoda,shwezigon,Shwezigon Pagoda,3.047221,7.547477,0.055351,0.124568,7.727396
+izagawna,Iza Gawna Pagoda,thambula,Thambula Temple,0.881024,1.018878,0.055351,0.005506,1.079736
+lawkananda,Lawkananda Pagoda,seinnyetnyiama,Sein Nyet Nyi Ama Gu Phaya,1.812147,0.558651,2.266231,1.154742,3.979624
+mahazedi,Mahazedi Pagoda,thatbinnyu,Thatbyinnyu Temple,0.477509,0.56122,0.019735,0.048633,0.629588
+manuha,Manuha Temple,seinnyetnyiama,Sein Nyet Nyi Ama Gu Phaya,1.323149,4.16145,0.133078,1.154742,5.449269
+pyathetgyi,Pyathetgyi Temple,sulamani,Sulamani Temple,1.121595,1.511957,0.083196,0.112668,1.707822
+pyathetgyi,Pyathetgyi Temple,thambula,Thambula Temple,1.538665,2.985957,0.083196,0.005506,3.074659
+shwegugyi,Shwe Gu Gyi,thatbinnyu,Thatbyinnyu Temple,0.228786,0.363583,0.021477,0.048633,0.433693

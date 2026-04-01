@@ -1,30 +1,22 @@
-# ✅ Firestore Database Setup Complete!
+# Firestore Setup Notes
 
-## Database Details
-- **Database ID**: `baganetic-mobile`
-- **Location**: `asia-southeast1`
-- **Edition**: Standard
-- **Status**: ✅ Active
+Firestore is the backend used by the current app for:
 
-## What's Fixed
+- User profile documents under `users`
+- Nested AI chat history under `users/{uid}/aiChatMessages`
+- Pagoda road reports under `roadReports`
 
-### ✅ Signup Function
-- No more infinite loading
-- User documents will be created in Firestore
-- Authentication + Firestore profile creation works
+## Expected Outcome
 
-## Next Steps
+Once Firestore is configured correctly:
 
-### 1. Test Your App
-Run your Flutter app and try:
-- **Signup**: Create a new account
-- **Login**: Sign in with existing account
+- Sign-up can create the user profile document
+- Signed-in users can submit and delete their own road reports
+- Signed-in users can sync AI chat history
 
-### 2. Security Rules (Important!)
-Your database is in "test mode" which allows all reads/writes. For production, update security rules in Firebase Console:
+## Rules Reminder
 
-1. Go to: https://console.firebase.google.com/project/baganetic-mobile/firestore/rules
-2. Update rules to:
+Use rules that match the current app scope. A safe baseline is:
 
 ```javascript
 rules_version = '2';
@@ -34,39 +26,38 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
     match /users/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
+
+      match /aiChatMessages/{messageId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /roadReports/{reportId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && request.resource.data.reporterUserId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.reporterUserId == request.auth.uid;
     }
   }
 }
 ```
 
-3. Click "Publish"
-
-### 3. Monitor Usage
-- Check Firebase Console for database usage
-- Monitor authentication users
-- Review Firestore data in the console
-
-## Troubleshooting
-
-If you still see issues:
-
-1. **Restart your app** - Close and reopen the Flutter app
-2. **Check logs** - Look for any error messages
-3. **Verify authentication** - Make sure Email/Password auth is enabled in Firebase Console
-4. **Check network** - Ensure device has internet connection
-
-## Verification Commands
+## Verification
 
 ```bash
-# List databases
 firebase firestore:databases:list --project=baganetic-mobile
-
-# Should show:
-# projects/baganetic-mobile/databases/baganetic-mobile
 ```
 
-## Success! 🎉
+If Firestore-backed flows still fail after setup:
 
-Your Firestore database is now set up and ready to use for authentication and user profile data.
+1. Confirm the project in `lib/firebase_options.dart`
+2. Confirm Email/Password auth is enabled
+3. Confirm the Firestore database exists
+4. Confirm published rules match the collections above

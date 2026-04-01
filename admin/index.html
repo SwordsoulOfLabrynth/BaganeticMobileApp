@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baganetic Admin Panel</title>
+  <meta
+    name="description"
+    content="Admin control panel for the Baganetic Smart Route & Info Guide for Bagan Pagodas application."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<section id="login-section" class="login-page">
+  <div class="login-bg-orb orb1"></div>
+  <div class="login-bg-orb orb2"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🏛️</div>
+      <div class="logo-text">
+        <h1>Baganetic</h1>
+        <p>Admin Portal</p>
+      </div>
+    </div>
+    <h2>Welcome back</h2>
+    <p class="login-subtitle">Sign in to manage pagodas, users, trips, and community activity.</p>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="login-email">Email address</label>
+        <input type="email" id="login-email" placeholder="admin@baganetic.com" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+      <button type="submit" id="login-btn" class="btn-primary">Sign In</button>
+    </form>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</section>
+
+<div id="admin-section" class="admin-layout" style="display:none">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🏛️</div>
+      <div class="sidebar-title">
+        <h2>Baganetic</h2>
+        <p>Admin Console</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a class="nav-link active" data-page="dashboard">
+        <span class="nav-icon">📊</span>
+        Dashboard
+      </a>
+
+      <div class="nav-section-label">App Data</div>
+      <a class="nav-link" data-page="pagodas">
+        <span class="nav-icon">🏛️</span>
+        Pagodas
+      </a>
+      <a class="nav-link" data-page="users">
+        <span class="nav-icon">👥</span>
+        Users
+      </a>
+      <a class="nav-link" data-page="trips">
+        <span class="nav-icon">🗺️</span>
+        Trips
+      </a>
+      <a class="nav-link" data-page="community">
+        <span class="nav-icon">💬</span>
+        Community
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar-text">A</div>
+        <div class="user-info">
+          <div class="user-name" id="header-user-name">Admin</div>
+          <div class="user-role" id="header-user-email">—</div>
+        </div>
+        <button class="btn-logout" id="btn-logout" title="Sign Out">↩</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div>
+        <div class="page-title" id="page-title">📊 Dashboard</div>
+        <div class="page-meta" id="sync-status">Waiting for data</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn-icon" id="btn-refresh-data" title="Refresh admin data">↺</button>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <section class="page active" id="page-dashboard">
+        <div id="dashboard-warning" class="data-banner" style="display:none"></div>
+
+        <div class="stats-grid stats-grid-dashboard">
+          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('pagodas')">
+            <div class="stat-card-header">
+              <div class="stat-icon">🏛️</div>
+              <span class="stat-trend neutral">Live</span>
+            </div>
+            <div class="stat-value" id="stat-pagodas">—</div>
+            <div class="stat-label">Active Pagodas</div>
+          </button>
+
+          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('pagodas')">
+            <div class="stat-card-header">
+              <div class="stat-icon">🛕</div>
+              <span class="stat-trend neutral">Type</span>
+            </div>
+            <div class="stat-value" id="stat-temples">—</div>
+            <div class="stat-label">Temples</div>
+          </button>
+
+          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('pagodas')">
+            <div class="stat-card-header">
+              <div class="stat-icon">✨</div>
+              <span class="stat-trend neutral">Type</span>
+            </div>
+            <div class="stat-value" id="stat-pagoda-type">—</div>
+            <div class="stat-label">Pagodas</div>
+          </button>
+
+          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('users')">
+            <div class="stat-card-header">
+              <div class="stat-icon">👥</div>
+              <span class="stat-trend neutral">Accounts</span>
+            </div>
+            <div class="stat-value" id="stat-users">—</div>
+            <div class="stat-label">Users</div>
+          </button>
+
+          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('trips')">
+            <div class="stat-card-header">
+              <div class="stat-icon">🗺️</div>
+              <span class="stat-trend neutral">Planner</span>
+            </div>
+            <div class="stat-value" id="stat-trips">—</div>
+            <div class="stat-label">Saved Trips</div>
+          </button>
+
+          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('community')">
+            <div class="stat-card-header">
+              <div class="stat-icon">💬</div>
+              <span class="stat-trend neutral">Community</span>
+            </div>
+            <div class="stat-value" id="stat-posts">—</div>
+            <div class="stat-label">Community Posts</div>
+          </button>
+        </div>
+
+        <div class="section-header">
+          <div>
+            <div class="section-title">Live App Snapshot</div>
+            <div class="section-subtitle" id="dashboard-data-status">Connected to Firestore-backed app data</div>
+          </div>
+        </div>
+
+        <div class="insights-grid">
+          <div class="insight-card">
+            <div class="insight-header">
+              <div>
+                <div class="section-title">Pagoda Catalog</div>
+                <div class="section-subtitle">Only Temple and Pagoda categories are kept</div>
+              </div>
+              <button class="btn-secondary" type="button" onclick="navigateTo('pagodas')">Open Pagodas</button>
+            </div>
+            <div id="catalog-summary-list" class="insight-list">
+              <div class="empty-state compact">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <div class="insight-header">
+              <div>
+                <div class="section-title">Recent Users</div>
+                <div class="section-subtitle">Newest app accounts with saved activity</div>
+              </div>
+              <button class="btn-secondary" type="button" onclick="navigateTo('users')">Open Users</button>
+            </div>
+            <div id="recent-users-list" class="insight-list">
+              <div class="empty-state compact">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <div class="insight-header">
+              <div>
+                <div class="section-title">Recent Trips</div>
+                <div class="section-subtitle">Newest itineraries saved from the app</div>
+              </div>
+              <button class="btn-secondary" type="button" onclick="navigateTo('trips')">Open Trips</button>
+            </div>
+            <div id="recent-trips-list" class="insight-list">
+              <div class="empty-state compact">
+                <span class="loading-spinner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div>
+            <div class="section-title">Recent Community Posts</div>
+            <div class="section-subtitle">Newest community activity synced from the app</div>
+          </div>
+          <button class="btn-secondary" type="button" onclick="navigateTo('community')">View All</button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Post</th>
+                  <th>Author</th>
+                  <th>Status</th>
+                  <th>Engagement</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="recent-posts-body">
+                <tr><td colspan="5"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-pagodas">
+        <div class="section-header" style="margin-bottom:16px">
+          <div>
+            <div class="section-title">Pagoda Catalog</div>
+            <div class="section-subtitle" id="pagodas-count">—</div>
+          </div>
+        </div>
+
+        <div class="data-banner data-banner-info">
+          <div>
+            <strong>Routing note</strong>
+            <span>If you add a new pagoda or change coordinates, regenerate <code>assets/data/pagoda_route_graph.json</code> for optimal shortest-path routing.</span>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-chip" data-filter="Temple">Temple</button>
+          <button class="filter-chip" data-filter="Pagoda">Pagoda</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar table-toolbar-split">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="pagodas-search" placeholder="Search pagodas, IDs, or descriptions…" />
+            </div>
+            <div class="toolbar-actions">
+              <label class="toolbar-field">
+                <span>Status</span>
+                <select id="pagodas-status-filter">
+                  <option value="active">Active</option>
+                  <option value="archived">Archived</option>
+                  <option value="all">All</option>
+                </select>
+              </label>
+              <button class="btn-success" type="button" id="btn-new-pagoda">New Pagoda</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Pagoda</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pagodas-table-body">
+                <tr><td colspan="5"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <div class="pagination-info" id="pagodas-pagination-info">—</div>
+            <div class="pagination-controls" id="pagodas-pagination-controls"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-users">
+        <div class="section-header" style="margin-bottom:16px">
+          <div>
+            <div class="section-title">Registered Users</div>
+            <div class="section-subtitle" id="users-count">—</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="users-search" placeholder="Search names, emails, or user IDs…" />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Saved</th>
+                  <th>Trips</th>
+                  <th>Posts</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <tr><td colspan="6"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <div class="pagination-info" id="users-pagination-info">—</div>
+            <div class="pagination-controls" id="users-pagination-controls"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-trips">
+        <div class="section-header" style="margin-bottom:16px">
+          <div>
+            <div class="section-title">Saved Trips</div>
+            <div class="section-subtitle" id="trips-count">—</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="trips-search" placeholder="Search trips or pagoda stops…" />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Trip</th>
+                  <th>Stops</th>
+                  <th>Date</th>
+                  <th>Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="trips-table-body">
+                <tr><td colspan="5"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <div class="pagination-info" id="trips-pagination-info">—</div>
+            <div class="pagination-controls" id="trips-pagination-controls"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-community">
+        <div class="section-header" style="margin-bottom:16px">
+          <div>
+            <div class="section-title">Community Posts</div>
+            <div class="section-subtitle" id="community-count">—</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="active">Active</button>
+          <button class="filter-chip" data-filter="hidden">Hidden</button>
+          <button class="filter-chip" data-filter="tip">Tips</button>
+          <button class="filter-chip" data-filter="question">Questions</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="community-search" placeholder="Search titles, body text, or authors…" />
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Post</th>
+                  <th>Author</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Engagement</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="community-table-body">
+                <tr><td colspan="7"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <div class="pagination-info" id="comm-pagination-info">—</div>
+            <div class="pagination-controls" id="comm-pagination-controls"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-post-detail">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Community Post Detail</h3>
+      <button class="modal-close" onclick="closeModal('modal-post-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="post-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-post-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-pagoda-editor">
+  <div class="modal modal-wide modal-form">
+    <div class="modal-header">
+      <div class="modal-header-text">
+        <h3 id="pagoda-modal-title">New Pagoda</h3>
+        <p id="pagoda-modal-subtitle">Create or edit the Firestore-backed catalog entry used by the mobile app.</p>
+      </div>
+      <button class="modal-close" type="button" onclick="closeModal('modal-pagoda-editor')">✕</button>
+    </div>
+    <form id="pagoda-form">
+      <div class="modal-body">
+        <div class="form-section">
+          <div class="form-section-title">Core Details</div>
+          <div class="form-grid form-grid-two">
+            <div class="form-field">
+              <label for="pagoda-form-id">Pagoda ID</label>
+              <input type="text" id="pagoda-form-id" placeholder="e.g. ananda" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-name">Name</label>
+              <input type="text" id="pagoda-form-name" placeholder="Ananda Temple" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-category">Category</label>
+              <select id="pagoda-form-category">
+                <option value="Pagoda">Pagoda</option>
+                <option value="Temple">Temple</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-year-built">Year Built</label>
+              <input type="number" id="pagoda-form-year-built" placeholder="1105" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-latitude">Latitude</label>
+              <input type="number" id="pagoda-form-latitude" step="any" placeholder="21.170806" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-longitude">Longitude</label>
+              <input type="number" id="pagoda-form-longitude" step="any" placeholder="94.867856" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-image-url">Primary Image URL</label>
+              <input type="text" id="pagoda-form-image-url" placeholder="assets/images/pagodas/Ananda Temple/ananda-temple-4899166_1280.jpg" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-height">Height</label>
+              <input type="text" id="pagoda-form-height" placeholder="51m" />
+            </div>
+          </div>
+          <div class="form-field">
+            <label for="pagoda-form-description">Description</label>
+            <textarea id="pagoda-form-description" rows="4" placeholder="Short overview shown in the app detail screen."></textarea>
+          </div>
+          <div class="form-field">
+            <label for="pagoda-form-images">Gallery Images</label>
+            <textarea id="pagoda-form-images" rows="4" placeholder="One image path or URL per line."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Historical And Visitor Info</div>
+          <div class="form-grid form-grid-two">
+            <div class="form-field">
+              <label for="pagoda-form-historical-info">Historical Info</label>
+              <textarea id="pagoda-form-historical-info" rows="5"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-architectural-style">Architectural Style</label>
+              <textarea id="pagoda-form-architectural-style" rows="5"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-legends">Legends</label>
+              <textarea id="pagoda-form-legends" rows="4"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-religious-importance">Religious Importance</label>
+              <textarea id="pagoda-form-religious-importance" rows="4"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-preservation-info">Preservation Info</label>
+              <textarea id="pagoda-form-preservation-info" rows="4"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-best-time">Best Time To Visit</label>
+              <textarea id="pagoda-form-best-time" rows="4"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-visitor-location">Visitor Location</label>
+              <textarea id="pagoda-form-visitor-location" rows="3"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-opening-hours">Opening Hours</label>
+              <textarea id="pagoda-form-opening-hours" rows="3"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-dress-code">Dress Code</label>
+              <textarea id="pagoda-form-dress-code" rows="3"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-entrance-fee">Entrance Fee</label>
+              <textarea id="pagoda-form-entrance-fee" rows="3"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-photography-rules">Photography Rules</label>
+              <textarea id="pagoda-form-photography-rules" rows="3"></textarea>
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-final-words">Final Words</label>
+              <textarea id="pagoda-form-final-words" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Unique Features</div>
+          <div class="form-field">
+            <label for="pagoda-form-unique-features">Feature Lines</label>
+            <textarea
+              id="pagoda-form-unique-features"
+              rows="5"
+              placeholder="One feature per line using: title || description || icon || imageUrl"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" type="button" onclick="closeModal('modal-pagoda-editor')">Cancel</button>
+        <button class="btn-success" type="submit" id="pagoda-form-submit">Create Pagoda</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-user-detail">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>User Profile</h3>
+      <button class="modal-close" onclick="closeModal('modal-user-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="user-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-user-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-trip-detail">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Trip Details</h3>
+      <button class="modal-close" onclick="closeModal('modal-trip-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="trip-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-trip-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/pagoda-data.js"></script>
+<script src="js/data-store.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/pagodas.js"></script>
+<script src="js/users.js"></script>
+<script src="js/trips.js"></script>
+<script src="js/community.js"></script>
+<script src="js/auth.js"></script>
+
+</body>
+</html>

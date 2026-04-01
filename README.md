@@ -1,182 +1,168 @@
-# Baganetic Mobile (Flutter App)
+# Baganetic Mobile
 
-Baganetic is a mobile app for exploring Bagan pagodas with an offline-first
-experience, pagoda information, and trip planning.
+Baganetic is a Flutter app for exploring Bagan pagodas with an offline-first
+focus. The current app combines local pagoda data, map browsing, trip planning,
+Firebase auth, road safety reports, and an optional AI travel assistant.
 
-Project status: Mid-term prototype. Implemented features are stable; advanced
-modules are planned and not yet integrated into the UI.
+## Current Features
 
-## Implemented Features
-- Pagodas directory with categories, search, and filters
-- Pagoda detail pages with local image assets
-- Favorites stored locally
-- Interactive map (OpenStreetMap via flutter_map) with offline tile caching
-- Trip planner: create trips, reorder stops, and optimize routes
-  - A* routing for two stops
-  - Nearest-neighbor ordering for three or more stops
-- Route rendering on the map using an offline graph with fallback routing
-- Local database (SQLite) for pagodas, trips, and favorites
-- Firebase email/password authentication plus guest mode
-- Signed-in AI travel assistant grounded with pagoda, trip, and road context
-- Pagoda-linked road safety reports
-- Bilingual UI (English and Myanmar)
+- Pagoda browsing with search, filters, favorites, and rich detail pages
+- Local pagoda data and bundled image assets
+- Interactive map built with `flutter_map`
+- Offline tile caching and offline route graph support
+- Trip planning from the map and pagoda detail flows
+- Guest mode plus Firebase email/password sign-in
+- Road reports tied to individual pagodas
+- Signed-in AI assistant with pagoda, trip, and road-context grounding
+- English and Myanmar localization
 
-## Future Work
-- Community tips and Q/A feed
-- Safety and emergency toolkit
-- Cloud sync for trips and favorites
-- GPS live tracking and turn-by-turn guidance
-- Admin tools for managing pagoda/POI data
+## Current Navigation
 
-## Tech Stack
-- Flutter SDK (Dart >= 3.10.1 per pubspec)
-- State management: Provider
-- Local database: SQLite (sqflite)
-- Auth: Firebase Authentication
-- Maps: flutter_map with OpenStreetMap tiles
-- Offline tiles: flutter_map_tile_caching
-- Routing: A* (pagoda graph) + offline route graph rendering
-- AI chat: direct NVIDIA API call from Flutter for demo builds
-- Sharing: screenshot + share_plus
+The main app navigation currently includes:
+
+1. Home
+2. Pagodas
+3. Map / Trips
+4. Profile
+
+Trip creation and trip detail screens are launched from the map screen and
+pagoda detail actions. There is no separate splash screen in the current app
+flow.
 
 ## Requirements
-- Flutter SDK with Dart 3.10.1 or higher
-- Android Studio / VS Code
 
-## Setup
+- Flutter SDK compatible with Dart `3.10.x`
+- Android Studio or VS Code with Flutter support
+- Firebase project only if you want auth, road reports, or synced AI history
+- NVIDIA API key only if you want live AI replies
+
+## Quick Start
 
 Install dependencies:
+
 ```bash
 flutter pub get
 ```
 
-Firebase (optional for auth):
-- Android: place `google-services.json` in `android/app/`
-- iOS: place `GoogleService-Info.plist` in `ios/Runner/`
-- Ensure `lib/firebase_options.dart` matches your Firebase project.
-- If Firebase is not configured, the app still works in guest mode.
+Optional local AI config:
 
-Run the app:
+1. Copy `config/dart_defines.example.env` to
+   `config/dart_defines.local.env`
+2. Set `NVIDIA_API_KEY`
+3. Run:
+
+```bash
+flutter run --dart-define-from-file=config/dart_defines.local.env
+```
+
+Run without AI:
+
 ```bash
 flutter run
 ```
 
-Run with AI enabled:
-```bash
-flutter run --dart-define=NVIDIA_API_KEY=your_nvidia_key --dart-define=NVIDIA_MODEL=meta/llama-3.1-8b-instruct
+## Firebase Setup
+
+Firebase is optional. Without it, the app still launches and guest-mode flows
+work, but email/password auth, road reports, and synced AI chat history are not
+available.
+
+- Android: place `google-services.json` in `android/app/`
+- iOS: place `GoogleService-Info.plist` in `ios/Runner/` if you build for iOS
+- Ensure `lib/firebase_options.dart` matches your Firebase project
+- Enable Email/Password authentication in Firebase Console
+- Create a Firestore database before using sign-in, road reports, or AI history
+
+See `SETUP.md` for the full setup flow and `setup_firestore.md` for Firestore
+notes.
+
+## AI Assistant
+
+The AI assistant uses direct NVIDIA API calls from Flutter. It stays disabled
+unless `NVIDIA_API_KEY` is provided at launch time.
+
+Default model:
+
+```text
+meta/llama-3.1-8b-instruct
 ```
 
-Without `NVIDIA_API_KEY`, the rest of the app still works but AI chat stays disabled.
-
-Use a local ignored config file for team development:
-1. Copy `config/dart_defines.example.env` to `config/dart_defines.local.env`
-2. Set your own `NVIDIA_API_KEY`
-3. Run from the command line with:
-```bash
-flutter run --dart-define-from-file=config/dart_defines.local.env
-```
-4. Or use the IDE Run icon:
-   Android Studio uses the shared `main.dart` run configuration in `.idea/runConfigurations/main_dart.xml`
-   VS Code can use the `main.dart (Local AI)` launch config in `.vscode/launch.json`
-
-Hot reload still works for normal code changes. If you change `NVIDIA_API_KEY` or `NVIDIA_MODEL`, stop and run again because `String.fromEnvironment` values are loaded at app start.
+You can override it with `NVIDIA_MODEL` in the same dart-define file.
 
 ## Data and Offline Behavior
-- Sample pagoda data lives in `assets/data/sample_pagodas.json` and is loaded
-  into SQLite on first launch.
-- Offline route graph is bundled in `assets/data/offline_graph.json`.
-  `AppConstants.offlineGraphUrl` is empty by default; set it to a hosted JSON
-  if you want periodic graph updates.
-- Map tiles are cached locally. The first launch needs internet to download
-  tiles; cached areas are available offline afterward.
 
-## App Structure
-Screens included:
-1. Splash
-2. Login / Signup (optional, guest mode supported)
-3. Home (tabs: Home, Pagodas, Map, Profile)
-4. Pagoda Detail
-5. Create Trip
-6. Trip Detail
+- `assets/data/sample_pagodas.json` seeds pagoda content into SQLite
+- `assets/data/offline_graph.json` is bundled for offline route generation
+- Map tiles are cached locally after first download
+- `AppConstants.offlineGraphUrl` is empty by default, so graph updates are
+  local-only unless you configure a hosted graph source
 
-## Architecture
-```
+## Project Layout
+
+```text
 lib/
 ├── core/
-│   ├── constants/     # App constants
-│   ├── localization/  # Localization helpers
-│   ├── services/      # Firebase, offline routing, and planned services
-│   ├── theme/         # App theme
-│   └── utils/         # Helpers, pathfinding
+│   ├── constants/
+│   ├── localization/
+│   ├── services/
+│   ├── theme/
+│   └── utils/
 ├── data/
-│   ├── datasources/   # Local database + migrations
-│   ├── models/        # Pagoda, Trip, User
-│   └── services/      # Data loading utilities
+│   ├── datasources/
+│   ├── models/
+│   └── services/
+├── models/
+│   └── user.dart
 ├── presentation/
-│   ├── providers/     # State management (Provider)
-│   ├── screens/       # UI screens
-│   └── widgets/       # Reusable widgets
+│   ├── providers/
+│   ├── screens/
+│   └── widgets/
+├── firebase_options.dart
 └── main.dart
 ```
 
-Note: Some services (cloud sync helpers) are scaffolding for planned
-features and are not wired into the current UI.
+## Validation
 
-## Database Schema (SQLite)
+Current baseline validation:
 
-**pagodas**
-```
-id, name, description, category, latitude, longitude,
-imageUrl, images, historicalInfo, architecturalStyle,
-yearBuilt, isFavorite
+```bash
+flutter analyze
 ```
 
-**trips**
-```
-id, name, description, date, createdAt, updatedAt
-```
+No automated test suite is checked in yet.
 
-**trip_stops**
-```
-id, tripId, pagodaId, pagodaName, latitude, longitude,
-orderIndex, notes, distanceToNext
-```
-
-**favorites**
-```
-pagodaId, addedAt
-```
-
-## Routing Logic
-- Trip optimization uses A* for two pagodas and nearest-neighbor for three or more.
-- Map route rendering uses the offline graph when available, with curved fallback
-  when a graph path is not found.
-
-## Localization
-- Language files are in `assets/languages/en.json` and `assets/languages/my.json`.
-- Language can be switched from the Profile screen.
-
-## Testing
-No automated tests are included yet.
-
-## Building for Production
+## Build
 
 Android APK:
+
 ```bash
 flutter build apk --release
 ```
 
 Android App Bundle:
+
 ```bash
 flutter build appbundle --release
 ```
 
 ## Troubleshooting
-- Firebase not initialized: ensure Firebase config files are in place, or use
-  guest mode.
-- Map tiles not loading: check connectivity for initial tile download.
-- Database issues: clear app data and reinstall.
 
-## Acknowledgments
-- OpenStreetMap contributors
-- Flutter community packages
+- If Firebase fails to initialize, verify the platform config files and
+  `lib/firebase_options.dart`
+- If sign-up hangs or Firestore-backed features fail, create the Firestore
+  database in Firebase Console
+- If cached or generated assets behave strangely after changes, run:
+
+```bash
+flutter clean
+flutter pub get
+```
+
+- If map tiles do not load on a fresh install, verify internet access for the
+  first tile download
+
+## References
+
+- `SETUP.md` for a full project setup guide
+- `setup_firestore.md` for Firestore database setup
+- `FIRESTORE_SETUP_COMPLETE.md` for Firestore notes and verification commands

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart'
     show Firebase, FirebaseException;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user.dart';
+import '../../data/models/trip_model.dart';
 import 'firestore_instance.dart';
 import 'logger.dart';
 
@@ -228,9 +229,27 @@ class FirebaseService {
 
   // Firestore sync methods
   Future<void> syncFavorites(String uid, List<String> favoriteIds) async {
-    await _firestore.collection('users').doc(uid).update({
+    await _firestore.collection('users').doc(uid).set({
+      'id': uid,
       'favoriteIds': favoriteIds,
-    });
+    }, SetOptions(merge: true));
+  }
+
+  Future<List<String>> getFavoriteIds(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      final data = doc.data();
+      if (data == null) {
+        return const [];
+      }
+      final ids = data['favoriteIds'];
+      if (ids is List) {
+        return ids.whereType<String>().where((id) => id.isNotEmpty).toList();
+      }
+    } catch (e, st) {
+      Logger.error('FirebaseService: Failed to load favorite IDs', e, st);
+    }
+    return const [];
   }
 
   Future<void> syncTrip(String uid, Map<String, dynamic> tripData) async {
@@ -240,6 +259,19 @@ class FirebaseService {
         .collection('trips')
         .doc(tripData['id'])
         .set(tripData);
+  }
+
+  Future<List<Trip>> getTrips(String uid) async {
+    final snapshot =
+        await _firestore.collection('users').doc(uid).collection('trips').get();
+
+    final trips =
+        snapshot.docs
+            .map((doc) => Trip.fromJson({'id': doc.id, ...doc.data()}))
+            .toList()
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+    return trips;
   }
 
   Future<void> deleteTrip(String uid, String tripId) async {

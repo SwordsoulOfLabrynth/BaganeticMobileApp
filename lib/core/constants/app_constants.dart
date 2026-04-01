@@ -11,6 +11,11 @@ class AppConstants {
   static const String feedbacks = 'feedbacks';
   static const String roadReports = 'roadReports';
   static const String aiChatMessages = 'aiChatMessages';
+  static const String communityPosts = 'communityPosts';
+  static const String communityComments = 'comments';
+  static const String communityPostVotes = 'votes';
+  static const String pagodaStatusActive = 'active';
+  static const String pagodaStatusArchived = 'archived';
 
   // Database
   static const String dbName = 'baganetic.db';
@@ -41,13 +46,7 @@ class AppConstants {
   static const Duration offlineGraphSyncInterval = Duration(hours: 24);
 
   // Pagoda Categories
-  static const List<String> categories = [
-    'All',
-    'Temple',
-    'Pagoda',
-    'Stupa',
-    'Monastery',
-  ];
+  static const List<String> categories = ['Temple', 'Pagoda'];
 
   // Assets
   static const String placeholderImage = 'assets/images/placeholder.png';

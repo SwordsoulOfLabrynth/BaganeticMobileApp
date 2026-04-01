@@ -96,6 +96,7 @@ flutter:
   assets:
     - assets/languages/
     - assets/data/offline_graph.json
+    - assets/data/pagoda_route_graph.json
     - assets/data/sample_pagodas.json
     - assets/images/pagodas/Alodawpyae Pagoda/
     - assets/images/pagodas/Ananda Temple/
@@ -114,9 +115,6 @@ flutter:
     - assets/images/pagodas/Shwe Gu Gyi/
     - assets/images/pagodas/Shwezigon Pagoda/
     - assets/images/pagodas/Sulamani Temple/
-    - assets/images/pagodas/test/
-    - assets/images/pagodas/Test Myanmar Pagoda/
-    - assets/images/pagodas/test1/
     - assets/images/pagodas/Thambula/
     - assets/images/pagodas/Thatbyinnyu Temple/
 

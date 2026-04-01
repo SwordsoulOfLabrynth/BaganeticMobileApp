@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import '../../core/constants/app_constants.dart';
+import '../../core/services/firebase_service.dart';
 import '../../core/services/logger.dart';
 import '../../core/services/pagoda_search_service.dart';
 import '../../data/models/pagoda_model.dart';
@@ -32,10 +33,11 @@ class PagodaUIProvider with ChangeNotifier {
   final PagodaDataService _dataService;
   final PagodaSearchService _searchService;
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final FirebaseService _firebaseService = FirebaseService();
 
   List<Pagoda> _pagodas = [];
   List<Pagoda> _favorites = [];
-  String _selectedCategory = 'All';
+  String _selectedCategory = '';
   String _searchQuery = '';
   bool _isLoading = false;
   String _currentOwnerId = AppConstants.guestOwnerId;
@@ -81,6 +83,7 @@ class PagodaUIProvider with ChangeNotifier {
         _favorites = await _dataService.getFavorites(
           ownerUserId: _currentOwnerId,
         );
+        unawaited(_syncFavoritesToCloud());
       }
       notifyListeners();
     } catch (e, stackTrace) {
@@ -110,6 +113,7 @@ class PagodaUIProvider with ChangeNotifier {
 
     try {
       await _dataService.toggleFavorite(pagodaId, ownerUserId: _currentOwnerId);
+      unawaited(_syncFavoritesToCloud());
     } catch (e, stackTrace) {
       _pagodas[index] = previousPagoda;
       if (previousPagoda.isFavorite) {
@@ -138,6 +142,18 @@ class PagodaUIProvider with ChangeNotifier {
       id,
       ownerUserId: canManageFavorites ? _currentOwnerId : null,
     );
+  }
+
+  Future<void> _syncFavoritesToCloud() async {
+    if (!canManageFavorites || !_firebaseService.isFirebaseAvailable) {
+      return;
+    }
+    final favoriteIds = _favorites.map((pagoda) => pagoda.id).toList();
+    try {
+      await _firebaseService.syncFavorites(_currentOwnerId, favoriteIds);
+    } catch (e, stackTrace) {
+      Logger.error('Error syncing favorites to Firestore', e, stackTrace);
+    }
   }
 
   @override

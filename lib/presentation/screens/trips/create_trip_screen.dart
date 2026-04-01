@@ -220,11 +220,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
       if (_selectedPagodas.length == 2) {
         // Use A* for 2 pagodas
-        final path = PathfindingService.findPath(
+        final result = await PathfindingService.findPath(
           _selectedPagodas[0],
           _selectedPagodas[1],
           allPagodas,
         );
+        if (!mounted) return;
+        final path = result.path;
 
         if (path.isNotEmpty) {
           final isSameOrder =

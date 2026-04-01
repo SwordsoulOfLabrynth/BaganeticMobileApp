@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+import '../../core/constants/app_constants.dart';
+import '../../core/services/firestore_instance.dart';
 import '../../core/services/logger.dart';
 import '../datasources/local_datasource.dart';
 import '../models/pagoda_model.dart';
@@ -13,6 +15,27 @@ class PagodaDataService {
   final DatabaseService _db;
 
   Future<List<Pagoda>> loadPagodas({String? ownerUserId}) async {
+    final remotePagodas = await _loadRemotePagodas();
+    if (remotePagodas.isNotEmpty) {
+      try {
+        await _db.syncPagodaCatalog(remotePagodas);
+        final syncedPagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
+        Logger.info(
+          'Loaded ${syncedPagodas.length} pagodas from Firestore-backed catalog',
+        );
+        if (syncedPagodas.isNotEmpty) {
+          return syncedPagodas;
+        }
+      } catch (e, stackTrace) {
+        Logger.error(
+          'Failed to sync Firestore pagoda catalog locally',
+          e,
+          stackTrace,
+        );
+        return remotePagodas;
+      }
+    }
+
     try {
       var pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
 
@@ -43,6 +66,38 @@ class PagodaDataService {
       'Using bundled sample pagodas fallback (${fallback.length} items)',
     );
     return fallback;
+  }
+
+  Future<List<Pagoda>> _loadRemotePagodas() async {
+    try {
+      final snapshot = await FirestoreInstance.instance
+          .collection(AppConstants.pagodas)
+          .where('status', isEqualTo: AppConstants.pagodaStatusActive)
+          .get();
+
+      final remotePagodas =
+          snapshot.docs
+              .map((doc) => Pagoda.fromJson({'id': doc.id, ...doc.data()}))
+              .toList()
+            ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
+
+      if (remotePagodas.isNotEmpty) {
+        Logger.info(
+          'Fetched ${remotePagodas.length} active pagodas from Firestore',
+        );
+      }
+
+      return remotePagodas;
+    } catch (e, stackTrace) {
+      Logger.error(
+        'Failed to load pagoda catalog from Firestore',
+        e,
+        stackTrace,
+      );
+      return const [];
+    }
   }
 
   Future<void> initializeSampleData() async {
@@ -87,6 +142,10 @@ class PagodaDataService {
     bool missingOrEmpty(String? value, String? sampleValue) {
       if (sampleValue == null || sampleValue.trim().isEmpty) return false;
       return value == null || value.trim().isEmpty;
+    }
+
+    if (current.category != sample.category) {
+      return true;
     }
 
     if (missingOrEmpty(current.historicalInfo, sample.historicalInfo) ||

@@ -14,7 +14,6 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/community_provider.dart';
-import 'presentation/providers/feedback_provider.dart';
 import 'presentation/providers/language_provider.dart';
 import 'presentation/providers/pagoda_provider.dart';
 import 'presentation/providers/trip_provider.dart';
@@ -24,7 +23,6 @@ import 'core/services/offline_map_service.dart';
 import 'core/services/offline_route_service.dart';
 import 'core/services/logger.dart';
 import 'core/services/firestore_instance.dart';
-import 'data/datasources/local_datasource.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,9 +98,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PagodaProvider()),
         ChangeNotifierProvider(create: (_) => TripProvider()),
         ChangeNotifierProvider(create: (_) => CommunityProvider()),
-        ChangeNotifierProvider(
-          create: (_) => FeedbackProvider(DatabaseService()),
-        ),
       ],
       child: Consumer<LanguageProvider>(
         builder: (context, languageProvider, _) {

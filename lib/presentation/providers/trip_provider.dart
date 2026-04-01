@@ -25,13 +25,16 @@ class TripProvider with ChangeNotifier {
 
   TripProvider() {
     _currentOwnerId = _resolveOwnerId(_auth.currentUser);
-    _authSub = _auth.authStateChanges().listen((user) {
+    _authSub = _auth.authStateChanges().listen((user) async {
       final nextOwnerId = _resolveOwnerId(user);
       if (nextOwnerId == _currentOwnerId) {
         return;
       }
       _currentOwnerId = nextOwnerId;
-      loadTrips();
+      if (canManageTrips) {
+        await _adoptLegacyLocalTrips();
+      }
+      await loadTrips();
     });
     loadTrips();
   }
@@ -49,8 +52,8 @@ class TripProvider with ChangeNotifier {
         _trips = [];
         return;
       }
-      _trips = await _db.getAllTrips(ownerUserId: _currentOwnerId);
-      unawaited(_syncTripsToCloud(_trips));
+      await _adoptLegacyLocalTrips();
+      _trips = await _loadTripsWithCloudSync();
     } catch (e) {
       Logger.error('Error loading trips', e);
     } finally {
@@ -127,6 +130,75 @@ class TripProvider with ChangeNotifier {
       await _firebaseService.deleteTrip(_currentOwnerId, tripId);
     } catch (e, stackTrace) {
       Logger.error('Error deleting synced trip from Firestore', e, stackTrace);
+    }
+  }
+
+  Future<void> _adoptLegacyLocalTrips() async {
+    if (!canManageTrips) {
+      return;
+    }
+    try {
+      await _db.assignOwnerToUnownedTrips(_currentOwnerId);
+    } catch (e, stackTrace) {
+      Logger.error('Error adopting legacy local trips', e, stackTrace);
+    }
+  }
+
+  Future<List<Trip>> _loadTripsWithCloudSync() async {
+    final localTrips = await _db.getAllTrips(ownerUserId: _currentOwnerId);
+
+    if (!_firebaseService.isFirebaseAvailable) {
+      return localTrips;
+    }
+
+    try {
+      final remoteTrips = await _firebaseService.getTrips(_currentOwnerId);
+      final localById = {for (final trip in localTrips) trip.id: trip};
+      final remoteById = {for (final trip in remoteTrips) trip.id: trip};
+      final allIds = {...localById.keys, ...remoteById.keys};
+      final tripsToPush = <Trip>[];
+      var didUpdateLocal = false;
+
+      for (final tripId in allIds) {
+        final localTrip = localById[tripId];
+        final remoteTrip = remoteById[tripId];
+
+        if (localTrip == null && remoteTrip != null) {
+          await _db.insertTrip(remoteTrip);
+          didUpdateLocal = true;
+          continue;
+        }
+
+        if (remoteTrip == null && localTrip != null) {
+          tripsToPush.add(localTrip);
+          continue;
+        }
+
+        if (localTrip == null || remoteTrip == null) {
+          continue;
+        }
+
+        if (remoteTrip.updatedAt.isAfter(localTrip.updatedAt)) {
+          await _db.insertTrip(remoteTrip);
+          didUpdateLocal = true;
+        } else if (localTrip.updatedAt.isAfter(remoteTrip.updatedAt)) {
+          tripsToPush.add(localTrip);
+        }
+      }
+
+      if (tripsToPush.isNotEmpty) {
+        await _syncTripsToCloud(tripsToPush);
+      }
+
+      if (!didUpdateLocal && tripsToPush.isEmpty) {
+        return localTrips;
+      }
+
+      return await _db.getAllTrips(ownerUserId: _currentOwnerId);
+    } catch (e, stackTrace) {
+      Logger.error('Error syncing trips with Firestore', e, stackTrace);
+      unawaited(_syncTripsToCloud(localTrips));
+      return localTrips;
     }
   }
 }

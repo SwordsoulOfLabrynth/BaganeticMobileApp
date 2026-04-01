@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class CommunityPost {
   static const String statusActive = 'active';
   static const String typeTip = 'tip';
@@ -134,6 +136,9 @@ class CommunityPost {
   }
 
   static DateTime _parseDate(dynamic raw) {
+    if (raw is Timestamp) {
+      return raw.toDate();
+    }
     if (raw is DateTime) {
       return raw;
     }

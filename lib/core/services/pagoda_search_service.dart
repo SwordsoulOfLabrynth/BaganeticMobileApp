@@ -8,7 +8,7 @@ class PagodaSearchService {
   }) {
     var filtered = List<Pagoda>.from(pagodas);
 
-    if (selectedCategory != 'All') {
+    if (selectedCategory.trim().isNotEmpty) {
       filtered = filtered
           .where((pagoda) => pagoda.category == selectedCategory)
           .toList();
@@ -21,7 +21,9 @@ class PagodaSearchService {
       }).toList();
     }
 
-    filtered.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    filtered.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
     return filtered;
   }
 }

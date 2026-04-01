@@ -5,32 +5,99 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.uid in [
+          'VDVmEgrC8NgljqCokzhuhuZXkZM2',
+          'Rs1Ko8wPJjOgm1rU6nAQD2mniuf1'
+        ] ||
+        request.auth.token.email in [
+          'admin@baganetic.com',
+          'kyawzayyahein.mdy@gmail.com',
+          'phyuhninaung2005@gmail.com'
+        ]
+      );
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if isOwner(userId) || isAdmin();
 
       match /{document=**} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
+    match /pagodas/{pagodaId} {
+      allow read: if resource.data.status == 'active' || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
     match /feedbacks/{feedbackId} {
-      allow read: if true;
-      allow create: if isSignedIn() &&
-        request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() &&
-        resource.data.userId == request.auth.uid;
+      allow read, write: if false;
     }
 
     match /roadReports/{reportId} {
-      allow read: if isSignedIn();
+      allow read, write: if false;
+    }
+
+    match /communityPosts/{postId} {
+      allow read: if resource.data.status == 'active' || isAdmin();
       allow create: if isSignedIn() &&
-        request.resource.data.reporterUserId == request.auth.uid;
-      allow update, delete: if isSignedIn() &&
-        resource.data.reporterUserId == request.auth.uid;
+        request.resource.data.authorUserId == request.auth.uid;
+      allow update, delete: if (
+        isSignedIn() &&
+        resource.data.authorUserId == request.auth.uid
+      ) || isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if get(
+          /databases/$(database)/documents/communityPosts/$(postId)
+        ).data.status == 'active' || isAdmin();
+        allow create: if isSignedIn() &&
+          request.resource.data.authorUserId == request.auth.uid;
+        allow update, delete: if (
+          isSignedIn() &&
+          resource.data.authorUserId == request.auth.uid
+        ) || isAdmin();
+      }
+
+      match /votes/{voteId} {
+        allow read: if isSignedIn() || isAdmin();
+        allow create: if isSignedIn() &&
+          request.resource.data.userId == request.auth.uid &&
+          voteId == request.auth.uid;
+        allow delete: if (
+          isSignedIn() &&
+          voteId == request.auth.uid
+        ) || isAdmin();
+        allow update: if isAdmin();
+      }
+    }
+
+    // Collection-group queries over users/*/trips require an explicit trips match.
+    match /{path=**}/trips/{tripId} {
+      allow read: if isAdmin();
+    }
+
+    // The app reads vote state through a collection-group query over votes.
+    match /{path=**}/votes/{voteId} {
+      allow read: if isSignedIn() || isAdmin();
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        voteId == request.auth.uid;
+      allow delete: if (
+        isSignedIn() &&
+        voteId == request.auth.uid
+      ) || isAdmin();
+      allow update: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

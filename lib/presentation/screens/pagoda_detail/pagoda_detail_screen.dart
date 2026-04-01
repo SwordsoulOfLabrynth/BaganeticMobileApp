@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 import '../../../data/models/pagoda_model.dart';
-import '../../../data/models/feedback_model.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/feedback_provider.dart';
 import '../../../core/services/ai_chatbot_service.dart';
 import '../../../core/utils/ai_assistant_launcher.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../trips/create_trip_screen.dart';
 import '../home/home_screen.dart';
-import '../../widgets/pagoda_road_reports_section.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../core/utils/helpers.dart';
 import '../../../core/utils/responsive.dart';
 
 class PagodaDetailScreen extends StatefulWidget {
@@ -28,14 +22,7 @@ class PagodaDetailScreen extends StatefulWidget {
 
 class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
   final PageController _pageController = PageController();
-  final TextEditingController _feedbackCommentController =
-      TextEditingController();
-  final String _guestFeedbackUserId = 'guest_${const Uuid().v4()}';
   int _currentImageIndex = 0;
-  int _feedbackRating = 5;
-  bool _feedbackLoaded = false;
-  bool _isFeedbackComposerVisible = false;
-  bool _isSubmittingFeedback = false;
 
   List<String> _buildImageList(Pagoda pagoda) {
     final List<String> images = [];
@@ -53,21 +40,7 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-    _feedbackCommentController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_feedbackLoaded) {
-      return;
-    }
-    _feedbackLoaded = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<FeedbackProvider>().loadFeedbacks(widget.pagoda.id);
-    });
   }
 
   @override
@@ -76,10 +49,6 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
     final theme = Theme.of(context);
     final pagoda = widget.pagoda;
     final pagodaProvider = context.watch<PagodaProvider>();
-    final feedbackProvider = context.watch<FeedbackProvider>();
-    final authProvider = context.watch<AuthProvider>();
-    final currentUserId = authProvider.user?.uid ?? _guestFeedbackUserId;
-    final isSignedIn = authProvider.user != null;
     final livePagoda = pagodaProvider.allPagodas.firstWhere(
       (item) => item.id == pagoda.id,
       orElse: () => pagoda,
@@ -520,16 +489,6 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                         ),
                       ),
                     ],
-                    SizedBox(height: Responsive.spacing(context)),
-                    _buildFeedbackSection(
-                      context,
-                      provider: feedbackProvider,
-                      pagodaId: pagoda.id,
-                      currentUserId: currentUserId,
-                      isSignedIn: isSignedIn,
-                    ),
-                    SizedBox(height: Responsive.spacing(context)),
-                    PagodaRoadReportsSection(pagoda: pagoda),
                     SizedBox(height: Responsive.largeSpacing(context)),
                     SizedBox(
                       width: double.infinity,
@@ -592,322 +551,6 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildFeedbackSection(
-    BuildContext context, {
-    required FeedbackProvider provider,
-    required String pagodaId,
-    required String currentUserId,
-    required bool isSignedIn,
-  }) {
-    final l10n = context.l10n;
-
-    return _SectionCard(
-      title: l10n.translate('feedback.title'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _buildStaticStars(provider.averageRating, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                '${provider.averageRating.toStringAsFixed(1)} (${provider.feedbackCount})',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _isFeedbackComposerVisible = true;
-                });
-              },
-              icon: const Icon(Icons.rate_review_outlined),
-              label: Text(l10n.translate('feedback.write')),
-            ),
-          ),
-          if (!isSignedIn)
-            Text(
-              l10n.translate('feedback.signInPrompt'),
-              style: TextStyle(color: Colors.grey[700]),
-            ),
-          if (_isFeedbackComposerVisible) ...[
-            const SizedBox(height: 10),
-            _buildFeedbackComposer(context, pagodaId),
-          ],
-          const SizedBox(height: 8),
-          if (provider.isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (provider.feedbacks.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(l10n.translate('feedback.empty')),
-            )
-          else
-            Column(
-              children: provider.feedbacks.map((feedback) {
-                final canDelete = currentUserId == feedback.userId;
-                return _buildFeedbackTile(
-                  context,
-                  provider: provider,
-                  feedback: feedback,
-                  canDelete: canDelete,
-                );
-              }).toList(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeedbackTile(
-    BuildContext context, {
-    required FeedbackProvider provider,
-    required PagodaFeedback feedback,
-    required bool canDelete,
-  }) {
-    final l10n = context.l10n;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      feedback.userName,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 2),
-                    _buildStaticStars(feedback.rating.toDouble(), size: 16),
-                  ],
-                ),
-              ),
-              if (canDelete)
-                IconButton(
-                  onPressed: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(l10n.translate('feedback.delete')),
-                        content: Text(l10n.translate('feedback.deleteConfirm')),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text(l10n.translate('common.cancel')),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text(l10n.translate('common.delete')),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirmed == true) {
-                      await provider.deleteFeedback(feedback.id);
-                    }
-                  },
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: l10n.translate('feedback.delete'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(feedback.comment),
-          const SizedBox(height: 6),
-          Text(
-            Helpers.formatDate(feedback.createdAt),
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStaticStars(double rating, {double size = 18}) {
-    final rounded = rating.clamp(0, 5).round();
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        final filled = index < rounded;
-        return Icon(
-          filled ? Icons.star : Icons.star_border,
-          size: size,
-          color: const Color(0xFFD4AF37),
-        );
-      }),
-    );
-  }
-
-  Widget _buildFeedbackComposer(BuildContext context, String pagodaId) {
-    final l10n = context.l10n;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.translate('feedback.rating'),
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: List.generate(5, (index) {
-              final selected = index < _feedbackRating;
-              return IconButton(
-                onPressed: () {
-                  setState(() {
-                    _feedbackRating = index + 1;
-                  });
-                },
-                icon: Icon(
-                  selected ? Icons.star : Icons.star_border,
-                  color: const Color(0xFFD4AF37),
-                ),
-                visualDensity: VisualDensity.compact,
-              );
-            }),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _feedbackCommentController,
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: l10n.translate('feedback.commentHint'),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _isSubmittingFeedback
-                      ? null
-                      : () {
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            _isFeedbackComposerVisible = false;
-                            _feedbackRating = 5;
-                            _feedbackCommentController.clear();
-                          });
-                        },
-                  child: Text(l10n.translate('common.cancel')),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _isSubmittingFeedback
-                      ? null
-                      : () => _submitFeedbackInline(pagodaId),
-                  child: _isSubmittingFeedback
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.translate('feedback.submit')),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitFeedbackInline(String pagodaId) async {
-    final l10n = context.l10n;
-    final comment = _feedbackCommentController.text.trim();
-    if (comment.isEmpty) {
-      Helpers.showSnackBar(
-        context,
-        l10n.translate('feedback.commentRequired'),
-        isError: true,
-      );
-      return;
-    }
-
-    if (_isSubmittingFeedback) {
-      return;
-    }
-
-    final user = context.read<AuthProvider>().user;
-    final fallbackName = user == null
-        ? l10n.translate('feedback.guestName')
-        : l10n.translate('profile.userDefault');
-    final displayName = (user?.displayName ?? '').trim();
-    final emailName = user?.email?.split('@').first ?? '';
-    final userName = displayName.isNotEmpty
-        ? displayName
-        : (emailName.isNotEmpty ? emailName : fallbackName);
-
-    final feedback = PagodaFeedback(
-      id: const Uuid().v4(),
-      pagodaId: pagodaId,
-      userId: user?.uid ?? _guestFeedbackUserId,
-      userName: userName,
-      rating: _feedbackRating,
-      comment: comment,
-      createdAt: DateTime.now(),
-    );
-
-    setState(() {
-      _isSubmittingFeedback = true;
-    });
-
-    try {
-      await context.read<FeedbackProvider>().submitFeedback(feedback);
-      if (!mounted) return;
-      FocusScope.of(context).unfocus();
-      setState(() {
-        _isFeedbackComposerVisible = false;
-        _feedbackRating = 5;
-        _feedbackCommentController.clear();
-      });
-      Helpers.showSnackBar(context, l10n.translate('feedback.submitSuccess'));
-    } catch (_) {
-      if (!mounted) return;
-      Helpers.showSnackBar(
-        context,
-        l10n.translate('feedback.submitError'),
-        isError: true,
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmittingFeedback = false;
-        });
-      }
-    }
   }
 }
 

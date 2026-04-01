@@ -1,5 +1,12 @@
 import '../../core/utils/image_path_utils.dart';
 
+String _normalizePagodaCategory(String? rawCategory) {
+  if (rawCategory == 'Temple') {
+    return 'Temple';
+  }
+  return 'Pagoda';
+}
+
 class PagodaFeature {
   final String title;
   final String description;
@@ -45,7 +52,7 @@ class Pagoda {
   final String? architecturalStyle;
   final int? yearBuilt;
   final bool isFavorite;
-  
+
   // Enhanced fields from legacy web version
   final String? legends;
   final String? religiousImportance;
@@ -59,7 +66,7 @@ class Pagoda {
   final String? height;
   final String? finalWords;
   final List<PagodaFeature> uniqueFeatures;
-  
+
   Pagoda({
     required this.id,
     required this.name,
@@ -87,37 +94,39 @@ class Pagoda {
     this.finalWords,
     this.uniqueFeatures = const [],
   });
-  
+
   factory Pagoda.fromJson(Map<String, dynamic> json) {
     // Normalize image paths
     final String? imageUrlRaw = json['imageUrl'] as String?;
-    final String normalizedImageUrl = imageUrlRaw != null 
+    final String normalizedImageUrl = imageUrlRaw != null
         ? ImagePathUtils.normalizeImagePath(imageUrlRaw)
         : '';
-    
-    final List<String> normalizedImages = (json['images'] as List<dynamic>?)
+
+    final List<String> normalizedImages =
+        (json['images'] as List<dynamic>?)
             ?.map((e) => ImagePathUtils.normalizeImagePath(e as String))
             .where((path) => path.isNotEmpty)
-            .toList() ?? [];
+            .toList() ??
+        [];
 
     final List<PagodaFeature> features =
         (json['uniqueFeatures'] as List<dynamic>?)
-                ?.map((e) => PagodaFeature.fromJson(e as Map<String, dynamic>))
-                .toList() ??
-            [];
-    
+            ?.map((e) => PagodaFeature.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
     return Pagoda(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
-      category: json['category'] as String? ?? 'Temple',
+      category: _normalizePagodaCategory(json['category'] as String?),
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       imageUrl: normalizedImageUrl,
       images: normalizedImages,
       historicalInfo: json['historicalInfo'] as String?,
       architecturalStyle: json['architecturalStyle'] as String?,
-      yearBuilt: json['yearBuilt'] as int?,
+      yearBuilt: (json['yearBuilt'] as num?)?.toInt(),
       isFavorite: json['isFavorite'] as bool? ?? false,
       // Enhanced fields
       legends: json['legends'] as String?,
@@ -134,7 +143,7 @@ class Pagoda {
       uniqueFeatures: features,
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -161,10 +170,12 @@ class Pagoda {
       'photographyRules': photographyRules,
       'height': height,
       'finalWords': finalWords,
-      'uniqueFeatures': uniqueFeatures.map((feature) => feature.toJson()).toList(),
+      'uniqueFeatures': uniqueFeatures
+          .map((feature) => feature.toJson())
+          .toList(),
     };
   }
-  
+
   Pagoda copyWith({
     String? id,
     String? name,

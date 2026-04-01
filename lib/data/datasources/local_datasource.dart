@@ -226,7 +226,13 @@ class DatabaseService {
   // Pagoda CRUD operations
   Future<int> insertPagoda(Pagoda pagoda) async {
     final db = await database;
+    return _insertPagodaWithExecutor(db, pagoda);
+  }
 
+  Future<int> _insertPagodaWithExecutor(
+    DatabaseExecutor executor,
+    Pagoda pagoda,
+  ) async {
     // Normalize image paths before saving
     final String normalizedImageUrl = ImagePathUtils.normalizeImagePath(
       pagoda.imageUrl,
@@ -239,13 +245,41 @@ class DatabaseService {
       pagoda.uniqueFeatures.map((feature) => feature.toJson()).toList(),
     );
 
-    return await db.insert(AppConstants.tablePagodas, {
+    return await executor.insert(AppConstants.tablePagodas, {
       ...pagoda.toJson(),
       'imageUrl': normalizedImageUrl,
       'images': normalizedImages.join(','),
       'uniqueFeatures': uniqueFeaturesJson,
       'isFavorite': pagoda.isFavorite ? 1 : 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> syncPagodaCatalog(List<Pagoda> pagodas) async {
+    if (pagodas.isEmpty) return;
+
+    final db = await database;
+    final ids = pagodas.map((pagoda) => pagoda.id).toSet().toList()..sort();
+    final placeholders = List.filled(ids.length, '?').join(',');
+
+    await db.transaction((txn) async {
+      for (final pagoda in pagodas) {
+        await _insertPagodaWithExecutor(
+          txn,
+          pagoda.copyWith(isFavorite: false),
+        );
+      }
+
+      await txn.delete(
+        AppConstants.tablePagodas,
+        where: 'id NOT IN ($placeholders)',
+        whereArgs: ids,
+      );
+      await txn.delete(
+        AppConstants.tableFavorites,
+        where: 'pagodaId NOT IN ($placeholders)',
+        whereArgs: ids,
+      );
+    });
   }
 
   Future<List<Pagoda>> getAllPagodas({String? ownerUserId}) async {
@@ -674,8 +708,8 @@ class DatabaseService {
     await db.update(
       AppConstants.tableTrips,
       {'ownerUserId': ownerUserId},
-      where: 'ownerUserId IS NULL OR ownerUserId = ?',
-      whereArgs: [''],
+      where: 'ownerUserId IS NULL OR ownerUserId = ? OR ownerUserId = ?',
+      whereArgs: ['', AppConstants.guestOwnerId],
     );
   }
 
