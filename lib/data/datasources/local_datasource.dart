@@ -262,8 +262,7 @@ class DatabaseService {
     if (pagodas.isEmpty) return;
 
     final db = await database;
-    final ids = pagodas.map((pagoda) => pagoda.id).toSet().toList()..sort();
-    final placeholders = List.filled(ids.length, '?').join(',');
+    final ids = pagodas.map((pagoda) => pagoda.id).toSet();
 
     await db.transaction((txn) async {
       for (final pagoda in pagodas) {
@@ -273,17 +272,40 @@ class DatabaseService {
         );
       }
 
-      await txn.delete(
-        AppConstants.tablePagodas,
-        where: 'id NOT IN ($placeholders)',
-        whereArgs: ids,
-      );
-      await txn.delete(
-        AppConstants.tableFavorites,
-        where: 'pagodaId NOT IN ($placeholders)',
-        whereArgs: ids,
-      );
+      await _deletePagodasNotInWithExecutor(txn, ids);
     });
+  }
+
+  Future<int> deletePagodasNotIn(Set<String> validIds) async {
+    final db = await database;
+    return db.transaction(
+      (txn) => _deletePagodasNotInWithExecutor(txn, validIds),
+    );
+  }
+
+  Future<int> _deletePagodasNotInWithExecutor(
+    DatabaseExecutor executor,
+    Set<String> validIds,
+  ) async {
+    if (validIds.isEmpty) {
+      final deletedCount = await executor.delete(AppConstants.tablePagodas);
+      await executor.delete(AppConstants.tableFavorites);
+      return deletedCount;
+    }
+
+    final ids = validIds.toList()..sort();
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final deletedCount = await executor.delete(
+      AppConstants.tablePagodas,
+      where: 'id NOT IN ($placeholders)',
+      whereArgs: ids,
+    );
+    await executor.delete(
+      AppConstants.tableFavorites,
+      where: 'pagodaId NOT IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return deletedCount;
   }
 
   Future<List<Pagoda>> getAllPagodas({String? ownerUserId}) async {

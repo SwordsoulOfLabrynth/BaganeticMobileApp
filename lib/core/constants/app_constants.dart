@@ -46,7 +46,13 @@ class AppConstants {
   static const Duration offlineGraphSyncInterval = Duration(hours: 24);
 
   // Pagoda Categories
-  static const List<String> categories = ['Temple', 'Pagoda'];
+  static const String allCategory = 'All';
+  static const List<String> categories = [
+    allCategory,
+    'Temple',
+    'Pagoda',
+    'Stupa',
+  ];
 
   // Assets
   static const String placeholderImage = 'assets/images/placeholder.png';

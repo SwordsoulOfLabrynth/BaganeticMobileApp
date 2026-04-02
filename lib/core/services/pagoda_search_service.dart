@@ -1,3 +1,4 @@
+import '../constants/app_constants.dart';
 import '../../data/models/pagoda_model.dart';
 
 class PagodaSearchService {
@@ -8,7 +9,8 @@ class PagodaSearchService {
   }) {
     var filtered = List<Pagoda>.from(pagodas);
 
-    if (selectedCategory.trim().isNotEmpty) {
+    if (selectedCategory.trim().isNotEmpty &&
+        selectedCategory != AppConstants.allCategory) {
       filtered = filtered
           .where((pagoda) => pagoda.category == selectedCategory)
           .toList();

@@ -119,17 +119,28 @@ class PagodaDataService {
 
   Future<bool> _refreshFromSampleIfNeeded(List<Pagoda> existing) async {
     final samplePagodas = await _loadSamplePagodas();
-    final Map<String, Pagoda> sampleById = {
-      for (final pagoda in samplePagodas) pagoda.id: pagoda,
+    final Map<String, Pagoda> existingById = {
+      for (final pagoda in existing) pagoda.id: pagoda,
     };
+    final sampleIds = samplePagodas.map((pagoda) => pagoda.id).toSet();
 
     var updated = false;
-    for (final pagoda in existing) {
-      final sample = sampleById[pagoda.id];
-      if (sample == null) continue;
+    final deletedCount = await _db.deletePagodasNotIn(sampleIds);
+    if (deletedCount > 0) {
+      updated = true;
+    }
 
-      if (_needsRefresh(pagoda, sample)) {
-        final merged = sample.copyWith(isFavorite: pagoda.isFavorite);
+    for (final sample in samplePagodas) {
+      final current = existingById[sample.id];
+
+      if (current == null) {
+        await _db.insertPagoda(sample);
+        updated = true;
+        continue;
+      }
+
+      if (_needsRefresh(current, sample)) {
+        final merged = sample.copyWith(isFavorite: current.isFavorite);
         await _db.insertPagoda(merged);
         updated = true;
       }
@@ -171,8 +182,22 @@ class PagodaDataService {
       return true;
     }
 
+    if (current.imageUrl != sample.imageUrl) {
+      return true;
+    }
+
     if (current.images.length < sample.images.length) {
       return true;
+    }
+
+    if (current.images.length != sample.images.length) {
+      return true;
+    }
+
+    for (var index = 0; index < current.images.length; index++) {
+      if (current.images[index] != sample.images[index]) {
+        return true;
+      }
     }
 
     return false;

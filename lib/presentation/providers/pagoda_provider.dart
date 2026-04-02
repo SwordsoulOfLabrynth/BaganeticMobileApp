@@ -37,7 +37,7 @@ class PagodaUIProvider with ChangeNotifier {
 
   List<Pagoda> _pagodas = [];
   List<Pagoda> _favorites = [];
-  String _selectedCategory = '';
+  String _selectedCategory = AppConstants.allCategory;
   String _searchQuery = '';
   bool _isLoading = false;
   String _currentOwnerId = AppConstants.guestOwnerId;
