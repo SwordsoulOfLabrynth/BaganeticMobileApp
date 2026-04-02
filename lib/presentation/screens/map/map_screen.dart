@@ -318,9 +318,12 @@ class _MapScreenState extends State<MapScreen>
     final points = result.path
         .map((pagoda) => LatLng(pagoda.latitude, pagoda.longitude))
         .toList();
-    final route = await OfflineRouteService.instance.buildRouteForPoints(
-      points,
-    );
+    final route = result.roadNodePath.length >= 2
+        ? await OfflineRouteService.instance.buildRouteForRoadNodeIds(
+            result.roadNodePath,
+            fallbackPoints: points,
+          )
+        : await OfflineRouteService.instance.buildRouteForPoints(points);
     if (!mounted ||
         _pathStartPagoda?.id != start.id ||
         _pathEndPagoda?.id != end.id) {

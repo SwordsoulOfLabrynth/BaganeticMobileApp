@@ -580,6 +580,44 @@ class DatabaseService {
     });
   }
 
+  Future<void> replaceFavorites({
+    required String ownerUserId,
+    required Iterable<String> pagodaIds,
+  }) async {
+    if (ownerUserId.isEmpty) {
+      return;
+    }
+
+    final normalizedIds = pagodaIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete(
+        AppConstants.tableFavorites,
+        where: 'ownerUserId = ?',
+        whereArgs: [ownerUserId],
+      );
+
+      final baseTime = DateTime.now().toUtc();
+      for (var index = 0; index < normalizedIds.length; index++) {
+        await txn.insert(
+          AppConstants.tableFavorites,
+          {
+            'ownerUserId': ownerUserId,
+            'pagodaId': normalizedIds[index],
+            'addedAt': baseTime
+                .add(Duration(milliseconds: index))
+                .toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
   // Trip CRUD operations
   Future<String> insertTrip(Trip trip) async {
     final db = await database;

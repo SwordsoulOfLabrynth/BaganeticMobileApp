@@ -4,7 +4,16 @@
   "topologySource": "pagoda_route_topology.csv",
   "pairwiseCostSource": "pagoda_pairwise_costs.csv",
   "snapStrategy": "nearest_node_in_largest_component",
+  "edgeStrategy": "topology_backbone_with_neighbor_links",
   "nodes": [
+    {
+      "pagodaId": "abeyadana",
+      "name": "Abeyadana Temple",
+      "lat": 21.1582,
+      "lng": 94.8623,
+      "roadNodeId": "8530778798",
+      "accessGapKm": 0.125119
+    },
     {
       "pagodaId": "alodawpyae",
       "name": "Alodawpyae Pagoda",
@@ -20,6 +29,30 @@
       "lng": 94.867856,
       "roadNodeId": "7016070610",
       "accessGapKm": 0.093658
+    },
+    {
+      "pagodaId": "anaukpetleik",
+      "name": "Anauk Petleik Pagoda",
+      "lat": 21.1504,
+      "lng": 94.8566,
+      "roadNodeId": "8530534299",
+      "accessGapKm": 0.54456
+    },
+    {
+      "pagodaId": "ashepetleik",
+      "name": "Ashe Petleik Pagoda",
+      "lat": 21.1509,
+      "lng": 94.8572,
+      "roadNodeId": "8530534298",
+      "accessGapKm": 0.47226
+    },
+    {
+      "pagodaId": "bulethi",
+      "name": "Bulethi Pagoda",
+      "lat": 21.1619,
+      "lng": 94.8783,
+      "roadNodeId": "1584896532",
+      "accessGapKm": 0.258422
     },
     {
       "pagodaId": "bupaya",
@@ -62,6 +95,30 @@
       "accessGapKm": 0.028744
     },
     {
+      "pagodaId": "gubyauknge",
+      "name": "Gubyauk Nge Temple",
+      "lat": 21.1611,
+      "lng": 94.9057,
+      "roadNodeId": "8531639702",
+      "accessGapKm": 0.256401
+    },
+    {
+      "pagodaId": "hgnetpyittaung",
+      "name": "Hgnet Pyit Taung Temple",
+      "lat": 21.19205,
+      "lng": 94.91236,
+      "roadNodeId": "8530759990",
+      "accessGapKm": 0.006087
+    },
+    {
+      "pagodaId": "hsutaungpyi",
+      "name": "Hsu Taung Pyi Pagoda",
+      "lat": 21.174,
+      "lng": 94.8717,
+      "roadNodeId": "1177339921",
+      "accessGapKm": 0.082595
+    },
+    {
       "pagodaId": "htilominlo",
       "name": "Htilominlo Temple",
       "lat": 21.178531,
@@ -78,12 +135,108 @@
       "accessGapKm": 0.055351
     },
     {
+      "pagodaId": "khamaunggyi",
+      "name": "Kha-maung-gyi",
+      "lat": 21.1994,
+      "lng": 94.9019,
+      "roadNodeId": "3139360317",
+      "accessGapKm": 0.308344
+    },
+    {
+      "pagodaId": "kondawgyi",
+      "name": "Kondawgyi Temple",
+      "lat": 21.2059,
+      "lng": 94.9281,
+      "roadNodeId": "2089394696",
+      "accessGapKm": 1.324963
+    },
+    {
+      "pagodaId": "kusinara",
+      "name": "Kusinara Temple",
+      "lat": 21.1638,
+      "lng": 94.8693,
+      "roadNodeId": "5293537981",
+      "accessGapKm": 0.073712
+    },
+    {
+      "pagodaId": "kyamingatemple",
+      "name": "Kya Min Ga Temple",
+      "lat": 21.1942,
+      "lng": 94.9055,
+      "roadNodeId": "8530793661",
+      "accessGapKm": 0.023228
+    },
+    {
+      "pagodaId": "kyansittharumin",
+      "name": "Kyan Sit Thar Umin",
+      "lat": 21.1569,
+      "lng": 94.9099,
+      "roadNodeId": "2458457775",
+      "accessGapKm": 0.316121
+    },
+    {
+      "pagodaId": "kyaukguumin",
+      "name": "Kyauk Gu U Min (The Cave Temple)",
+      "lat": 21.1797,
+      "lng": 94.9189,
+      "roadNodeId": "8534942460",
+      "accessGapKm": 0.687211
+    },
+    {
+      "pagodaId": "kyaunggyi",
+      "name": "Kyaung Gyi Temple (Kyaung Gyi Nyiat or Kyaung Gyi Paya)",
+      "lat": 21.1526,
+      "lng": 94.9004,
+      "roadNodeId": "648851105",
+      "accessGapKm": 0.167887
+    },
+    {
       "pagodaId": "lawkananda",
       "name": "Lawkananda Pagoda",
       "lat": 21.127222,
       "lng": 94.850556,
       "roadNodeId": "6225325939",
       "accessGapKm": 2.266231
+    },
+    {
+      "pagodaId": "lawkaousaung",
+      "name": "Law Ka Ou Saung",
+      "lat": 21.1704,
+      "lng": 94.8898,
+      "roadNodeId": "2458457940",
+      "accessGapKm": 0.132063
+    },
+    {
+      "pagodaId": "lemyethna",
+      "name": "Lemyethna Temple",
+      "lat": 21.1517,
+      "lng": 94.9087,
+      "roadNodeId": "3975914474",
+      "accessGapKm": 0.200406
+    },
+    {
+      "pagodaId": "letputkan",
+      "name": "Let Put Kan Temple",
+      "lat": 21.16875,
+      "lng": 94.89626,
+      "roadNodeId": "2459976365",
+      "accessGapKm": 0.117117
+    },
+    {
+      "pagodaId": "lokahteikpan",
+      "name": "Lokahteikpan Temple",
+      "lat": 21.1659,
+      "lng": 94.8658,
+      "roadNodeId": "2458061293",
+      "accessGapKm": 0.030037
+    },
+    {
+      "pagodaId": "mahabodhi",
+      "name": "Mahabodhi Temple",
+      "lat": 21.1768,
+      "lng": 94.8783,
+      "roadNodeId": "2462208350",
+      "accessGapKm": 0.266831
     },
     {
       "pagodaId": "mahazedi",
@@ -102,12 +255,124 @@
       "accessGapKm": 0.133078
     },
     {
+      "pagodaId": "mineyeingon",
+      "name": "Mi-nyein-gon Pagoda",
+      "lat": 21.1514,
+      "lng": 94.8708,
+      "roadNodeId": "2457894757",
+      "accessGapKm": 0.303004
+    },
+    {
+      "pagodaId": "mingalazedi",
+      "name": "Mingalazedi Pagoda",
+      "lat": 21.1718,
+      "lng": 94.8857,
+      "roadNodeId": "2458458003",
+      "accessGapKm": 0.236027
+    },
+    {
+      "pagodaId": "minochantha",
+      "name": "Minochantha",
+      "lat": 21.1734,
+      "lng": 94.8722,
+      "roadNodeId": "1177339744",
+      "accessGapKm": 0.010434
+    },
+    {
+      "pagodaId": "myazedi",
+      "name": "Myazedi Pagoda",
+      "lat": 21.1607,
+      "lng": 94.9052,
+      "roadNodeId": "2091625700",
+      "accessGapKm": 0.255561
+    },
+    {
+      "pagodaId": "nagayon",
+      "name": "Nagayon Temple",
+      "lat": 21.1598,
+      "lng": 94.9029,
+      "roadNodeId": "2091625669",
+      "accessGapKm": 0.053837
+    },
+    {
+      "pagodaId": "nandamannya",
+      "name": "Nandamannya Temple",
+      "lat": 21.1528,
+      "lng": 94.9068,
+      "roadNodeId": "3975914471",
+      "accessGapKm": 0.183596
+    },
+    {
+      "pagodaId": "nanpaya",
+      "name": "Nanpaya Temple",
+      "lat": 21.1584,
+      "lng": 94.9038,
+      "roadNodeId": "2645015650",
+      "accessGapKm": 0.050953
+    },
+    {
+      "pagodaId": "nathlaungkyaung",
+      "name": "Nathlaung Kyaung Temple",
+      "lat": 21.1681,
+      "lng": 94.8599,
+      "roadNodeId": "8530612526",
+      "accessGapKm": 0.036199
+    },
+    {
+      "pagodaId": "ngakywenataung",
+      "name": "Ngakywe Nataung",
+      "lat": 21.169,
+      "lng": 94.859,
+      "roadNodeId": "2419861533",
+      "accessGapKm": 0.015643
+    },
+    {
+      "pagodaId": "northguni",
+      "name": "North Guni Temple (Myauk Guni) Sunset Pagoda",
+      "lat": 21.1612,
+      "lng": 94.8724,
+      "roadNodeId": "2637733395",
+      "accessGapKm": 0.05615
+    },
+    {
+      "pagodaId": "pahtothamya",
+      "name": "Pahto Thamya Temple",
+      "lat": 21.167,
+      "lng": 94.858,
+      "roadNodeId": "2457814480",
+      "accessGapKm": 0.032985
+    },
+    {
+      "pagodaId": "payathonzu",
+      "name": "Payathonzu Temple",
+      "lat": 21.1546,
+      "lng": 94.9097,
+      "roadNodeId": "3975914476",
+      "accessGapKm": 0.136387
+    },
+    {
+      "pagodaId": "pebingyaung",
+      "name": "Pebingyaung Pagoda",
+      "lat": 21.1671,
+      "lng": 94.853,
+      "roadNodeId": "11027135023",
+      "accessGapKm": 0.033503
+    },
+    {
       "pagodaId": "pyathetgyi",
       "name": "Pyathetgyi Temple",
       "lat": 21.15829,
       "lng": 94.88957,
       "roadNodeId": "4615858156",
       "accessGapKm": 0.083196
+    },
+    {
+      "pagodaId": "sapada",
+      "name": "Sapada Pagoda",
+      "lat": 21.19465,
+      "lng": 94.90675,
+      "roadNodeId": "4031915316",
+      "accessGapKm": 0.03608
     },
     {
       "pagodaId": "seinnyetnyiama",
@@ -118,12 +383,36 @@
       "accessGapKm": 1.154742
     },
     {
+      "pagodaId": "shinbinthalyaung",
+      "name": "Shinthalyung Temple",
+      "lat": 21.1615,
+      "lng": 94.8716,
+      "roadNodeId": "6778857546",
+      "accessGapKm": 0.032416
+    },
+    {
       "pagodaId": "shwegugyi",
       "name": "Shwe Gu Gyi",
       "lat": 21.170744,
       "lng": 94.862406,
       "roadNodeId": "2091625952",
       "accessGapKm": 0.021477
+    },
+    {
+      "pagodaId": "shweleiktoo",
+      "name": "Shwe Leik Too Temple",
+      "lat": 21.1811,
+      "lng": 94.8861,
+      "roadNodeId": "8530574145",
+      "accessGapKm": 0.055168
+    },
+    {
+      "pagodaId": "shwesandaw",
+      "name": "Shwesandaw Pagoda",
+      "lat": 21.1669,
+      "lng": 94.8671,
+      "roadNodeId": "1614739243",
+      "accessGapKm": 0.064564
     },
     {
       "pagodaId": "shwezigon",
@@ -134,12 +423,92 @@
       "accessGapKm": 0.124568
     },
     {
+      "pagodaId": "sinphyushin",
+      "name": "Sin-phyu-shin Temple",
+      "lat": 21.1542,
+      "lng": 94.9139,
+      "roadNodeId": "6796858100",
+      "accessGapKm": 0.022952
+    },
+    {
+      "pagodaId": "sittanagyi",
+      "name": "Sittanagyi Pagoda",
+      "lat": 21.1448,
+      "lng": 94.8555,
+      "roadNodeId": "597205432",
+      "accessGapKm": 1.16196
+    },
+    {
+      "pagodaId": "somingyi",
+      "name": "Somingyi Pagoda",
+      "lat": 21.1604,
+      "lng": 94.8557,
+      "roadNodeId": "6740261937",
+      "accessGapKm": 0.129635
+    },
+    {
+      "pagodaId": "southguni",
+      "name": "South Guni Temple (Taung Guni)",
+      "lat": 21.1588,
+      "lng": 94.8735,
+      "roadNodeId": "8530707148",
+      "accessGapKm": 0.224237
+    },
+    {
       "pagodaId": "sulamani",
       "name": "Sulamani Temple",
       "lat": 21.1649,
       "lng": 94.8814,
       "roadNodeId": "1584896533",
       "accessGapKm": 0.112668
+    },
+    {
+      "pagodaId": "tantkyitaung",
+      "name": "Tant Kyi Taung Pagoda",
+      "lat": 21.15527,
+      "lng": 94.78786,
+      "roadNodeId": "8531661436",
+      "accessGapKm": 6.827667
+    },
+    {
+      "pagodaId": "tawethpaya",
+      "name": "Ta Wet Hpaya Temple",
+      "lat": 21.1589,
+      "lng": 94.8806,
+      "roadNodeId": "8530707140",
+      "accessGapKm": 0.357256
+    },
+    {
+      "pagodaId": "tayokpye",
+      "name": "Tayok Pye Temple",
+      "lat": 21.1812,
+      "lng": 94.8811,
+      "roadNodeId": "6225223005",
+      "accessGapKm": 0.059638
+    },
+    {
+      "pagodaId": "thabeikhmauk",
+      "name": "Thabeik Hmauk Temple",
+      "lat": 21.16587,
+      "lng": 94.88354,
+      "roadNodeId": "2459973161",
+      "accessGapKm": 0.047709
+    },
+    {
+      "pagodaId": "thakyamuni",
+      "name": "Thakyamuni Temple",
+      "lat": 21.20765,
+      "lng": 94.9279,
+      "roadNodeId": "2089394696",
+      "accessGapKm": 1.400883
+    },
+    {
+      "pagodaId": "thamanhpaya",
+      "name": "Tha-man-hpaya Temple",
+      "lat": 21.1498,
+      "lng": 94.9162,
+      "roadNodeId": "6796857994",
+      "accessGapKm": 0.437935
     },
     {
       "pagodaId": "thambula",
@@ -150,188 +519,2224 @@
       "accessGapKm": 0.005506
     },
     {
+      "pagodaId": "thandawkya",
+      "name": "Than-daw-kya",
+      "lat": 21.1722,
+      "lng": 94.8631,
+      "roadNodeId": "5274749290",
+      "accessGapKm": 0.009776
+    },
+    {
       "pagodaId": "thatbinnyu",
       "name": "Thatbyinnyu Temple",
       "lat": 21.16875,
       "lng": 94.86295,
       "roadNodeId": "7315351330",
       "accessGapKm": 0.048633
+    },
+    {
+      "pagodaId": "thitsarwadi",
+      "name": "Thitsarwadi Temple The Balloon Temple",
+      "lat": 21.1559,
+      "lng": 94.8765,
+      "roadNodeId": "2091642370",
+      "accessGapKm": 0.174087
+    },
+    {
+      "pagodaId": "tuywintaung",
+      "name": "Tuywin Taung Pagoda",
+      "lat": 21.12341,
+      "lng": 94.94638,
+      "roadNodeId": "6796857994",
+      "accessGapKm": 4.667057
+    },
+    {
+      "pagodaId": "wetkyiingubyaukgyi",
+      "name": "Gu Byauk Gyi Temple (Wetkyi-In)",
+      "lat": 21.1889,
+      "lng": 94.8948,
+      "roadNodeId": "8530916416",
+      "accessGapKm": 0.040031
+    },
+    {
+      "pagodaId": "winido",
+      "name": "Winido Temple",
+      "lat": 21.1569,
+      "lng": 94.9125,
+      "roadNodeId": "8530776767",
+      "accessGapKm": 0.148585
     }
   ],
   "edges": [
     {
+      "from": "abeyadana",
+      "to": "ashepetleik",
+      "weight": 1.137612,
+      "roadDistanceKm": 0.540233,
+      "oneWay": true
+    },
+    {
+      "from": "ashepetleik",
+      "to": "abeyadana",
+      "weight": 1.137612,
+      "roadDistanceKm": 0.540233,
+      "oneWay": true
+    },
+    {
+      "from": "abeyadana",
+      "to": "gubyaukgyi",
+      "weight": 0.453623,
+      "roadDistanceKm": 0.299759,
+      "oneWay": true
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "abeyadana",
+      "weight": 0.453623,
+      "roadDistanceKm": 0.299759,
+      "oneWay": true
+    },
+    {
+      "from": "abeyadana",
+      "to": "manuha",
+      "weight": 0.749221,
+      "roadDistanceKm": 0.491024,
+      "oneWay": true
+    },
+    {
+      "from": "manuha",
+      "to": "abeyadana",
+      "weight": 0.749221,
+      "roadDistanceKm": 0.491024,
+      "oneWay": true
+    },
+    {
       "from": "alodawpyae",
       "to": "htilominlo",
       "weight": 0.716734,
-      "roadDistanceKm": 0.609342
+      "roadDistanceKm": 0.609342,
+      "oneWay": true
+    },
+    {
+      "from": "htilominlo",
+      "to": "alodawpyae",
+      "weight": 0.716734,
+      "roadDistanceKm": 0.609342,
+      "oneWay": true
     },
     {
       "from": "alodawpyae",
       "to": "izagawna",
       "weight": 5.260075,
-      "roadDistanceKm": 5.161697
+      "roadDistanceKm": 5.161697,
+      "oneWay": true
+    },
+    {
+      "from": "izagawna",
+      "to": "alodawpyae",
+      "weight": 5.450664,
+      "roadDistanceKm": 5.352285,
+      "oneWay": true
+    },
+    {
+      "from": "alodawpyae",
+      "to": "lawkaousaung",
+      "weight": 1.915397,
+      "roadDistanceKm": 1.740307,
+      "oneWay": true
+    },
+    {
+      "from": "lawkaousaung",
+      "to": "alodawpyae",
+      "weight": 2.105985,
+      "roadDistanceKm": 1.930896,
+      "oneWay": true
+    },
+    {
+      "from": "alodawpyae",
+      "to": "mahabodhi",
+      "weight": 0.935355,
+      "roadDistanceKm": 0.625497,
+      "oneWay": true
+    },
+    {
+      "from": "mahabodhi",
+      "to": "alodawpyae",
+      "weight": 0.935355,
+      "roadDistanceKm": 0.625497,
+      "oneWay": true
+    },
+    {
+      "from": "alodawpyae",
+      "to": "mingalazedi",
+      "weight": 1.532222,
+      "roadDistanceKm": 1.253169,
+      "oneWay": true
+    },
+    {
+      "from": "mingalazedi",
+      "to": "alodawpyae",
+      "weight": 1.722811,
+      "roadDistanceKm": 1.443757,
+      "oneWay": true
+    },
+    {
+      "from": "alodawpyae",
+      "to": "shweleiktoo",
+      "weight": 0.86124,
+      "roadDistanceKm": 0.763045,
+      "oneWay": true
+    },
+    {
+      "from": "shweleiktoo",
+      "to": "alodawpyae",
+      "weight": 0.848439,
+      "roadDistanceKm": 0.750244,
+      "oneWay": true
     },
     {
       "from": "alodawpyae",
       "to": "shwezigon",
       "weight": 2.83646,
-      "roadDistanceKm": 2.668865
+      "roadDistanceKm": 2.668865,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "alodawpyae",
+      "weight": 2.823659,
+      "roadDistanceKm": 2.656064,
+      "oneWay": true
     },
     {
       "from": "alodawpyae",
       "to": "sulamani",
       "weight": 3.44924,
-      "roadDistanceKm": 3.293545
+      "roadDistanceKm": 3.293545,
+      "oneWay": true
+    },
+    {
+      "from": "sulamani",
+      "to": "alodawpyae",
+      "weight": 3.446992,
+      "roadDistanceKm": 3.291297,
+      "oneWay": true
+    },
+    {
+      "from": "alodawpyae",
+      "to": "tayokpye",
+      "weight": 0.993446,
+      "roadDistanceKm": 0.890782,
+      "oneWay": true
+    },
+    {
+      "from": "tayokpye",
+      "to": "alodawpyae",
+      "weight": 0.993446,
+      "roadDistanceKm": 0.890782,
+      "oneWay": true
     },
     {
       "from": "ananda",
       "to": "dhammayangyi",
       "weight": 1.468133,
-      "roadDistanceKm": 1.274762
+      "roadDistanceKm": 1.274762,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "ananda",
+      "weight": 1.468133,
+      "roadDistanceKm": 1.274762,
+      "oneWay": true
+    },
+    {
+      "from": "ananda",
+      "to": "hsutaungpyi",
+      "weight": 1.045591,
+      "roadDistanceKm": 0.869338,
+      "oneWay": true
+    },
+    {
+      "from": "hsutaungpyi",
+      "to": "ananda",
+      "weight": 1.045591,
+      "roadDistanceKm": 0.869338,
+      "oneWay": true
     },
     {
       "from": "ananda",
       "to": "htilominlo",
       "weight": 2.284987,
-      "roadDistanceKm": 2.126964
+      "roadDistanceKm": 2.126964,
+      "oneWay": true
+    },
+    {
+      "from": "htilominlo",
+      "to": "ananda",
+      "weight": 2.284987,
+      "roadDistanceKm": 2.126964,
+      "oneWay": true
+    },
+    {
+      "from": "ananda",
+      "to": "minochantha",
+      "weight": 1.00313,
+      "roadDistanceKm": 0.899038,
+      "oneWay": true
+    },
+    {
+      "from": "minochantha",
+      "to": "ananda",
+      "weight": 1.00313,
+      "roadDistanceKm": 0.899038,
+      "oneWay": true
     },
     {
       "from": "ananda",
       "to": "shwegugyi",
       "weight": 0.912006,
-      "roadDistanceKm": 0.79687
+      "roadDistanceKm": 0.79687,
+      "oneWay": true
+    },
+    {
+      "from": "shwegugyi",
+      "to": "ananda",
+      "weight": 0.912006,
+      "roadDistanceKm": 0.79687,
+      "oneWay": true
+    },
+    {
+      "from": "ananda",
+      "to": "shwesandaw",
+      "weight": 0.653389,
+      "roadDistanceKm": 0.495166,
+      "oneWay": true
+    },
+    {
+      "from": "shwesandaw",
+      "to": "ananda",
+      "weight": 0.652022,
+      "roadDistanceKm": 0.4938,
+      "oneWay": true
     },
     {
       "from": "ananda",
       "to": "thatbinnyu",
       "weight": 1.025193,
-      "roadDistanceKm": 0.882901
+      "roadDistanceKm": 0.882901,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "ananda",
+      "weight": 1.025193,
+      "roadDistanceKm": 0.882901,
+      "oneWay": true
+    },
+    {
+      "from": "anaukpetleik",
+      "to": "ashepetleik",
+      "weight": 1.137449,
+      "roadDistanceKm": 0.120629,
+      "oneWay": true
+    },
+    {
+      "from": "ashepetleik",
+      "to": "anaukpetleik",
+      "weight": 1.137449,
+      "roadDistanceKm": 0.120629,
+      "oneWay": true
+    },
+    {
+      "from": "anaukpetleik",
+      "to": "gubyaukgyi",
+      "weight": 1.190183,
+      "roadDistanceKm": 0.616879,
+      "oneWay": true
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "anaukpetleik",
+      "weight": 1.190183,
+      "roadDistanceKm": 0.616879,
+      "oneWay": true
+    },
+    {
+      "from": "anaukpetleik",
+      "to": "manuha",
+      "weight": 0.893985,
+      "roadDistanceKm": 0.216348,
+      "oneWay": true
+    },
+    {
+      "from": "manuha",
+      "to": "anaukpetleik",
+      "weight": 0.893985,
+      "roadDistanceKm": 0.216348,
+      "oneWay": true
+    },
+    {
+      "from": "ashepetleik",
+      "to": "gubyaukgyi",
+      "weight": 0.997255,
+      "roadDistanceKm": 0.496251,
+      "oneWay": true
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "ashepetleik",
+      "weight": 0.997255,
+      "roadDistanceKm": 0.496251,
+      "oneWay": true
+    },
+    {
+      "from": "ashepetleik",
+      "to": "manuha",
+      "weight": 0.701057,
+      "roadDistanceKm": 0.095719,
+      "oneWay": true
+    },
+    {
+      "from": "manuha",
+      "to": "ashepetleik",
+      "weight": 0.701057,
+      "roadDistanceKm": 0.095719,
+      "oneWay": true
+    },
+    {
+      "from": "ashepetleik",
+      "to": "sittanagyi",
+      "weight": 1.729939,
+      "roadDistanceKm": 0.095719,
+      "oneWay": true
+    },
+    {
+      "from": "sittanagyi",
+      "to": "ashepetleik",
+      "weight": 1.729939,
+      "roadDistanceKm": 0.095719,
+      "oneWay": true
+    },
+    {
+      "from": "bulethi",
+      "to": "dhammayangyi",
+      "weight": 1.369844,
+      "roadDistanceKm": 1.011709,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "bulethi",
+      "weight": 1.369844,
+      "roadDistanceKm": 1.011709,
+      "oneWay": true
+    },
+    {
+      "from": "bulethi",
+      "to": "shinbinthalyaung",
+      "weight": 1.359444,
+      "roadDistanceKm": 1.068606,
+      "oneWay": true
+    },
+    {
+      "from": "shinbinthalyaung",
+      "to": "bulethi",
+      "weight": 1.359444,
+      "roadDistanceKm": 1.068606,
+      "oneWay": true
+    },
+    {
+      "from": "bulethi",
+      "to": "sulamani",
+      "weight": 0.665865,
+      "roadDistanceKm": 0.294776,
+      "oneWay": true
+    },
+    {
+      "from": "sulamani",
+      "to": "bulethi",
+      "weight": 0.665865,
+      "roadDistanceKm": 0.294776,
+      "oneWay": true
+    },
+    {
+      "from": "bulethi",
+      "to": "thabeikhmauk",
+      "weight": 1.651913,
+      "roadDistanceKm": 1.345782,
+      "oneWay": true
+    },
+    {
+      "from": "thabeikhmauk",
+      "to": "bulethi",
+      "weight": 1.651913,
+      "roadDistanceKm": 1.345782,
+      "oneWay": true
     },
     {
       "from": "bupaya",
       "to": "gawdawpalin",
       "weight": 0.853958,
-      "roadDistanceKm": 0.744321
+      "roadDistanceKm": 0.744321,
+      "oneWay": true
+    },
+    {
+      "from": "gawdawpalin",
+      "to": "bupaya",
+      "weight": 0.853958,
+      "roadDistanceKm": 0.744321,
+      "oneWay": true
     },
     {
       "from": "bupaya",
       "to": "shwegugyi",
       "weight": 1.096463,
-      "roadDistanceKm": 1.030926
+      "roadDistanceKm": 1.030926,
+      "oneWay": true
+    },
+    {
+      "from": "shwegugyi",
+      "to": "bupaya",
+      "weight": 1.096463,
+      "roadDistanceKm": 1.030926,
+      "oneWay": true
     },
     {
       "from": "dhammayangyi",
       "to": "dhammayazaka",
       "weight": 2.839486,
-      "roadDistanceKm": 2.652264
+      "roadDistanceKm": 2.652264,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayazaka",
+      "to": "dhammayangyi",
+      "weight": 2.839486,
+      "roadDistanceKm": 2.652264,
+      "oneWay": true
     },
     {
       "from": "dhammayangyi",
       "to": "gubyaukgyi",
       "weight": 2.424289,
-      "roadDistanceKm": 2.295831
+      "roadDistanceKm": 2.295831,
+      "oneWay": true
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "dhammayangyi",
+      "weight": 2.424289,
+      "roadDistanceKm": 2.295831,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "kusinara",
+      "weight": 0.804651,
+      "roadDistanceKm": 0.631226,
+      "oneWay": true
+    },
+    {
+      "from": "kusinara",
+      "to": "dhammayangyi",
+      "weight": 0.804651,
+      "roadDistanceKm": 0.631226,
+      "oneWay": true
     },
     {
       "from": "dhammayangyi",
       "to": "mahazedi",
       "weight": 1.583795,
-      "roadDistanceKm": 1.464346
+      "roadDistanceKm": 1.464346,
+      "oneWay": true
+    },
+    {
+      "from": "mahazedi",
+      "to": "dhammayangyi",
+      "weight": 1.583795,
+      "roadDistanceKm": 1.464346,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "northguni",
+      "weight": 0.202264,
+      "roadDistanceKm": 0.046402,
+      "oneWay": true
+    },
+    {
+      "from": "northguni",
+      "to": "dhammayangyi",
+      "weight": 0.202264,
+      "roadDistanceKm": 0.046402,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "shinbinthalyaung",
+      "weight": 0.189026,
+      "roadDistanceKm": 0.056897,
+      "oneWay": true
+    },
+    {
+      "from": "shinbinthalyaung",
+      "to": "dhammayangyi",
+      "weight": 0.189026,
+      "roadDistanceKm": 0.056897,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "southguni",
+      "weight": 1.115069,
+      "roadDistanceKm": 0.791119,
+      "oneWay": true
+    },
+    {
+      "from": "southguni",
+      "to": "dhammayangyi",
+      "weight": 1.115069,
+      "roadDistanceKm": 0.791119,
+      "oneWay": true
     },
     {
       "from": "dhammayangyi",
       "to": "sulamani",
       "weight": 1.518866,
-      "roadDistanceKm": 1.306485
+      "roadDistanceKm": 1.306485,
+      "oneWay": true
+    },
+    {
+      "from": "sulamani",
+      "to": "dhammayangyi",
+      "weight": 1.518866,
+      "roadDistanceKm": 1.306485,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "tawethpaya",
+      "weight": 1.56395,
+      "roadDistanceKm": 1.106981,
+      "oneWay": true
+    },
+    {
+      "from": "tawethpaya",
+      "to": "dhammayangyi",
+      "weight": 1.56395,
+      "roadDistanceKm": 1.106981,
+      "oneWay": true
+    },
+    {
+      "from": "dhammayangyi",
+      "to": "thitsarwadi",
+      "weight": 1.464643,
+      "roadDistanceKm": 1.190843,
+      "oneWay": true
+    },
+    {
+      "from": "thitsarwadi",
+      "to": "dhammayangyi",
+      "weight": 1.464643,
+      "roadDistanceKm": 1.190843,
+      "oneWay": true
     },
     {
       "from": "dhammayazaka",
       "to": "manuha",
       "weight": 5.34022,
-      "roadDistanceKm": 5.119634
+      "roadDistanceKm": 5.119634,
+      "oneWay": true
+    },
+    {
+      "from": "manuha",
+      "to": "dhammayazaka",
+      "weight": 5.34022,
+      "roadDistanceKm": 5.119634,
+      "oneWay": true
     },
     {
       "from": "dhammayazaka",
       "to": "pyathetgyi",
       "weight": 4.868586,
-      "roadDistanceKm": 4.697882
+      "roadDistanceKm": 4.697882,
+      "oneWay": true
+    },
+    {
+      "from": "pyathetgyi",
+      "to": "dhammayazaka",
+      "weight": 4.868586,
+      "roadDistanceKm": 4.697882,
+      "oneWay": true
     },
     {
       "from": "dhammayazaka",
       "to": "seinnyetnyiama",
       "weight": 6.980489,
-      "roadDistanceKm": 5.738239
+      "roadDistanceKm": 5.738239,
+      "oneWay": true
+    },
+    {
+      "from": "seinnyetnyiama",
+      "to": "dhammayazaka",
+      "weight": 6.980489,
+      "roadDistanceKm": 5.738239,
+      "oneWay": true
+    },
+    {
+      "from": "gawdawpalin",
+      "to": "ngakywenataung",
+      "weight": 0.359667,
+      "roadDistanceKm": 0.278447,
+      "oneWay": true
+    },
+    {
+      "from": "ngakywenataung",
+      "to": "gawdawpalin",
+      "weight": 0.359667,
+      "roadDistanceKm": 0.278447,
+      "oneWay": true
+    },
+    {
+      "from": "gawdawpalin",
+      "to": "pahtothamya",
+      "weight": 1.125639,
+      "roadDistanceKm": 1.027078,
+      "oneWay": true
+    },
+    {
+      "from": "pahtothamya",
+      "to": "gawdawpalin",
+      "weight": 0.501485,
+      "roadDistanceKm": 0.402924,
+      "oneWay": true
+    },
+    {
+      "from": "gawdawpalin",
+      "to": "pebingyaung",
+      "weight": 0.981292,
+      "roadDistanceKm": 0.882212,
+      "oneWay": true
+    },
+    {
+      "from": "pebingyaung",
+      "to": "gawdawpalin",
+      "weight": 1.60674,
+      "roadDistanceKm": 1.50766,
+      "oneWay": true
     },
     {
       "from": "gawdawpalin",
       "to": "shwegugyi",
       "weight": 0.913031,
-      "roadDistanceKm": 0.825978
+      "roadDistanceKm": 0.825978,
+      "oneWay": true
+    },
+    {
+      "from": "shwegugyi",
+      "to": "gawdawpalin",
+      "weight": 0.913031,
+      "roadDistanceKm": 0.825978,
+      "oneWay": true
     },
     {
       "from": "gubyaukgyi",
       "to": "mahazedi",
       "weight": 1.471682,
-      "roadDistanceKm": 1.423202
+      "roadDistanceKm": 1.423202,
+      "oneWay": true
+    },
+    {
+      "from": "mahazedi",
+      "to": "gubyaukgyi",
+      "weight": 1.471682,
+      "roadDistanceKm": 1.423202,
+      "oneWay": true
     },
     {
       "from": "gubyaukgyi",
       "to": "manuha",
       "weight": 0.608864,
-      "roadDistanceKm": 0.447041
+      "roadDistanceKm": 0.447041,
+      "oneWay": true
+    },
+    {
+      "from": "manuha",
+      "to": "gubyaukgyi",
+      "weight": 0.608864,
+      "roadDistanceKm": 0.447041,
+      "oneWay": true
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "sittanagyi",
+      "weight": 1.637746,
+      "roadDistanceKm": 0.447041,
+      "oneWay": true
+    },
+    {
+      "from": "sittanagyi",
+      "to": "gubyaukgyi",
+      "weight": 1.637746,
+      "roadDistanceKm": 0.447041,
+      "oneWay": true
+    },
+    {
+      "from": "gubyaukgyi",
+      "to": "somingyi",
+      "weight": 1.331423,
+      "roadDistanceKm": 1.173043,
+      "oneWay": true
+    },
+    {
+      "from": "somingyi",
+      "to": "gubyaukgyi",
+      "weight": 1.331423,
+      "roadDistanceKm": 1.173043,
+      "oneWay": true
+    },
+    {
+      "from": "gubyauknge",
+      "to": "myazedi",
+      "weight": 0.66529,
+      "roadDistanceKm": 0.153328,
+      "oneWay": true
+    },
+    {
+      "from": "myazedi",
+      "to": "gubyauknge",
+      "weight": 0.66529,
+      "roadDistanceKm": 0.153328,
+      "oneWay": true
+    },
+    {
+      "from": "gubyauknge",
+      "to": "nagayon",
+      "weight": 0.693189,
+      "roadDistanceKm": 0.38295,
+      "oneWay": true
+    },
+    {
+      "from": "nagayon",
+      "to": "gubyauknge",
+      "weight": 0.693189,
+      "roadDistanceKm": 0.38295,
+      "oneWay": true
+    },
+    {
+      "from": "gubyauknge",
+      "to": "thambula",
+      "weight": 0.288314,
+      "roadDistanceKm": 0.026406,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "gubyauknge",
+      "weight": 0.288314,
+      "roadDistanceKm": 0.026406,
+      "oneWay": true
+    },
+    {
+      "from": "hgnetpyittaung",
+      "to": "kondawgyi",
+      "weight": 2.592925,
+      "roadDistanceKm": 1.261875,
+      "oneWay": true
+    },
+    {
+      "from": "kondawgyi",
+      "to": "hgnetpyittaung",
+      "weight": 2.592925,
+      "roadDistanceKm": 1.261875,
+      "oneWay": true
+    },
+    {
+      "from": "hgnetpyittaung",
+      "to": "kyamingatemple",
+      "weight": 0.925568,
+      "roadDistanceKm": 0.896253,
+      "oneWay": true
+    },
+    {
+      "from": "kyamingatemple",
+      "to": "hgnetpyittaung",
+      "weight": 4.214322,
+      "roadDistanceKm": 4.185007,
+      "oneWay": true
+    },
+    {
+      "from": "hgnetpyittaung",
+      "to": "kyaukguumin",
+      "weight": 2.531817,
+      "roadDistanceKm": 1.838519,
+      "oneWay": true
+    },
+    {
+      "from": "kyaukguumin",
+      "to": "hgnetpyittaung",
+      "weight": 2.531817,
+      "roadDistanceKm": 1.838519,
+      "oneWay": true
+    },
+    {
+      "from": "hgnetpyittaung",
+      "to": "sapada",
+      "weight": 0.81317,
+      "roadDistanceKm": 0.771002,
+      "oneWay": true
+    },
+    {
+      "from": "sapada",
+      "to": "hgnetpyittaung",
+      "weight": 4.28752,
+      "roadDistanceKm": 4.245353,
+      "oneWay": true
+    },
+    {
+      "from": "hgnetpyittaung",
+      "to": "shwezigon",
+      "weight": 3.224399,
+      "roadDistanceKm": 3.093744,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "hgnetpyittaung",
+      "weight": 4.931493,
+      "roadDistanceKm": 4.800838,
+      "oneWay": true
+    },
+    {
+      "from": "hgnetpyittaung",
+      "to": "thakyamuni",
+      "weight": 2.668845,
+      "roadDistanceKm": 1.261875,
+      "oneWay": true
+    },
+    {
+      "from": "thakyamuni",
+      "to": "hgnetpyittaung",
+      "weight": 2.668845,
+      "roadDistanceKm": 1.261875,
+      "oneWay": true
+    },
+    {
+      "from": "hsutaungpyi",
+      "to": "minochantha",
+      "weight": 0.122729,
+      "roadDistanceKm": 0.0297,
+      "oneWay": true
+    },
+    {
+      "from": "minochantha",
+      "to": "hsutaungpyi",
+      "weight": 0.122729,
+      "roadDistanceKm": 0.0297,
+      "oneWay": true
+    },
+    {
+      "from": "hsutaungpyi",
+      "to": "thandawkya",
+      "weight": 1.117108,
+      "roadDistanceKm": 1.024737,
+      "oneWay": true
+    },
+    {
+      "from": "thandawkya",
+      "to": "hsutaungpyi",
+      "weight": 1.117108,
+      "roadDistanceKm": 1.024737,
+      "oneWay": true
+    },
+    {
+      "from": "htilominlo",
+      "to": "mahabodhi",
+      "weight": 0.34735,
+      "roadDistanceKm": 0.016155,
+      "oneWay": true
+    },
+    {
+      "from": "mahabodhi",
+      "to": "htilominlo",
+      "weight": 0.34735,
+      "roadDistanceKm": 0.016155,
+      "oneWay": true
+    },
+    {
+      "from": "htilominlo",
+      "to": "shweleiktoo",
+      "weight": 1.341196,
+      "roadDistanceKm": 1.221664,
+      "oneWay": true
+    },
+    {
+      "from": "shweleiktoo",
+      "to": "htilominlo",
+      "weight": 1.341196,
+      "roadDistanceKm": 1.221664,
+      "oneWay": true
     },
     {
       "from": "htilominlo",
       "to": "shwezigon",
       "weight": 2.88991,
-      "roadDistanceKm": 2.700977
+      "roadDistanceKm": 2.700977,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "htilominlo",
+      "weight": 2.88991,
+      "roadDistanceKm": 2.700977,
+      "oneWay": true
+    },
+    {
+      "from": "htilominlo",
+      "to": "tayokpye",
+      "weight": 0.550337,
+      "roadDistanceKm": 0.426335,
+      "oneWay": true
+    },
+    {
+      "from": "tayokpye",
+      "to": "htilominlo",
+      "weight": 0.550337,
+      "roadDistanceKm": 0.426335,
+      "oneWay": true
     },
     {
       "from": "izagawna",
       "to": "shwezigon",
       "weight": 7.727396,
-      "roadDistanceKm": 7.547477
+      "roadDistanceKm": 7.547477,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "izagawna",
+      "weight": 7.872875,
+      "roadDistanceKm": 7.692956,
+      "oneWay": true
+    },
+    {
+      "from": "izagawna",
+      "to": "sinphyushin",
+      "weight": 3.154256,
+      "roadDistanceKm": 3.075953,
+      "oneWay": true
+    },
+    {
+      "from": "sinphyushin",
+      "to": "izagawna",
+      "weight": 3.154256,
+      "roadDistanceKm": 3.075953,
+      "oneWay": true
+    },
+    {
+      "from": "izagawna",
+      "to": "thamanhpaya",
+      "weight": 3.546419,
+      "roadDistanceKm": 3.053133,
+      "oneWay": true
+    },
+    {
+      "from": "thamanhpaya",
+      "to": "izagawna",
+      "weight": 3.546419,
+      "roadDistanceKm": 3.053133,
+      "oneWay": true
     },
     {
       "from": "izagawna",
       "to": "thambula",
       "weight": 1.079736,
-      "roadDistanceKm": 1.018878
+      "roadDistanceKm": 1.018878,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "izagawna",
+      "weight": 1.079736,
+      "roadDistanceKm": 1.018878,
+      "oneWay": true
+    },
+    {
+      "from": "izagawna",
+      "to": "tuywintaung",
+      "weight": 7.775541,
+      "roadDistanceKm": 3.053133,
+      "oneWay": true
+    },
+    {
+      "from": "tuywintaung",
+      "to": "izagawna",
+      "weight": 7.775541,
+      "roadDistanceKm": 3.053133,
+      "oneWay": true
+    },
+    {
+      "from": "izagawna",
+      "to": "winido",
+      "weight": 3.324638,
+      "roadDistanceKm": 3.120702,
+      "oneWay": true
+    },
+    {
+      "from": "winido",
+      "to": "izagawna",
+      "weight": 3.324638,
+      "roadDistanceKm": 3.120702,
+      "oneWay": true
+    },
+    {
+      "from": "khamaunggyi",
+      "to": "sapada",
+      "weight": 5.424009,
+      "roadDistanceKm": 5.079585,
+      "oneWay": true
+    },
+    {
+      "from": "sapada",
+      "to": "khamaunggyi",
+      "weight": 1.23433,
+      "roadDistanceKm": 0.889906,
+      "oneWay": true
+    },
+    {
+      "from": "khamaunggyi",
+      "to": "shwezigon",
+      "weight": 2.79781,
+      "roadDistanceKm": 2.364898,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "khamaunggyi",
+      "weight": 2.782028,
+      "roadDistanceKm": 2.349116,
+      "oneWay": true
+    },
+    {
+      "from": "khamaunggyi",
+      "to": "wetkyiingubyaukgyi",
+      "weight": 2.043367,
+      "roadDistanceKm": 1.694992,
+      "oneWay": true
+    },
+    {
+      "from": "wetkyiingubyaukgyi",
+      "to": "khamaunggyi",
+      "weight": 2.043367,
+      "roadDistanceKm": 1.694992,
+      "oneWay": true
+    },
+    {
+      "from": "kondawgyi",
+      "to": "shwezigon",
+      "weight": 5.376605,
+      "roadDistanceKm": 3.927075,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "kondawgyi",
+      "weight": 7.20525,
+      "roadDistanceKm": 5.75572,
+      "oneWay": true
+    },
+    {
+      "from": "kondawgyi",
+      "to": "thakyamuni",
+      "weight": 2.725845,
+      "roadDistanceKm": 0.0,
+      "oneWay": true
+    },
+    {
+      "from": "thakyamuni",
+      "to": "kondawgyi",
+      "weight": 2.725845,
+      "roadDistanceKm": 0.0,
+      "oneWay": true
+    },
+    {
+      "from": "kusinara",
+      "to": "lokahteikpan",
+      "weight": 0.621345,
+      "roadDistanceKm": 0.517596,
+      "oneWay": true
+    },
+    {
+      "from": "lokahteikpan",
+      "to": "kusinara",
+      "weight": 0.621345,
+      "roadDistanceKm": 0.517596,
+      "oneWay": true
+    },
+    {
+      "from": "kusinara",
+      "to": "northguni",
+      "weight": 0.714686,
+      "roadDistanceKm": 0.584824,
+      "oneWay": true
+    },
+    {
+      "from": "northguni",
+      "to": "kusinara",
+      "weight": 0.714686,
+      "roadDistanceKm": 0.584824,
+      "oneWay": true
+    },
+    {
+      "from": "kusinara",
+      "to": "shinbinthalyaung",
+      "weight": 0.680457,
+      "roadDistanceKm": 0.574329,
+      "oneWay": true
+    },
+    {
+      "from": "shinbinthalyaung",
+      "to": "kusinara",
+      "weight": 0.680457,
+      "roadDistanceKm": 0.574329,
+      "oneWay": true
+    },
+    {
+      "from": "kusinara",
+      "to": "shwesandaw",
+      "weight": 0.700873,
+      "roadDistanceKm": 0.562597,
+      "oneWay": true
+    },
+    {
+      "from": "shwesandaw",
+      "to": "kusinara",
+      "weight": 0.700873,
+      "roadDistanceKm": 0.562597,
+      "oneWay": true
+    },
+    {
+      "from": "kyamingatemple",
+      "to": "sapada",
+      "weight": 4.655688,
+      "roadDistanceKm": 4.596379,
+      "oneWay": true
+    },
+    {
+      "from": "sapada",
+      "to": "kyamingatemple",
+      "weight": 0.184559,
+      "roadDistanceKm": 0.125251,
+      "oneWay": true
+    },
+    {
+      "from": "kyamingatemple",
+      "to": "shwezigon",
+      "weight": 2.410193,
+      "roadDistanceKm": 2.262396,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "kyamingatemple",
+      "weight": 5.485258,
+      "roadDistanceKm": 5.337461,
+      "oneWay": true
+    },
+    {
+      "from": "kyansittharumin",
+      "to": "nandamannya",
+      "weight": 1.161612,
+      "roadDistanceKm": 0.661895,
+      "oneWay": true
+    },
+    {
+      "from": "nandamannya",
+      "to": "kyansittharumin",
+      "weight": 1.161612,
+      "roadDistanceKm": 0.661895,
+      "oneWay": true
+    },
+    {
+      "from": "kyansittharumin",
+      "to": "nanpaya",
+      "weight": 0.980756,
+      "roadDistanceKm": 0.613682,
+      "oneWay": true
+    },
+    {
+      "from": "nanpaya",
+      "to": "kyansittharumin",
+      "weight": 0.980756,
+      "roadDistanceKm": 0.613682,
+      "oneWay": true
+    },
+    {
+      "from": "kyansittharumin",
+      "to": "thambula",
+      "weight": 1.556616,
+      "roadDistanceKm": 1.234989,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "kyansittharumin",
+      "weight": 1.556616,
+      "roadDistanceKm": 1.234989,
+      "oneWay": true
+    },
+    {
+      "from": "kyaukguumin",
+      "to": "sapada",
+      "weight": 2.973182,
+      "roadDistanceKm": 2.249891,
+      "oneWay": true
+    },
+    {
+      "from": "sapada",
+      "to": "kyaukguumin",
+      "weight": 3.688313,
+      "roadDistanceKm": 2.965022,
+      "oneWay": true
+    },
+    {
+      "from": "kyaukguumin",
+      "to": "shwezigon",
+      "weight": 4.55452,
+      "roadDistanceKm": 3.742741,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "kyaukguumin",
+      "weight": 4.332287,
+      "roadDistanceKm": 3.520507,
+      "oneWay": true
+    },
+    {
+      "from": "kyaunggyi",
+      "to": "nagayon",
+      "weight": 1.135803,
+      "roadDistanceKm": 0.914078,
+      "oneWay": true
+    },
+    {
+      "from": "nagayon",
+      "to": "kyaunggyi",
+      "weight": 1.135803,
+      "roadDistanceKm": 0.914078,
+      "oneWay": true
+    },
+    {
+      "from": "kyaunggyi",
+      "to": "nanpaya",
+      "weight": 1.197888,
+      "roadDistanceKm": 0.979047,
+      "oneWay": true
+    },
+    {
+      "from": "nanpaya",
+      "to": "kyaunggyi",
+      "weight": 1.197888,
+      "roadDistanceKm": 0.979047,
+      "oneWay": true
+    },
+    {
+      "from": "kyaunggyi",
+      "to": "thambula",
+      "weight": 1.444016,
+      "roadDistanceKm": 1.270622,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "kyaunggyi",
+      "weight": 1.444016,
+      "roadDistanceKm": 1.270622,
+      "oneWay": true
     },
     {
       "from": "lawkananda",
       "to": "seinnyetnyiama",
       "weight": 3.979624,
-      "roadDistanceKm": 0.558651
+      "roadDistanceKm": 0.558651,
+      "oneWay": true
+    },
+    {
+      "from": "seinnyetnyiama",
+      "to": "lawkananda",
+      "weight": 3.979624,
+      "roadDistanceKm": 0.558651,
+      "oneWay": true
+    },
+    {
+      "from": "lawkaousaung",
+      "to": "letputkan",
+      "weight": 0.975861,
+      "roadDistanceKm": 0.726681,
+      "oneWay": true
+    },
+    {
+      "from": "letputkan",
+      "to": "lawkaousaung",
+      "weight": 0.975861,
+      "roadDistanceKm": 0.726681,
+      "oneWay": true
+    },
+    {
+      "from": "lawkaousaung",
+      "to": "mingalazedi",
+      "weight": 0.855227,
+      "roadDistanceKm": 0.487138,
+      "oneWay": true
+    },
+    {
+      "from": "mingalazedi",
+      "to": "lawkaousaung",
+      "weight": 0.855227,
+      "roadDistanceKm": 0.487138,
+      "oneWay": true
+    },
+    {
+      "from": "lemyethna",
+      "to": "nandamannya",
+      "weight": 0.48097,
+      "roadDistanceKm": 0.096967,
+      "oneWay": true
+    },
+    {
+      "from": "nandamannya",
+      "to": "lemyethna",
+      "weight": 0.48097,
+      "roadDistanceKm": 0.096967,
+      "oneWay": true
+    },
+    {
+      "from": "lemyethna",
+      "to": "payathonzu",
+      "weight": 0.406524,
+      "roadDistanceKm": 0.069731,
+      "oneWay": true
+    },
+    {
+      "from": "payathonzu",
+      "to": "lemyethna",
+      "weight": 0.406524,
+      "roadDistanceKm": 0.069731,
+      "oneWay": true
+    },
+    {
+      "from": "lemyethna",
+      "to": "thambula",
+      "weight": 1.70643,
+      "roadDistanceKm": 1.500518,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "lemyethna",
+      "weight": 1.70643,
+      "roadDistanceKm": 1.500518,
+      "oneWay": true
+    },
+    {
+      "from": "letputkan",
+      "to": "mingalazedi",
+      "weight": 1.566964,
+      "roadDistanceKm": 1.21382,
+      "oneWay": true
+    },
+    {
+      "from": "mingalazedi",
+      "to": "letputkan",
+      "weight": 1.566964,
+      "roadDistanceKm": 1.21382,
+      "oneWay": true
+    },
+    {
+      "from": "letputkan",
+      "to": "thambula",
+      "weight": 1.888019,
+      "roadDistanceKm": 1.765395,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "letputkan",
+      "weight": 1.888019,
+      "roadDistanceKm": 1.765395,
+      "oneWay": true
+    },
+    {
+      "from": "lokahteikpan",
+      "to": "mineyeingon",
+      "weight": 2.071558,
+      "roadDistanceKm": 1.738517,
+      "oneWay": true
+    },
+    {
+      "from": "mineyeingon",
+      "to": "lokahteikpan",
+      "weight": 2.071558,
+      "roadDistanceKm": 1.738517,
+      "oneWay": true
+    },
+    {
+      "from": "lokahteikpan",
+      "to": "shwesandaw",
+      "weight": 0.466558,
+      "roadDistanceKm": 0.371958,
+      "oneWay": true
+    },
+    {
+      "from": "shwesandaw",
+      "to": "lokahteikpan",
+      "weight": 0.466558,
+      "roadDistanceKm": 0.371958,
+      "oneWay": true
+    },
+    {
+      "from": "lokahteikpan",
+      "to": "thatbinnyu",
+      "weight": 0.815159,
+      "roadDistanceKm": 0.73649,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "lokahteikpan",
+      "weight": 0.743282,
+      "roadDistanceKm": 0.664612,
+      "oneWay": true
+    },
+    {
+      "from": "mahabodhi",
+      "to": "tayokpye",
+      "weight": 0.740858,
+      "roadDistanceKm": 0.41439,
+      "oneWay": true
+    },
+    {
+      "from": "tayokpye",
+      "to": "mahabodhi",
+      "weight": 0.740858,
+      "roadDistanceKm": 0.41439,
+      "oneWay": true
+    },
+    {
+      "from": "mahazedi",
+      "to": "mineyeingon",
+      "weight": 2.208824,
+      "roadDistanceKm": 1.886085,
+      "oneWay": true
+    },
+    {
+      "from": "mineyeingon",
+      "to": "mahazedi",
+      "weight": 2.208824,
+      "roadDistanceKm": 1.886085,
+      "oneWay": true
+    },
+    {
+      "from": "mahazedi",
+      "to": "somingyi",
+      "weight": 1.1684,
+      "roadDistanceKm": 1.01903,
+      "oneWay": true
+    },
+    {
+      "from": "somingyi",
+      "to": "mahazedi",
+      "weight": 1.140903,
+      "roadDistanceKm": 0.991532,
+      "oneWay": true
+    },
+    {
+      "from": "mahazedi",
+      "to": "tantkyitaung",
+      "weight": 8.078184,
+      "roadDistanceKm": 1.230782,
+      "oneWay": true
+    },
+    {
+      "from": "tantkyitaung",
+      "to": "mahazedi",
+      "weight": 8.071468,
+      "roadDistanceKm": 1.224066,
+      "oneWay": true
     },
     {
       "from": "mahazedi",
       "to": "thatbinnyu",
       "weight": 0.629588,
-      "roadDistanceKm": 0.56122
+      "roadDistanceKm": 0.56122,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "mahazedi",
+      "weight": 0.630032,
+      "roadDistanceKm": 0.561664,
+      "oneWay": true
     },
     {
       "from": "manuha",
       "to": "seinnyetnyiama",
       "weight": 5.449269,
-      "roadDistanceKm": 4.16145
+      "roadDistanceKm": 4.16145,
+      "oneWay": true
+    },
+    {
+      "from": "seinnyetnyiama",
+      "to": "manuha",
+      "weight": 5.449269,
+      "roadDistanceKm": 4.16145,
+      "oneWay": true
+    },
+    {
+      "from": "manuha",
+      "to": "sittanagyi",
+      "weight": 1.295038,
+      "roadDistanceKm": 0.0,
+      "oneWay": true
+    },
+    {
+      "from": "sittanagyi",
+      "to": "manuha",
+      "weight": 1.295038,
+      "roadDistanceKm": 0.0,
+      "oneWay": true
+    },
+    {
+      "from": "mineyeingon",
+      "to": "shinbinthalyaung",
+      "weight": 2.092156,
+      "roadDistanceKm": 1.756736,
+      "oneWay": true
+    },
+    {
+      "from": "shinbinthalyaung",
+      "to": "mineyeingon",
+      "weight": 2.092156,
+      "roadDistanceKm": 1.756736,
+      "oneWay": true
+    },
+    {
+      "from": "minochantha",
+      "to": "thandawkya",
+      "weight": 1.074647,
+      "roadDistanceKm": 1.054437,
+      "oneWay": true
+    },
+    {
+      "from": "thandawkya",
+      "to": "minochantha",
+      "weight": 1.074647,
+      "roadDistanceKm": 1.054437,
+      "oneWay": true
+    },
+    {
+      "from": "myazedi",
+      "to": "nagayon",
+      "weight": 0.53902,
+      "roadDistanceKm": 0.229622,
+      "oneWay": true
+    },
+    {
+      "from": "nagayon",
+      "to": "myazedi",
+      "weight": 0.53902,
+      "roadDistanceKm": 0.229622,
+      "oneWay": true
+    },
+    {
+      "from": "myazedi",
+      "to": "nanpaya",
+      "weight": 0.800899,
+      "roadDistanceKm": 0.494385,
+      "oneWay": true
+    },
+    {
+      "from": "nanpaya",
+      "to": "myazedi",
+      "weight": 0.800899,
+      "roadDistanceKm": 0.494385,
+      "oneWay": true
+    },
+    {
+      "from": "myazedi",
+      "to": "thambula",
+      "weight": 0.387989,
+      "roadDistanceKm": 0.126922,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "myazedi",
+      "weight": 0.387989,
+      "roadDistanceKm": 0.126922,
+      "oneWay": true
+    },
+    {
+      "from": "nagayon",
+      "to": "nanpaya",
+      "weight": 0.369554,
+      "roadDistanceKm": 0.264763,
+      "oneWay": true
+    },
+    {
+      "from": "nanpaya",
+      "to": "nagayon",
+      "weight": 0.369554,
+      "roadDistanceKm": 0.264763,
+      "oneWay": true
+    },
+    {
+      "from": "nagayon",
+      "to": "thambula",
+      "weight": 0.415888,
+      "roadDistanceKm": 0.356544,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "nagayon",
+      "weight": 0.415888,
+      "roadDistanceKm": 0.356544,
+      "oneWay": true
+    },
+    {
+      "from": "nandamannya",
+      "to": "payathonzu",
+      "weight": 0.486681,
+      "roadDistanceKm": 0.166698,
+      "oneWay": true
+    },
+    {
+      "from": "payathonzu",
+      "to": "nandamannya",
+      "weight": 0.486681,
+      "roadDistanceKm": 0.166698,
+      "oneWay": true
+    },
+    {
+      "from": "nandamannya",
+      "to": "thambula",
+      "weight": 1.592653,
+      "roadDistanceKm": 1.40355,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "nandamannya",
+      "weight": 1.592653,
+      "roadDistanceKm": 1.40355,
+      "oneWay": true
+    },
+    {
+      "from": "nanpaya",
+      "to": "thambula",
+      "weight": 0.677767,
+      "roadDistanceKm": 0.621307,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "nanpaya",
+      "weight": 0.677767,
+      "roadDistanceKm": 0.621307,
+      "oneWay": true
+    },
+    {
+      "from": "nathlaungkyaung",
+      "to": "ngakywenataung",
+      "weight": 0.262397,
+      "roadDistanceKm": 0.210556,
+      "oneWay": true
+    },
+    {
+      "from": "ngakywenataung",
+      "to": "nathlaungkyaung",
+      "weight": 0.262397,
+      "roadDistanceKm": 0.210556,
+      "oneWay": true
+    },
+    {
+      "from": "nathlaungkyaung",
+      "to": "pahtothamya",
+      "weight": 1.162009,
+      "roadDistanceKm": 1.092826,
+      "oneWay": true
+    },
+    {
+      "from": "pahtothamya",
+      "to": "nathlaungkyaung",
+      "weight": 0.537856,
+      "roadDistanceKm": 0.468673,
+      "oneWay": true
+    },
+    {
+      "from": "nathlaungkyaung",
+      "to": "shwegugyi",
+      "weight": 0.588122,
+      "roadDistanceKm": 0.530447,
+      "oneWay": true
+    },
+    {
+      "from": "shwegugyi",
+      "to": "nathlaungkyaung",
+      "weight": 0.588122,
+      "roadDistanceKm": 0.530447,
+      "oneWay": true
+    },
+    {
+      "from": "nathlaungkyaung",
+      "to": "thatbinnyu",
+      "weight": 0.406266,
+      "roadDistanceKm": 0.321435,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "nathlaungkyaung",
+      "weight": 0.406266,
+      "roadDistanceKm": 0.321435,
+      "oneWay": true
+    },
+    {
+      "from": "ngakywenataung",
+      "to": "pahtothamya",
+      "weight": 1.075128,
+      "roadDistanceKm": 1.0265,
+      "oneWay": true
+    },
+    {
+      "from": "pahtothamya",
+      "to": "ngakywenataung",
+      "weight": 0.450974,
+      "roadDistanceKm": 0.402346,
+      "oneWay": true
+    },
+    {
+      "from": "ngakywenataung",
+      "to": "pebingyaung",
+      "weight": 0.930781,
+      "roadDistanceKm": 0.881635,
+      "oneWay": true
+    },
+    {
+      "from": "pebingyaung",
+      "to": "ngakywenataung",
+      "weight": 1.556229,
+      "roadDistanceKm": 1.507083,
+      "oneWay": true
+    },
+    {
+      "from": "ngakywenataung",
+      "to": "thandawkya",
+      "weight": 0.789485,
+      "roadDistanceKm": 0.764066,
+      "oneWay": true
+    },
+    {
+      "from": "thandawkya",
+      "to": "ngakywenataung",
+      "weight": 0.789485,
+      "roadDistanceKm": 0.764066,
+      "oneWay": true
+    },
+    {
+      "from": "ngakywenataung",
+      "to": "thatbinnyu",
+      "weight": 0.508822,
+      "roadDistanceKm": 0.444546,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "ngakywenataung",
+      "weight": 0.508822,
+      "roadDistanceKm": 0.444546,
+      "oneWay": true
+    },
+    {
+      "from": "northguni",
+      "to": "shinbinthalyaung",
+      "weight": 0.099061,
+      "roadDistanceKm": 0.010495,
+      "oneWay": true
+    },
+    {
+      "from": "shinbinthalyaung",
+      "to": "northguni",
+      "weight": 0.099061,
+      "roadDistanceKm": 0.010495,
+      "oneWay": true
+    },
+    {
+      "from": "pahtothamya",
+      "to": "pebingyaung",
+      "weight": 0.624181,
+      "roadDistanceKm": 0.557693,
+      "oneWay": true
+    },
+    {
+      "from": "pebingyaung",
+      "to": "pahtothamya",
+      "weight": 1.171225,
+      "roadDistanceKm": 1.104736,
+      "oneWay": true
+    },
+    {
+      "from": "pahtothamya",
+      "to": "somingyi",
+      "weight": 1.036443,
+      "roadDistanceKm": 0.873823,
+      "oneWay": true
+    },
+    {
+      "from": "somingyi",
+      "to": "pahtothamya",
+      "weight": 0.955204,
+      "roadDistanceKm": 0.792584,
+      "oneWay": true
+    },
+    {
+      "from": "pahtothamya",
+      "to": "tantkyitaung",
+      "weight": 7.946226,
+      "roadDistanceKm": 1.085575,
+      "oneWay": true
+    },
+    {
+      "from": "tantkyitaung",
+      "to": "pahtothamya",
+      "weight": 7.885769,
+      "roadDistanceKm": 1.025117,
+      "oneWay": true
+    },
+    {
+      "from": "payathonzu",
+      "to": "thambula",
+      "weight": 1.712141,
+      "roadDistanceKm": 1.570248,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "payathonzu",
+      "weight": 1.712141,
+      "roadDistanceKm": 1.570248,
+      "oneWay": true
     },
     {
       "from": "pyathetgyi",
       "to": "sulamani",
       "weight": 1.707822,
-      "roadDistanceKm": 1.511957
+      "roadDistanceKm": 1.511957,
+      "oneWay": true
+    },
+    {
+      "from": "sulamani",
+      "to": "pyathetgyi",
+      "weight": 1.707822,
+      "roadDistanceKm": 1.511957,
+      "oneWay": true
+    },
+    {
+      "from": "pyathetgyi",
+      "to": "thabeikhmauk",
+      "weight": 1.28265,
+      "roadDistanceKm": 1.151745,
+      "oneWay": true
+    },
+    {
+      "from": "thabeikhmauk",
+      "to": "pyathetgyi",
+      "weight": 1.28265,
+      "roadDistanceKm": 1.151745,
+      "oneWay": true
     },
     {
       "from": "pyathetgyi",
       "to": "thambula",
       "weight": 3.074659,
-      "roadDistanceKm": 2.985957
+      "roadDistanceKm": 2.985957,
+      "oneWay": true
+    },
+    {
+      "from": "thambula",
+      "to": "pyathetgyi",
+      "weight": 3.074659,
+      "roadDistanceKm": 2.985957,
+      "oneWay": true
+    },
+    {
+      "from": "sapada",
+      "to": "shwezigon",
+      "weight": 2.48339,
+      "roadDistanceKm": 2.322742,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "sapada",
+      "weight": 5.372859,
+      "roadDistanceKm": 5.21221,
+      "oneWay": true
+    },
+    {
+      "from": "shwegugyi",
+      "to": "thandawkya",
+      "weight": 0.247789,
+      "roadDistanceKm": 0.216536,
+      "oneWay": true
+    },
+    {
+      "from": "thandawkya",
+      "to": "shwegugyi",
+      "weight": 0.247789,
+      "roadDistanceKm": 0.216536,
+      "oneWay": true
     },
     {
       "from": "shwegugyi",
       "to": "thatbinnyu",
       "weight": 0.433693,
-      "roadDistanceKm": 0.363583
+      "roadDistanceKm": 0.363583,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "shwegugyi",
+      "weight": 0.433693,
+      "roadDistanceKm": 0.363583,
+      "oneWay": true
+    },
+    {
+      "from": "shweleiktoo",
+      "to": "tayokpye",
+      "weight": 1.240064,
+      "roadDistanceKm": 1.125259,
+      "oneWay": true
+    },
+    {
+      "from": "tayokpye",
+      "to": "shweleiktoo",
+      "weight": 1.240064,
+      "roadDistanceKm": 1.125259,
+      "oneWay": true
+    },
+    {
+      "from": "shweleiktoo",
+      "to": "wetkyiingubyaukgyi",
+      "weight": 1.692514,
+      "roadDistanceKm": 1.597315,
+      "oneWay": true
+    },
+    {
+      "from": "wetkyiingubyaukgyi",
+      "to": "shweleiktoo",
+      "weight": 1.692514,
+      "roadDistanceKm": 1.597315,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "thakyamuni",
+      "weight": 7.28117,
+      "roadDistanceKm": 5.75572,
+      "oneWay": true
+    },
+    {
+      "from": "thakyamuni",
+      "to": "shwezigon",
+      "weight": 5.452525,
+      "roadDistanceKm": 3.927075,
+      "oneWay": true
+    },
+    {
+      "from": "shwezigon",
+      "to": "wetkyiingubyaukgyi",
+      "weight": 1.097067,
+      "roadDistanceKm": 0.932468,
+      "oneWay": true
+    },
+    {
+      "from": "wetkyiingubyaukgyi",
+      "to": "shwezigon",
+      "weight": 1.097289,
+      "roadDistanceKm": 0.93269,
+      "oneWay": true
+    },
+    {
+      "from": "sinphyushin",
+      "to": "thamanhpaya",
+      "weight": 0.893803,
+      "roadDistanceKm": 0.432916,
+      "oneWay": true
+    },
+    {
+      "from": "thamanhpaya",
+      "to": "sinphyushin",
+      "weight": 0.893803,
+      "roadDistanceKm": 0.432916,
+      "oneWay": true
+    },
+    {
+      "from": "sinphyushin",
+      "to": "tuywintaung",
+      "weight": 5.122925,
+      "roadDistanceKm": 0.432916,
+      "oneWay": true
+    },
+    {
+      "from": "tuywintaung",
+      "to": "sinphyushin",
+      "weight": 5.122925,
+      "roadDistanceKm": 0.432916,
+      "oneWay": true
+    },
+    {
+      "from": "sinphyushin",
+      "to": "winido",
+      "weight": 0.444145,
+      "roadDistanceKm": 0.272609,
+      "oneWay": true
+    },
+    {
+      "from": "winido",
+      "to": "sinphyushin",
+      "weight": 0.444145,
+      "roadDistanceKm": 0.272609,
+      "oneWay": true
+    },
+    {
+      "from": "somingyi",
+      "to": "tantkyitaung",
+      "weight": 8.170245,
+      "roadDistanceKm": 1.212943,
+      "oneWay": true
+    },
+    {
+      "from": "tantkyitaung",
+      "to": "somingyi",
+      "weight": 8.153684,
+      "roadDistanceKm": 1.196382,
+      "oneWay": true
+    },
+    {
+      "from": "southguni",
+      "to": "tawethpaya",
+      "weight": 1.022994,
+      "roadDistanceKm": 0.441501,
+      "oneWay": true
+    },
+    {
+      "from": "tawethpaya",
+      "to": "southguni",
+      "weight": 1.022994,
+      "roadDistanceKm": 0.441501,
+      "oneWay": true
+    },
+    {
+      "from": "southguni",
+      "to": "thitsarwadi",
+      "weight": 0.923687,
+      "roadDistanceKm": 0.525363,
+      "oneWay": true
+    },
+    {
+      "from": "thitsarwadi",
+      "to": "southguni",
+      "weight": 0.923687,
+      "roadDistanceKm": 0.525363,
+      "oneWay": true
+    },
+    {
+      "from": "sulamani",
+      "to": "thabeikhmauk",
+      "weight": 1.424377,
+      "roadDistanceKm": 1.264,
+      "oneWay": true
+    },
+    {
+      "from": "thabeikhmauk",
+      "to": "sulamani",
+      "weight": 1.424377,
+      "roadDistanceKm": 1.264,
+      "oneWay": true
+    },
+    {
+      "from": "tawethpaya",
+      "to": "thitsarwadi",
+      "weight": 0.615205,
+      "roadDistanceKm": 0.083862,
+      "oneWay": true
+    },
+    {
+      "from": "thitsarwadi",
+      "to": "tawethpaya",
+      "weight": 0.615205,
+      "roadDistanceKm": 0.083862,
+      "oneWay": true
+    },
+    {
+      "from": "tayokpye",
+      "to": "wetkyiingubyaukgyi",
+      "weight": 1.964232,
+      "roadDistanceKm": 1.864563,
+      "oneWay": true
+    },
+    {
+      "from": "wetkyiingubyaukgyi",
+      "to": "tayokpye",
+      "weight": 1.964232,
+      "roadDistanceKm": 1.864563,
+      "oneWay": true
+    },
+    {
+      "from": "thamanhpaya",
+      "to": "tuywintaung",
+      "weight": 5.104993,
+      "roadDistanceKm": 0.0,
+      "oneWay": true
+    },
+    {
+      "from": "tuywintaung",
+      "to": "thamanhpaya",
+      "weight": 5.104993,
+      "roadDistanceKm": 0.0,
+      "oneWay": true
+    },
+    {
+      "from": "thamanhpaya",
+      "to": "winido",
+      "weight": 1.064185,
+      "roadDistanceKm": 0.477665,
+      "oneWay": true
+    },
+    {
+      "from": "winido",
+      "to": "thamanhpaya",
+      "weight": 1.064185,
+      "roadDistanceKm": 0.477665,
+      "oneWay": true
+    },
+    {
+      "from": "thandawkya",
+      "to": "thatbinnyu",
+      "weight": 0.602786,
+      "roadDistanceKm": 0.544377,
+      "oneWay": true
+    },
+    {
+      "from": "thatbinnyu",
+      "to": "thandawkya",
+      "weight": 0.602786,
+      "roadDistanceKm": 0.544377,
+      "oneWay": true
     }
   ]
 }

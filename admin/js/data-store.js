@@ -470,7 +470,12 @@ async function loadAdminState(force = false) {
     return window.adminState;
   })();
 
-  return adminStatePromise;
+  try {
+    return await adminStatePromise;
+  } catch (error) {
+    adminStatePromise = null;
+    throw error;
+  }
 }
 
 function getPagodaName(pagodaId) {

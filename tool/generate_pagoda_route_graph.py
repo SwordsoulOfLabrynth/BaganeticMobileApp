@@ -12,6 +12,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "assets" / "data"
 
+ACCESS_GAP_REPORT_COUNT = 10
+ACCESS_GAP_WARNING_KM = 0.5
+ACCESS_GAP_ALERT_KM = 1.0
+GRAPH_NEIGHBOR_COUNT = 3
+
 PAGODAS_PATH = DATA_DIR / "sample_pagodas.json"
 OFFLINE_GRAPH_PATH = DATA_DIR / "offline_graph.json"
 TOPOLOGY_PATH = DATA_DIR / "pagoda_route_topology.csv"
@@ -436,17 +441,215 @@ def write_pairwise_csv(
                 )
 
 
+def pair_key(source_id: str, target_id: str) -> tuple[str, str]:
+    return tuple(sorted((source_id, target_id)))
+
+
+def topology_node_ids(topology_pairs: list[tuple[str, str]]) -> set[str]:
+    return {
+        pagoda_id
+        for source_id, target_id in topology_pairs
+        for pagoda_id in (source_id, target_id)
+    }
+
+
+def build_symmetric_pair_costs(
+    snapped_pagodas: dict[str, SnappedPagoda],
+    pairwise_road_distances: dict[tuple[str, str], float],
+) -> dict[tuple[str, str], float]:
+    pair_costs: dict[tuple[str, str], float] = {}
+    pagoda_ids = sorted(snapped_pagodas)
+
+    for index, source_id in enumerate(pagoda_ids):
+        for target_id in pagoda_ids[index + 1 :]:
+            forward_weight = route_metrics_for_pair(
+                snapped_pagodas[source_id],
+                snapped_pagodas[target_id],
+                pairwise_road_distances[(source_id, target_id)],
+            ).weight
+            reverse_weight = route_metrics_for_pair(
+                snapped_pagodas[target_id],
+                snapped_pagodas[source_id],
+                pairwise_road_distances[(target_id, source_id)],
+            ).weight
+            pair_costs[pair_key(source_id, target_id)] = round_km(
+                (forward_weight + reverse_weight) / 2
+            )
+
+    return pair_costs
+
+
+def build_pair_components(
+    pagoda_ids: list[str],
+    graph_pairs: set[tuple[str, str]],
+) -> list[set[str]]:
+    adjacency: dict[str, set[str]] = defaultdict(set)
+    for source_id, target_id in graph_pairs:
+        adjacency[source_id].add(target_id)
+        adjacency[target_id].add(source_id)
+
+    remaining = set(pagoda_ids)
+    components: list[set[str]] = []
+
+    while remaining:
+        start = remaining.pop()
+        component = {start}
+        queue = deque([start])
+
+        while queue:
+            current = queue.popleft()
+            for neighbor in adjacency.get(current, ()):
+                if neighbor in component:
+                    continue
+                component.add(neighbor)
+                remaining.discard(neighbor)
+                queue.append(neighbor)
+
+        components.append(component)
+
+    return components
+
+
+def neighbor_rank_key(
+    source_id: str,
+    target_id: str,
+    snapped_pagodas: dict[str, SnappedPagoda],
+    symmetric_pair_costs: dict[tuple[str, str], float],
+) -> tuple[float, float, str]:
+    source_pagoda = snapped_pagodas[source_id].pagoda
+    target_pagoda = snapped_pagodas[target_id].pagoda
+    return (
+        symmetric_pair_costs[pair_key(source_id, target_id)],
+        haversine_km(
+            source_pagoda.lat,
+            source_pagoda.lng,
+            target_pagoda.lat,
+            target_pagoda.lng,
+        ),
+        target_id,
+    )
+
+
+def build_graph_pairs(
+    topology_pairs: list[tuple[str, str]],
+    snapped_pagodas: dict[str, SnappedPagoda],
+    symmetric_pair_costs: dict[tuple[str, str], float],
+) -> set[tuple[str, str]]:
+    pagoda_ids = sorted(snapped_pagodas)
+    topology_ids = topology_node_ids(topology_pairs)
+    graph_pairs = {pair_key(source_id, target_id) for source_id, target_id in topology_pairs}
+
+    for source_id in pagoda_ids:
+        if source_id in topology_ids:
+            continue
+
+        selected_targets: set[str] = set()
+        anchor_candidates = sorted(
+            topology_ids,
+            key=lambda target_id: neighbor_rank_key(
+                source_id,
+                target_id,
+                snapped_pagodas,
+                symmetric_pair_costs,
+            ),
+        )
+        if anchor_candidates:
+            selected_targets.add(anchor_candidates[0])
+
+        general_candidates = sorted(
+            (target_id for target_id in pagoda_ids if target_id != source_id),
+            key=lambda target_id: neighbor_rank_key(
+                source_id,
+                target_id,
+                snapped_pagodas,
+                symmetric_pair_costs,
+            ),
+        )
+        for target_id in general_candidates:
+            if target_id in selected_targets:
+                continue
+            selected_targets.add(target_id)
+            if len(selected_targets) >= GRAPH_NEIGHBOR_COUNT:
+                break
+
+        for target_id in selected_targets:
+            graph_pairs.add(pair_key(source_id, target_id))
+
+    components = build_pair_components(pagoda_ids, graph_pairs)
+    while len(components) > 1:
+        best_bridge: tuple[float, str, str] | None = None
+        for left_index, left_component in enumerate(components):
+            for right_component in components[left_index + 1 :]:
+                for source_id in left_component:
+                    for target_id in right_component:
+                        candidate = (
+                            symmetric_pair_costs[pair_key(source_id, target_id)],
+                            source_id,
+                            target_id,
+                        )
+                        if best_bridge is None or candidate < best_bridge:
+                            best_bridge = candidate
+
+        if best_bridge is None:
+            break
+
+        _, source_id, target_id = best_bridge
+        graph_pairs.add(pair_key(source_id, target_id))
+        components = build_pair_components(pagoda_ids, graph_pairs)
+
+    return graph_pairs
+
+
+def build_graph_edges(
+    topology_pairs: list[tuple[str, str]],
+    snapped_pagodas: dict[str, SnappedPagoda],
+    pairwise_road_distances: dict[tuple[str, str], float],
+) -> list[dict[str, object]]:
+    edge_rows: list[dict[str, object]] = []
+    symmetric_pair_costs = build_symmetric_pair_costs(
+        snapped_pagodas,
+        pairwise_road_distances,
+    )
+    graph_pairs = sorted(
+        build_graph_pairs(topology_pairs, snapped_pagodas, symmetric_pair_costs)
+    )
+
+    for source_id, target_id in graph_pairs:
+        for directed_source_id, directed_target_id in (
+            (source_id, target_id),
+            (target_id, source_id),
+        ):
+            metrics = route_metrics_for_pair(
+                snapped_pagodas[directed_source_id],
+                snapped_pagodas[directed_target_id],
+                pairwise_road_distances[(directed_source_id, directed_target_id)],
+            )
+            edge_rows.append(
+                {
+                    "from": directed_source_id,
+                    "to": directed_target_id,
+                    "weight": metrics.weight,
+                    "roadDistanceKm": metrics.road_distance_km,
+                    "oneWay": True,
+                }
+            )
+
+    return edge_rows
+
+
 def write_graph_json(
     source_graph_version: int,
     snapped_pagodas: dict[str, SnappedPagoda],
-    edge_rows: list[dict[str, object]],
+    graph_edges: list[dict[str, object]],
 ) -> None:
+    pagoda_ids = sorted(snapped_pagodas)
     graph_payload = {
         "version": 1,
         "sourceGraphVersion": source_graph_version,
         "topologySource": TOPOLOGY_PATH.name,
         "pairwiseCostSource": PAIRWISE_OUTPUT_PATH.name,
         "snapStrategy": "nearest_node_in_largest_component",
+        "edgeStrategy": "topology_backbone_with_neighbor_links",
         "nodes": [
             {
                 "pagodaId": pagoda_id,
@@ -456,17 +659,9 @@ def write_graph_json(
                 "roadNodeId": snapped_pagodas[pagoda_id].road_node_id,
                 "accessGapKm": round_km(snapped_pagodas[pagoda_id].access_gap_km),
             }
-            for pagoda_id in sorted(snapped_pagodas)
+            for pagoda_id in pagoda_ids
         ],
-        "edges": [
-            {
-                "from": row["from"],
-                "to": row["to"],
-                "weight": row["weight"],
-                "roadDistanceKm": row["roadDistanceKm"],
-            }
-            for row in edge_rows
-        ],
+        "edges": graph_edges,
     }
     GRAPH_OUTPUT_PATH.write_text(
         json.dumps(graph_payload, indent=2),
@@ -475,8 +670,10 @@ def write_graph_json(
 
 
 def main() -> None:
-    pagodas = load_pagodas()
-    pagodas_by_id = {pagoda.pagoda_id: pagoda for pagoda in pagodas}
+    all_pagodas = load_pagodas()
+    pagodas_by_id = {pagoda.pagoda_id: pagoda for pagoda in all_pagodas}
+    topology_pairs = load_topology(pagodas_by_id)
+    pagodas = all_pagodas
 
     (
         source_graph_version,
@@ -486,7 +683,6 @@ def main() -> None:
     ) = load_offline_graph()
     largest_component = find_largest_component(node_positions, undirected_neighbors)
     snapped_pagodas = snap_pagodas_to_roads(pagodas, node_positions, largest_component)
-    topology_pairs = load_topology(pagodas_by_id)
     pairwise_road_distances = compute_pairwise_road_distances(
         snapped_pagodas,
         directed_adjacency,
@@ -500,19 +696,57 @@ def main() -> None:
         pairwise_road_distances,
         topology_pairs,
     )
-    write_graph_json(source_graph_version, snapped_pagodas, edge_rows)
+    graph_edges = build_graph_edges(
+        topology_pairs,
+        snapped_pagodas,
+        pairwise_road_distances,
+    )
+    write_graph_json(source_graph_version, snapped_pagodas, graph_edges)
 
     max_access_gap_km = max(
         snapped.access_gap_km for snapped in snapped_pagodas.values()
     )
+    sorted_access_gaps = sorted(
+        snapped_pagodas.values(),
+        key=lambda snapped: snapped.access_gap_km,
+        reverse=True,
+    )
+    warning_pagodas = [
+        snapped
+        for snapped in sorted_access_gaps
+        if snapped.access_gap_km >= ACCESS_GAP_WARNING_KM
+    ]
+    alert_pagodas = [
+        snapped
+        for snapped in sorted_access_gaps
+        if snapped.access_gap_km >= ACCESS_GAP_ALERT_KM
+    ]
     pairwise_row_count = len(pagodas) * (len(pagodas) - 1)
 
     print(
         f"Wrote {len(snapped_pagodas)} nodes, {len(edge_rows)} topology edges, "
-        f"and {pairwise_row_count} pairwise rows."
+        f"{len(graph_edges)} directed graph edges, and {pairwise_row_count} "
+        "pairwise rows."
     )
     print(f"Topology source: {TOPOLOGY_PATH.name}")
     print(f"Max road access gap: {round_km(max_access_gap_km)} km")
+    if warning_pagodas:
+        print(
+            "Largest road access gaps "
+            f"(>{ACCESS_GAP_WARNING_KM} km suggests stale or sparse road coverage):"
+        )
+        for snapped in warning_pagodas[:ACCESS_GAP_REPORT_COUNT]:
+            print(
+                "  - "
+                f"{snapped.pagoda.pagoda_id} | {snapped.pagoda.name} | "
+                f"{round_km(snapped.access_gap_km)} km | road node {snapped.road_node_id}"
+            )
+    if alert_pagodas:
+        print(
+            "Warning: some pagodas are more than "
+            f"{ACCESS_GAP_ALERT_KM} km from the nearest routable road node. "
+            "Check sample_pagodas.json, pagoda_route_topology.csv, and offline_graph.json."
+        )
 
 
 if __name__ == "__main__":

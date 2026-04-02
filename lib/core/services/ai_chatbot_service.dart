@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_core/firebase_core.dart' show Firebase;
 import 'package:http/http.dart' as http;
 
 import '../constants/app_constants.dart';
@@ -333,26 +334,44 @@ class AIChatbotService {
     firebase_auth.FirebaseAuth? auth,
     http.Client? httpClient,
     DatabaseService? databaseService,
-  }) : _firestore = firestore ?? FirestoreInstance.instance,
-       _auth = auth ?? firebase_auth.FirebaseAuth.instance,
+  }) : _firestoreOverride = firestore,
+       _authOverride = auth,
        _httpClient = httpClient ?? http.Client(),
        _localDb = databaseService ?? DatabaseService();
 
-  final FirebaseFirestore _firestore;
-  final firebase_auth.FirebaseAuth _auth;
+  final FirebaseFirestore? _firestoreOverride;
+  final firebase_auth.FirebaseAuth? _authOverride;
   final http.Client _httpClient;
   final DatabaseService _localDb;
 
-  String? get currentUserId => _auth.currentUser?.uid;
+  FirebaseFirestore? get _firestore =>
+      _firestoreOverride ?? FirestoreInstance.instanceOrNull;
+
+  firebase_auth.FirebaseAuth? get _auth {
+    if (_authOverride != null) {
+      return _authOverride;
+    }
+    try {
+      if (Firebase.apps.isEmpty) {
+        return null;
+      }
+      return firebase_auth.FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? get currentUserId => _auth?.currentUser?.uid;
   bool get isConfigured => _directNvidiaApiKey.trim().isNotEmpty;
 
   Stream<List<AIChatMessage>> messageStream() {
     final uid = currentUserId;
-    if (uid == null) {
+    final firestore = _firestore;
+    if (uid == null || firestore == null) {
       return Stream.value(const []);
     }
 
-    return _firestore
+    return firestore
         .collection(AppConstants.users)
         .doc(uid)
         .collection(AppConstants.aiChatMessages)
@@ -554,8 +573,13 @@ class AIChatbotService {
 
     await _clearLocalFallbackMessages(uid);
 
+    final firestore = _firestore;
+    if (firestore == null) {
+      return;
+    }
+
     try {
-      final snapshot = await _firestore
+      final snapshot = await firestore
           .collection(AppConstants.users)
           .doc(uid)
           .collection(AppConstants.aiChatMessages)
@@ -563,13 +587,13 @@ class AIChatbotService {
       if (snapshot.docs.isEmpty) {
         return;
       }
-      final batch = _firestore.batch();
+      final batch = firestore.batch();
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
       await batch.commit();
     } on FirebaseException catch (e, stackTrace) {
-      if (_isPermissionDenied(e)) {
+      if (_isRecoverableFirestoreSyncError(e)) {
         Logger.warn(
           'AI history clear skipped because Firestore denied access: ${e.message ?? e.code}',
         );
@@ -587,7 +611,7 @@ class AIChatbotService {
     try {
       return await _loadRecentHistory(uid);
     } on FirebaseException catch (e, stackTrace) {
-      if (_isPermissionDenied(e)) {
+      if (_isRecoverableFirestoreSyncError(e)) {
         Logger.warn(
           'AI history sync unavailable, continuing without Firestore history: '
           '${e.message ?? e.code}',
@@ -600,7 +624,12 @@ class AIChatbotService {
   }
 
   Future<List<AIChatMessage>> _loadRecentHistory(String uid) async {
-    final snapshot = await _firestore
+    final firestore = _firestore;
+    if (firestore == null) {
+      return _loadLocalFallbackMessages(uid);
+    }
+
+    final snapshot = await firestore
         .collection(AppConstants.users)
         .doc(uid)
         .collection(AppConstants.aiChatMessages)
@@ -636,7 +665,7 @@ class AIChatbotService {
         requestId: requestId,
       );
     } on FirebaseException catch (e, stackTrace) {
-      if (_isPermissionDenied(e)) {
+      if (_isRecoverableFirestoreSyncError(e)) {
         Logger.warn(
           'AI chat sync unavailable, keeping message in local storage only: '
           '${e.message ?? e.code}',
@@ -654,7 +683,16 @@ class AIChatbotService {
     required AIEntryContext entryContext,
     required String requestId,
   }) async {
-    await _firestore
+    final firestore = _firestore;
+    if (firestore == null) {
+      throw FirebaseException(
+        plugin: 'ai_chatbot_service',
+        code: 'unavailable',
+        message: 'Firestore is unavailable.',
+      );
+    }
+
+    await firestore
         .collection(AppConstants.users)
         .doc(uid)
         .collection(AppConstants.aiChatMessages)
@@ -733,8 +771,15 @@ class AIChatbotService {
     }
   }
 
-  bool _isPermissionDenied(FirebaseException exception) {
-    return exception.code == 'permission-denied';
+  bool _isRecoverableFirestoreSyncError(FirebaseException exception) {
+    if (exception.code == 'permission-denied' ||
+        exception.code == 'unavailable' ||
+        exception.code == 'failed-precondition' ||
+        exception.code == 'not-found') {
+      return true;
+    }
+    final message = (exception.message ?? '').toLowerCase();
+    return message.contains('database') && message.contains('does not exist');
   }
 
   Map<String, dynamic> _decodeResponseBody(String body, {int? statusCode}) {

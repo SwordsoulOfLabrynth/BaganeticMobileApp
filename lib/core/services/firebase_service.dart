@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart'
     show Firebase, FirebaseException;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../models/user.dart';
+
 import '../../data/models/trip_model.dart';
+import '../../models/user.dart';
 import 'firestore_instance.dart';
 import 'logger.dart';
 
@@ -18,10 +19,27 @@ class AuthFailure implements Exception {
 }
 
 class FirebaseService {
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirestoreInstance.instance;
+  firebase_auth.FirebaseAuth? get _authOrNull {
+    if (!isFirebaseAvailable) {
+      return null;
+    }
+    try {
+      return firebase_auth.FirebaseAuth.instance;
+    } catch (e, st) {
+      Logger.error('FirebaseService: FirebaseAuth unavailable', e, st);
+      return null;
+    }
+  }
 
-  // Auth methods
+  FirebaseFirestore? get _firestoreOrNull {
+    try {
+      return FirestoreInstance.instanceOrNull;
+    } catch (e, st) {
+      Logger.error('FirebaseService: Firestore unavailable', e, st);
+      return null;
+    }
+  }
+
   bool get isFirebaseAvailable {
     try {
       return Firebase.apps.isNotEmpty;
@@ -32,7 +50,7 @@ class FirebaseService {
 
   firebase_auth.User? get currentUser {
     try {
-      return _auth.currentUser;
+      return _authOrNull?.currentUser;
     } catch (e) {
       Logger.error('FirebaseService: Firebase not initialized', e);
       return null;
@@ -41,7 +59,11 @@ class FirebaseService {
 
   Stream<firebase_auth.User?> get authStateChanges {
     try {
-      return _auth.authStateChanges();
+      final auth = _authOrNull;
+      if (auth == null) {
+        return Stream<firebase_auth.User?>.value(null);
+      }
+      return auth.authStateChanges();
     } catch (e) {
       Logger.error('FirebaseService: Firebase not initialized', e);
       return Stream.value(null);
@@ -53,8 +75,8 @@ class FirebaseService {
     String password,
   ) async {
     try {
-      _ensureFirebaseAvailable();
-      return await _auth.signInWithEmailAndPassword(
+      final auth = _requireAuth();
+      return await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -71,13 +93,12 @@ class FirebaseService {
     String? displayName,
   }) async {
     try {
-      _ensureFirebaseAvailable();
-      final userCredential = await _auth.createUserWithEmailAndPassword(
+      final auth = _requireAuth();
+      final userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Create user document
       final initialUser = userCredential.user;
       if (initialUser == null) {
         throw AuthFailure('auth.unexpectedError');
@@ -89,7 +110,7 @@ class FirebaseService {
         try {
           await user.updateDisplayName(normalizedDisplayName);
           await user.reload();
-          final refreshedUser = _auth.currentUser;
+          final refreshedUser = auth.currentUser;
           if (refreshedUser != null) {
             user = refreshedUser;
           }
@@ -105,7 +126,6 @@ class FirebaseService {
       try {
         await _createUserDocument(user);
       } catch (e, st) {
-        // Do not block sign up if profile creation fails.
         if (_isMissingFirestoreDatabase(e) ||
             (e is FirebaseException && e.code == 'deadline-exceeded')) {
           Logger.error(
@@ -117,7 +137,6 @@ class FirebaseService {
         } else {
           Logger.error('FirebaseService: Failed to create user profile', e, st);
         }
-        // Continue with signup even if document creation fails
       }
 
       return userCredential;
@@ -129,13 +148,17 @@ class FirebaseService {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    final auth = _authOrNull;
+    if (auth == null) {
+      return;
+    }
+    await auth.signOut();
   }
 
   Future<void> resetPassword(String email) async {
     try {
-      _ensureFirebaseAvailable();
-      await _auth.sendPasswordResetEmail(email: email);
+      final auth = _requireAuth();
+      await auth.sendPasswordResetEmail(email: email);
     } catch (e, st) {
       final failure = _handleAuthException(e);
       Logger.error('FirebaseService: Reset password failed', e, st);
@@ -145,8 +168,8 @@ class FirebaseService {
 
   Future<void> updateDisplayName(String displayName) async {
     try {
-      _ensureFirebaseAvailable();
-      final user = _auth.currentUser;
+      final auth = _requireAuth();
+      final user = auth.currentUser;
       if (user == null) {
         throw AuthFailure('auth.failed');
       }
@@ -155,8 +178,13 @@ class FirebaseService {
       await user.updateDisplayName(normalized);
       await user.reload();
 
+      final firestore = _firestoreOrNull;
+      if (firestore == null) {
+        return;
+      }
+
       try {
-        await _firestore.collection('users').doc(user.uid).set({
+        await firestore.collection('users').doc(user.uid).set({
           'id': user.uid,
           'email': user.email,
           'displayName': normalized,
@@ -177,6 +205,7 @@ class FirebaseService {
   }
 
   Future<void> _createUserDocument(firebase_auth.User user) async {
+    final firestore = _requireFirestore();
     final userModel = User(
       id: user.uid,
       email: user.email!,
@@ -185,8 +214,7 @@ class FirebaseService {
       createdAt: DateTime.now(),
     );
 
-    // Add timeout to prevent infinite hanging when Firestore database doesn't exist
-    await _firestore
+    await firestore
         .collection('users')
         .doc(user.uid)
         .set(userModel.toJson())
@@ -204,8 +232,12 @@ class FirebaseService {
   }
 
   Future<User?> getUserData(String uid) async {
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      return null;
+    }
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
+      final doc = await firestore.collection('users').doc(uid).get();
       if (!doc.exists) return null;
       return User.fromJson(doc.data()!);
     } catch (e) {
@@ -215,7 +247,8 @@ class FirebaseService {
   }
 
   Future<void> updateUserData(String uid, Map<String, dynamic> data) async {
-    await _firestore.collection('users').doc(uid).update(data);
+    final firestore = _requireFirestore();
+    await firestore.collection('users').doc(uid).update(data);
   }
 
   AuthFailure _handleAuthException(dynamic e) {
@@ -264,10 +297,20 @@ class FirebaseService {
     return AuthFailure('auth.unexpectedError', cause: e);
   }
 
-  void _ensureFirebaseAvailable() {
-    if (!isFirebaseAvailable) {
+  firebase_auth.FirebaseAuth _requireAuth() {
+    final auth = _authOrNull;
+    if (auth == null) {
       throw AuthFailure('auth.serviceUnavailable');
     }
+    return auth;
+  }
+
+  FirebaseFirestore _requireFirestore() {
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      throw AuthFailure('auth.serviceUnavailable');
+    }
+    return firestore;
   }
 
   bool _isMissingFirestoreDatabase(Object error) {
@@ -280,17 +323,24 @@ class FirebaseService {
         message.contains('does not exist');
   }
 
-  // Firestore sync methods
   Future<void> syncFavorites(String uid, List<String> favoriteIds) async {
-    await _firestore.collection('users').doc(uid).set({
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      return;
+    }
+    await firestore.collection('users').doc(uid).set({
       'id': uid,
       'favoriteIds': favoriteIds,
     }, SetOptions(merge: true));
   }
 
   Future<List<String>> getFavoriteIds(String uid) async {
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      return const [];
+    }
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
+      final doc = await firestore.collection('users').doc(uid).get();
       final data = doc.data();
       if (data == null) {
         return const [];
@@ -306,7 +356,11 @@ class FirebaseService {
   }
 
   Future<void> syncTrip(String uid, Map<String, dynamic> tripData) async {
-    await _firestore
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      return;
+    }
+    await firestore
         .collection('users')
         .doc(uid)
         .collection('trips')
@@ -315,7 +369,11 @@ class FirebaseService {
   }
 
   Future<List<Trip>> getTrips(String uid) async {
-    final snapshot = await _firestore
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      return const [];
+    }
+    final snapshot = await firestore
         .collection('users')
         .doc(uid)
         .collection('trips')
@@ -331,7 +389,11 @@ class FirebaseService {
   }
 
   Future<void> deleteTrip(String uid, String tripId) async {
-    await _firestore
+    final firestore = _firestoreOrNull;
+    if (firestore == null) {
+      return;
+    }
+    await firestore
         .collection('users')
         .doc(uid)
         .collection('trips')

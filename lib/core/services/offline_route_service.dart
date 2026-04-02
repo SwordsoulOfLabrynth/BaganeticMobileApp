@@ -21,6 +21,8 @@ class OfflineRouteService {
 
   static const String _graphFileName = 'offline_route_graph.json';
   static const String _metaFileName = 'offline_route_meta.json';
+  static const String _onlineRouteBaseUrl = 'https://router.project-osrm.org';
+  static const Duration _onlineRouteTimeout = Duration(seconds: 3);
   Timer? _syncTimer;
 
   Future<void> startBackgroundSync() async {
@@ -34,11 +36,37 @@ class OfflineRouteService {
 
   Future<List<LatLng>> buildRouteForPoints(List<LatLng> points) async {
     if (points.length < 2) return [];
+    final onlineRoute = await _buildOnlineRoute(points);
+    if (onlineRoute.isNotEmpty) {
+      return onlineRoute;
+    }
     final graph = await loadGraph();
     if (graph == null) {
       return _buildFallbackRoute(points);
     }
     return _buildRouteWithGraph(graph, points);
+  }
+
+  Future<List<LatLng>> buildRouteForRoadNodeIds(
+    List<String> roadNodeIds, {
+    List<LatLng>? fallbackPoints,
+  }) async {
+    if (roadNodeIds.length < 2) {
+      return fallbackPoints ?? [];
+    }
+
+    if (fallbackPoints != null && fallbackPoints.length >= 2) {
+      final onlineRoute = await _buildOnlineRoute(fallbackPoints);
+      if (onlineRoute.isNotEmpty) {
+        return onlineRoute;
+      }
+    }
+
+    final graph = await loadGraph();
+    if (graph == null) {
+      return fallbackPoints == null ? [] : _buildFallbackRoute(fallbackPoints);
+    }
+    return _buildRouteWithNodeIds(graph, roadNodeIds);
   }
 
   Future<OfflineGraphData?> loadGraph() async {
@@ -51,7 +79,8 @@ class OfflineRouteService {
       return _loadBundledGraph();
     }
     try {
-      final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final data =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       return OfflineGraphData.fromJson(data);
     } catch (_) {
       return _loadBundledGraph();
@@ -129,7 +158,8 @@ class OfflineRouteService {
     final file = await _getMetaFile();
     if (!await file.exists()) return null;
     try {
-      final data = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final data =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       return OfflineGraphMeta.fromJson(data);
     } catch (_) {
       return null;
@@ -146,26 +176,46 @@ class OfflineRouteService {
     List<LatLng> points,
   ) {
     final snapped = points.map(graph.findNearestNode).toList();
+    return _buildRouteWithNodeIds(graph, snapped);
+  }
+
+  List<LatLng> _buildRouteWithNodeIds(
+    OfflineGraphData graph,
+    List<String> roadNodeIds,
+  ) {
+    if (roadNodeIds.length < 2) {
+      return [];
+    }
+
+    final collapsed = <String>[];
+    for (final nodeId in roadNodeIds) {
+      if (nodeId.isEmpty) {
+        continue;
+      }
+      if (collapsed.isEmpty || collapsed.last != nodeId) {
+        collapsed.add(nodeId);
+      }
+    }
+    if (collapsed.isEmpty) {
+      return [];
+    }
+    if (collapsed.length < 2) {
+      final node = graph.nodes[collapsed.first];
+      return node == null ? [] : [LatLng(node.lat, node.lng)];
+    }
+
     final route = <LatLng>[];
 
-    for (int i = 0; i < snapped.length - 1; i++) {
-      final startPoint = points[i];
-      final endPoint = points[i + 1];
-      final segment = _findPath(graph, snapped[i], snapped[i + 1]);
+    for (int i = 0; i < collapsed.length - 1; i++) {
+      final segment = _findPath(graph, collapsed[i], collapsed[i + 1]);
       final resolved = segment.isEmpty
-          ? _buildCurvedFallback(startPoint, endPoint)
+          ? _fallbackSegment(graph, collapsed[i], collapsed[i + 1])
           : segment;
       if (resolved.isEmpty) return [];
-      final withEndpoints = _attachEndpoints(
-        graph,
-        resolved,
-        startPoint,
-        endPoint,
-      );
       if (route.isNotEmpty) {
-        route.addAll(withEndpoints.sublist(1));
+        route.addAll(resolved.sublist(1));
       } else {
-        route.addAll(withEndpoints);
+        route.addAll(resolved);
       }
     }
 
@@ -186,52 +236,53 @@ class OfflineRouteService {
     return route;
   }
 
-  List<LatLng> _attachEndpoints(
-    OfflineGraphData graph,
-    List<LatLng> segment,
-    LatLng start,
-    LatLng end,
-  ) {
-    if (segment.isEmpty) return segment;
-
-    final startNode = segment.first;
-    final endNode = segment.last;
-    final startGap = Helpers.calculateDistance(
-      start.latitude,
-      start.longitude,
-      startNode.latitude,
-      startNode.longitude,
-    );
-    final endGap = Helpers.calculateDistance(
-      end.latitude,
-      end.longitude,
-      endNode.latitude,
-      endNode.longitude,
-    );
-
-    final result = <LatLng>[];
-    if (startGap > 0.15) {
-      result.addAll(_buildCurvedFallback(start, startNode));
-    } else {
-      result.add(start);
+  Future<List<LatLng>> _buildOnlineRoute(List<LatLng> points) async {
+    if (points.length < 2) {
+      return [];
     }
 
-    if (result.isNotEmpty) {
-      result.addAll(segment.sublist(1));
-    } else {
-      result.addAll(segment);
-    }
-
-    if (endGap > 0.15) {
-      final bridge = _buildCurvedFallback(endNode, end);
-      if (bridge.isNotEmpty) {
-        result.addAll(bridge.sublist(1));
+    try {
+      final coordinates = points
+          .map((point) => '${point.longitude},${point.latitude}')
+          .join(';');
+      final uri = Uri.parse(
+        '$_onlineRouteBaseUrl/route/v1/driving/$coordinates'
+        '?overview=full&geometries=geojson&steps=false&continue_straight=true',
+      );
+      final response = await http.get(uri).timeout(_onlineRouteTimeout);
+      if (response.statusCode != 200) {
+        return [];
       }
-    } else {
-      result.add(end);
-    }
 
-    return result;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      if (data['code'] != 'Ok') {
+        return [];
+      }
+
+      final routes = data['routes'] as List<dynamic>? ?? const [];
+      if (routes.isEmpty) {
+        return [];
+      }
+
+      final route = routes.first as Map<String, dynamic>;
+      final geometry = route['geometry'] as Map<String, dynamic>?;
+      final coordinatesList =
+          geometry?['coordinates'] as List<dynamic>? ?? const [];
+      if (coordinatesList.length < 2) {
+        return [];
+      }
+
+      return coordinatesList
+          .map(
+            (point) => LatLng(
+              ((point as List<dynamic>)[1] as num).toDouble(),
+              (point[0] as num).toDouble(),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   List<LatLng> _findPath(
@@ -246,7 +297,9 @@ class OfflineRouteService {
 
     final gScores = <String, double>{};
     final previous = <String, String?>{};
-    final queue = _PriorityQueue<_QueueItem>((a, b) => a.cost.compareTo(b.cost));
+    final queue = _PriorityQueue<_QueueItem>(
+      (a, b) => a.cost.compareTo(b.cost),
+    );
 
     gScores[startId] = 0;
     queue.add(_QueueItem(startId, _heuristic(graph, startId, goalId)));
@@ -345,7 +398,9 @@ class OfflineRouteService {
     }
 
     final gScores = <String, double>{};
-    final queue = _PriorityQueue<_QueueItem>((a, b) => a.cost.compareTo(b.cost));
+    final queue = _PriorityQueue<_QueueItem>(
+      (a, b) => a.cost.compareTo(b.cost),
+    );
 
     gScores[startId] = 0;
     queue.add(_QueueItem(startId, _heuristic(graph, startId, goalId)));
@@ -423,10 +478,7 @@ class OfflineRouteService {
     final fromNode = graph.nodes[from];
     final toNode = graph.nodes[to];
     if (fromNode == null || toNode == null) return [];
-    return [
-      LatLng(fromNode.lat, fromNode.lng),
-      LatLng(toNode.lat, toNode.lng),
-    ];
+    return [LatLng(fromNode.lat, fromNode.lng), LatLng(toNode.lat, toNode.lng)];
   }
 
   List<LatLng> _buildCurvedFallback(LatLng start, LatLng end) {
@@ -462,10 +514,12 @@ class OfflineRouteService {
     for (int i = 0; i <= steps; i++) {
       final t = i / steps;
       final oneMinus = 1 - t;
-      final lat = oneMinus * oneMinus * start.latitude +
+      final lat =
+          oneMinus * oneMinus * start.latitude +
           2 * oneMinus * t * control.latitude +
           t * t * end.latitude;
-      final lon = oneMinus * oneMinus * start.longitude +
+      final lon =
+          oneMinus * oneMinus * start.longitude +
           2 * oneMinus * t * control.longitude +
           t * t * end.longitude;
       points.add(LatLng(lat, lon));
@@ -502,9 +556,7 @@ class OfflineGraphData {
     for (final edge in edgesList) {
       adjacency.putIfAbsent(edge.from, () => []).add(edge);
       if (!edge.oneWay) {
-        adjacency
-            .putIfAbsent(edge.to, () => [])
-            .add(edge.reversed());
+        adjacency.putIfAbsent(edge.to, () => []).add(edge.reversed());
       }
     }
 
@@ -548,11 +600,7 @@ class OfflineGraphNode {
   final double lat;
   final double lng;
 
-  OfflineGraphNode({
-    required this.id,
-    required this.lat,
-    required this.lng,
-  });
+  OfflineGraphNode({required this.id, required this.lat, required this.lng});
 
   factory OfflineGraphNode.fromJson(Map<String, dynamic> json) {
     return OfflineGraphNode(
@@ -580,10 +628,12 @@ class OfflineGraphEdge {
 
   factory OfflineGraphEdge.fromJson(Map<String, dynamic> json) {
     final shape = (json['shape'] as List<dynamic>?)
-        ?.map((point) => LatLng(
-              (point[0] as num).toDouble(),
-              (point[1] as num).toDouble(),
-            ))
+        ?.map(
+          (point) => LatLng(
+            (point[0] as num).toDouble(),
+            (point[1] as num).toDouble(),
+          ),
+        )
         .toList();
 
     return OfflineGraphEdge(
@@ -610,10 +660,7 @@ class OfflineGraphMeta {
   final int version;
   final DateTime lastSync;
 
-  OfflineGraphMeta({
-    required this.version,
-    required this.lastSync,
-  });
+  OfflineGraphMeta({required this.version, required this.lastSync});
 
   factory OfflineGraphMeta.fromJson(Map<String, dynamic> json) {
     return OfflineGraphMeta(
@@ -623,10 +670,7 @@ class OfflineGraphMeta {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'version': version,
-      'lastSync': lastSync.toIso8601String(),
-    };
+    return {'version': version, 'lastSync': lastSync.toIso8601String()};
   }
 }
 

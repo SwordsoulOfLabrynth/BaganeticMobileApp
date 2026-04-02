@@ -10,10 +10,18 @@ typedef PathDistanceCalculator = double Function(Pagoda a, Pagoda b);
 class PathSearchResult {
   final List<Pagoda> path;
   final double distanceKm;
+  final List<String> roadNodePath;
 
-  const PathSearchResult({required this.path, required this.distanceKm});
+  const PathSearchResult({
+    required this.path,
+    required this.distanceKm,
+    this.roadNodePath = const [],
+  });
 
-  const PathSearchResult.empty() : path = const [], distanceKm = 0;
+  const PathSearchResult.empty()
+    : path = const [],
+      distanceKm = 0,
+      roadNodePath = const [];
 
   bool get isEmpty => path.isEmpty;
 }
@@ -100,7 +108,11 @@ class PathfindingService {
           previous: previous,
           pagodasById: pagodasById,
         );
-        return PathSearchResult(path: path, distanceKm: currentG);
+        return PathSearchResult(
+          path: path,
+          distanceKm: currentG,
+          roadNodePath: _roadNodePathForPagodaPath(path, graph),
+        );
       }
 
       closedSet.add(currentItem.nodeId);
@@ -224,6 +236,23 @@ class PathfindingService {
     return path;
   }
 
+  static List<String> _roadNodePathForPagodaPath(
+    List<Pagoda> path,
+    PagodaRouteGraphData graph,
+  ) {
+    final roadNodePath = <String>[];
+    for (final pagoda in path) {
+      final roadNodeId = graph.nodes[pagoda.id]?.roadNodeId;
+      if (roadNodeId == null || roadNodeId.isEmpty) {
+        continue;
+      }
+      if (roadNodePath.isEmpty || roadNodePath.last != roadNodeId) {
+        roadNodePath.add(roadNodeId);
+      }
+    }
+    return roadNodePath;
+  }
+
   static List<Pagoda> _nearestNeighborOrder(
     Pagoda start,
     List<Pagoda> candidates, {
@@ -335,6 +364,7 @@ class PathfindingService {
     return PathSearchResult(
       path: [start, goal],
       distanceKm: _haversineDistance(start, goal),
+      roadNodePath: const [],
     );
   }
 }
@@ -365,7 +395,9 @@ class PagodaRouteGraphData {
     final adjacency = <String, List<PagodaRouteGraphEdge>>{};
     for (final edge in edgeList) {
       adjacency.putIfAbsent(edge.from, () => []).add(edge);
-      adjacency.putIfAbsent(edge.to, () => []).add(edge.reversed());
+      if (!edge.oneWay) {
+        adjacency.putIfAbsent(edge.to, () => []).add(edge.reversed());
+      }
     }
 
     return PagodaRouteGraphData(
@@ -407,12 +439,14 @@ class PagodaRouteGraphEdge {
   final String to;
   final double weight;
   final double roadDistanceKm;
+  final bool oneWay;
 
   const PagodaRouteGraphEdge({
     required this.from,
     required this.to,
     required this.weight,
     required this.roadDistanceKm,
+    required this.oneWay,
   });
 
   factory PagodaRouteGraphEdge.fromJson(Map<String, dynamic> json) {
@@ -421,6 +455,7 @@ class PagodaRouteGraphEdge {
       to: json['to'] as String,
       weight: (json['weight'] as num).toDouble(),
       roadDistanceKm: (json['roadDistanceKm'] as num).toDouble(),
+      oneWay: json['oneWay'] as bool? ?? false,
     );
   }
 
@@ -430,6 +465,7 @@ class PagodaRouteGraphEdge {
       to: from,
       weight: weight,
       roadDistanceKm: roadDistanceKm,
+      oneWay: oneWay,
     );
   }
 }

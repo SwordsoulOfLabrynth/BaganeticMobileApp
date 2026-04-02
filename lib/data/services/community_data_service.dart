@@ -11,13 +11,16 @@ class CommunityDataService {
     DatabaseService? databaseService,
     FirebaseFirestore? firestore,
   }) : _db = databaseService ?? DatabaseService(),
-       _firestore = firestore ?? FirestoreInstance.instance;
+       _firestoreOverride = firestore;
 
   final DatabaseService _db;
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _firestoreOverride;
 
-  CollectionReference<Map<String, dynamic>> get _postsRef =>
-      _firestore.collection(AppConstants.communityPosts);
+  FirebaseFirestore? get _firestore =>
+      _firestoreOverride ?? FirestoreInstance.instanceOrNull;
+
+  CollectionReference<Map<String, dynamic>>? get _postsRef =>
+      _firestore?.collection(AppConstants.communityPosts);
 
   Future<List<CommunityPost>> loadPosts({String? currentUserId}) async {
     final localPosts = await _safeLoadLocalPosts(currentUserId: currentUserId);
@@ -38,8 +41,12 @@ class CommunityDataService {
   }
 
   Future<CommunityPost?> getPostById(String id, {String? currentUserId}) async {
+    final postsRef = _postsRef;
+    if (postsRef == null) {
+      return _db.getCommunityPostById(id, currentUserId: currentUserId);
+    }
     try {
-      final snapshot = await _postsRef.doc(id).get();
+      final snapshot = await postsRef.doc(id).get();
       if (!snapshot.exists) {
         return null;
       }
@@ -67,8 +74,12 @@ class CommunityDataService {
   }
 
   Future<List<CommunityComment>> loadComments(String postId) async {
+    final postsRef = _postsRef;
+    if (postsRef == null) {
+      return _db.getCommunityComments(postId);
+    }
     try {
-      final snapshot = await _postsRef
+      final snapshot = await postsRef
           .doc(postId)
           .collection(AppConstants.communityComments)
           .orderBy('createdAt')
@@ -98,8 +109,13 @@ class CommunityDataService {
   }
 
   Future<void> createPost(CommunityPost post) async {
+    final postsRef = _postsRef;
+    if (postsRef == null) {
+      await _db.insertCommunityPost(post);
+      return;
+    }
     try {
-      await _postsRef.doc(post.id).set(_serializePost(post));
+      await postsRef.doc(post.id).set(_serializePost(post));
     } catch (e, stackTrace) {
       Logger.error(
         'CommunityDataService: Remote post create failed, caching locally',
@@ -116,13 +132,20 @@ class CommunityDataService {
   }
 
   Future<void> createComment(CommunityComment comment) async {
-    final postRef = _postsRef.doc(comment.postId);
+    final firestore = _firestore;
+    final postsRef = _postsRef;
+    if (firestore == null || postsRef == null) {
+      await _db.insertCommunityComment(comment);
+      return;
+    }
+
+    final postRef = postsRef.doc(comment.postId);
     final commentRef = postRef
         .collection(AppConstants.communityComments)
         .doc(comment.id);
 
     try {
-      await _firestore.runTransaction((txn) async {
+      await firestore.runTransaction((txn) async {
         txn.set(commentRef, _serializeComment(comment));
         txn.update(postRef, {
           'updatedAt': Timestamp.fromDate(comment.updatedAt),
@@ -149,13 +172,20 @@ class CommunityDataService {
       return;
     }
 
-    final postRef = _postsRef.doc(postId);
+    final firestore = _firestore;
+    final postsRef = _postsRef;
+    if (firestore == null || postsRef == null) {
+      await _db.toggleCommunityPostUpvote(postId, userId: userId);
+      return;
+    }
+
+    final postRef = postsRef.doc(postId);
     final voteRef = postRef
         .collection(AppConstants.communityPostVotes)
         .doc(userId);
 
     try {
-      await _firestore.runTransaction((txn) async {
+      await firestore.runTransaction((txn) async {
         final voteSnapshot = await txn.get(voteRef);
         if (voteSnapshot.exists) {
           txn.delete(voteRef);
@@ -189,7 +219,12 @@ class CommunityDataService {
     String? currentUserId,
     List<CommunityPost>? localPosts,
   }) async {
-    final snapshot = await _postsRef
+    final postsRef = _postsRef;
+    if (postsRef == null) {
+      return localPosts ?? const [];
+    }
+
+    final snapshot = await postsRef
         .where('status', isEqualTo: CommunityPost.statusActive)
         .get();
     final docs = snapshot.docs;
@@ -244,7 +279,12 @@ class CommunityDataService {
       return const <String>{};
     }
 
-    final snapshot = await _firestore
+    final firestore = _firestore;
+    if (firestore == null) {
+      return const <String>{};
+    }
+
+    final snapshot = await firestore
         .collectionGroup(AppConstants.communityPostVotes)
         .where('userId', isEqualTo: resolvedUserId)
         .get();
@@ -313,7 +353,11 @@ class CommunityDataService {
         continue;
       }
       try {
-        await _postsRef.doc(post.id).set(_serializePost(post));
+        final postsRef = _postsRef;
+        if (postsRef == null) {
+          return;
+        }
+        await postsRef.doc(post.id).set(_serializePost(post));
         remotePostIds.add(post.id);
       } catch (e, stackTrace) {
         Logger.error(

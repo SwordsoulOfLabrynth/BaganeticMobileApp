@@ -13,6 +13,7 @@ const firestoreDatabaseId = 'baganetic-mobile';
 window.adminCollections = {
   pagodas: 'pagodas',
   users: 'users',
+  trips: 'trips',
   feedbacks: 'feedbacks',
   roadReports: 'roadReports',
   aiChatMessages: 'aiChatMessages',
@@ -380,7 +381,15 @@ function showToast(message, type = 'info') {
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-message">${message}</span>`;
+  const icon = document.createElement('span');
+  icon.className = 'toast-icon';
+  icon.textContent = icons[type] || icons.info;
+
+  const text = document.createElement('span');
+  text.className = 'toast-message';
+  text.textContent = String(message || '');
+
+  toast.append(icon, text);
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 3500);
 }

@@ -1,20 +1,71 @@
 pagodaId,name,lat,lng,roadNodeId,accessGapKm
+abeyadana,Abeyadana Temple,21.1582,94.8623,8530778798,0.125119
 alodawpyae,Alodawpyae Pagoda,21.176739,94.882814,1177289696,0.043027
 ananda,Ananda Temple,21.170806,94.867856,7016070610,0.093658
+anaukpetleik,Anauk Petleik Pagoda,21.1504,94.8566,8530534299,0.54456
+ashepetleik,Ashe Petleik Pagoda,21.1509,94.8572,8530534298,0.47226
+bulethi,Bulethi Pagoda,21.1619,94.8783,1584896532,0.258422
 bupaya,Bu Paya,21.1763128,94.857903,8530727978,0.044061
 dhammayangyi,Dhammayangyi Temple,21.161975,94.872919,2637733411,0.099713
 dhammayazaka,Dhammayazaka,21.145071,94.883451,2462207020,0.087508
 gawdawpalin,Gawdawpalin Temple,21.17,94.856667,8530546910,0.065576
 gubyaukgyi,Gu Byauk Gyi Pagoda,21.157222,94.860833,1737259439,0.028744
+gubyauknge,Gubyauk Nge Temple,21.1611,94.9057,8531639702,0.256401
+hgnetpyittaung,Hgnet Pyit Taung Temple,21.19205,94.91236,8530759990,0.006087
+hsutaungpyi,Hsu Taung Pyi Pagoda,21.174,94.8717,1177339921,0.082595
 htilominlo,Htilominlo Temple,21.178531,94.879398,2462208351,0.064364
 izagawna,Iza Gawna Pagoda,21.17025,94.90586,1737556821,0.055351
+khamaunggyi,Kha-maung-gyi,21.1994,94.9019,3139360317,0.308344
+kondawgyi,Kondawgyi Temple,21.2059,94.9281,2089394696,1.324963
+kusinara,Kusinara Temple,21.1638,94.8693,5293537981,0.073712
+kyamingatemple,Kya Min Ga Temple,21.1942,94.9055,8530793661,0.023228
+kyansittharumin,Kyan Sit Thar Umin,21.1569,94.9099,2458457775,0.316121
+kyaukguumin,Kyauk Gu U Min (The Cave Temple),21.1797,94.9189,8534942460,0.687211
+kyaunggyi,Kyaung Gyi Temple (Kyaung Gyi Nyiat or Kyaung Gyi Paya),21.1526,94.9004,648851105,0.167887
 lawkananda,Lawkananda Pagoda,21.127222,94.850556,6225325939,2.266231
+lawkaousaung,Law Ka Ou Saung,21.1704,94.8898,2458457940,0.132063
+lemyethna,Lemyethna Temple,21.1517,94.9087,3975914474,0.200406
+letputkan,Let Put Kan Temple,21.16875,94.89626,2459976365,0.117117
+lokahteikpan,Lokahteikpan Temple,21.1659,94.8658,2458061293,0.030037
+mahabodhi,Mahabodhi Temple,21.1768,94.8783,2462208350,0.266831
 mahazedi,Mahazedi Pagoda,21.1645,94.86229,2457814455,0.019735
 manuha,Manuha Temple,21.153408,94.859152,597205432,0.133078
+mineyeingon,Mi-nyein-gon Pagoda,21.1514,94.8708,2457894757,0.303004
+mingalazedi,Mingalazedi Pagoda,21.1718,94.8857,2458458003,0.236027
+minochantha,Minochantha,21.1734,94.8722,1177339744,0.010434
+myazedi,Myazedi Pagoda,21.1607,94.9052,2091625700,0.255561
+nagayon,Nagayon Temple,21.1598,94.9029,2091625669,0.053837
+nandamannya,Nandamannya Temple,21.1528,94.9068,3975914471,0.183596
+nanpaya,Nanpaya Temple,21.1584,94.9038,2645015650,0.050953
+nathlaungkyaung,Nathlaung Kyaung Temple,21.1681,94.8599,8530612526,0.036199
+ngakywenataung,Ngakywe Nataung,21.169,94.859,2419861533,0.015643
+northguni,North Guni Temple (Myauk Guni) Sunset Pagoda,21.1612,94.8724,2637733395,0.05615
+pahtothamya,Pahto Thamya Temple,21.167,94.858,2457814480,0.032985
+payathonzu,Payathonzu Temple,21.1546,94.9097,3975914476,0.136387
+pebingyaung,Pebingyaung Pagoda,21.1671,94.853,11027135023,0.033503
 pyathetgyi,Pyathetgyi Temple,21.15829,94.88957,4615858156,0.083196
+sapada,Sapada Pagoda,21.19465,94.90675,4031915316,0.03608
 seinnyetnyiama,Sein Nyet Nyi Ama Gu Phaya,21.14151,94.85896,2457894648,1.154742
+shinbinthalyaung,Shinthalyung Temple,21.1615,94.8716,6778857546,0.032416
 shwegugyi,Shwe Gu Gyi,21.170744,94.862406,2091625952,0.021477
+shweleiktoo,Shwe Leik Too Temple,21.1811,94.8861,8530574145,0.055168
+shwesandaw,Shwesandaw Pagoda,21.1669,94.8671,1614739243,0.064564
 shwezigon,Shwezigon Pagoda,21.195278,94.893889,8530489294,0.124568
+sinphyushin,Sin-phyu-shin Temple,21.1542,94.9139,6796858100,0.022952
+sittanagyi,Sittanagyi Pagoda,21.1448,94.8555,597205432,1.16196
+somingyi,Somingyi Pagoda,21.1604,94.8557,6740261937,0.129635
+southguni,South Guni Temple (Taung Guni),21.1588,94.8735,8530707148,0.224237
 sulamani,Sulamani Temple,21.1649,94.8814,1584896533,0.112668
+tantkyitaung,Tant Kyi Taung Pagoda,21.15527,94.78786,8531661436,6.827667
+tawethpaya,Ta Wet Hpaya Temple,21.1589,94.8806,8530707140,0.357256
+tayokpye,Tayok Pye Temple,21.1812,94.8811,6225223005,0.059638
+thabeikhmauk,Thabeik Hmauk Temple,21.16587,94.88354,2459973161,0.047709
+thakyamuni,Thakyamuni Temple,21.20765,94.9279,2089394696,1.400883
+thamanhpaya,Tha-man-hpaya Temple,21.1498,94.9162,6796857994,0.437935
 thambula,Thambula Temple,21.162594,94.903672,8531639704,0.005506
+thandawkya,Than-daw-kya,21.1722,94.8631,5274749290,0.009776
 thatbinnyu,Thatbyinnyu Temple,21.16875,94.86295,7315351330,0.048633
+thitsarwadi,Thitsarwadi Temple The Balloon Temple,21.1559,94.8765,2091642370,0.174087
+tuywintaung,Tuywin Taung Pagoda,21.12341,94.94638,6796857994,4.667057
+wetkyiingubyaukgyi,Gu Byauk Gyi Temple (Wetkyi-In),21.1889,94.8948,8530916416,0.040031
+winido,Winido Temple,21.1569,94.9125,8530776767,0.148585

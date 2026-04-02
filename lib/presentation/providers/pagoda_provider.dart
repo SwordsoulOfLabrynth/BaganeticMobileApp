@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
@@ -16,8 +17,8 @@ class PagodaUIProvider with ChangeNotifier {
     PagodaSearchService? searchService,
   }) : _dataService = dataService ?? PagodaDataService(),
        _searchService = searchService ?? PagodaSearchService() {
-    _currentOwnerId = _resolveOwnerId(_auth.currentUser);
-    _authSub = _auth.authStateChanges().listen((user) async {
+    _currentOwnerId = _resolveOwnerId(_firebaseService.currentUser);
+    _authSub = _firebaseService.authStateChanges.listen((user) async {
       final nextOwnerId = _resolveOwnerId(user);
       if (nextOwnerId == _currentOwnerId) {
         return;
@@ -32,7 +33,6 @@ class PagodaUIProvider with ChangeNotifier {
 
   final PagodaDataService _dataService;
   final PagodaSearchService _searchService;
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final FirebaseService _firebaseService = FirebaseService();
 
   List<Pagoda> _pagodas = [];
@@ -80,10 +80,43 @@ class PagodaUIProvider with ChangeNotifier {
       if (!canManageFavorites) {
         _favorites = [];
       } else {
-        _favorites = await _dataService.getFavorites(
+        var resolvedFavorites = await _dataService.getFavorites(
           ownerUserId: _currentOwnerId,
         );
-        unawaited(_syncFavoritesToCloud());
+
+        if (_firebaseService.isFirebaseAvailable) {
+          try {
+            final remoteFavoriteIds = await _firebaseService.getFavoriteIds(
+              _currentOwnerId,
+            );
+            final localFavoriteIds = resolvedFavorites
+                .map((pagoda) => pagoda.id)
+                .toList(growable: false);
+
+            if (remoteFavoriteIds.isNotEmpty || localFavoriteIds.isEmpty) {
+              if (!listEquals(remoteFavoriteIds, localFavoriteIds)) {
+                await _dataService.replaceFavorites(
+                  ownerUserId: _currentOwnerId,
+                  pagodaIds: remoteFavoriteIds,
+                );
+                resolvedFavorites = await _dataService.getFavorites(
+                  ownerUserId: _currentOwnerId,
+                );
+              }
+            } else {
+              unawaited(_syncFavoritesToCloud(favoriteIds: localFavoriteIds));
+            }
+          } catch (e, stackTrace) {
+            Logger.error(
+              'Error reconciling favorites with Firestore',
+              e,
+              stackTrace,
+            );
+          }
+        }
+
+        _favorites = resolvedFavorites;
+        _syncFavoriteFlags();
       }
       notifyListeners();
     } catch (e, stackTrace) {
@@ -113,7 +146,11 @@ class PagodaUIProvider with ChangeNotifier {
 
     try {
       await _dataService.toggleFavorite(pagodaId, ownerUserId: _currentOwnerId);
-      unawaited(_syncFavoritesToCloud());
+      unawaited(
+        _syncFavoritesToCloud(
+          favoriteIds: _favorites.map((pagoda) => pagoda.id).toList(),
+        ),
+      );
     } catch (e, stackTrace) {
       _pagodas[index] = previousPagoda;
       if (previousPagoda.isFavorite) {
@@ -144,16 +181,30 @@ class PagodaUIProvider with ChangeNotifier {
     );
   }
 
-  Future<void> _syncFavoritesToCloud() async {
+  Future<void> _syncFavoritesToCloud({List<String>? favoriteIds}) async {
     if (!canManageFavorites || !_firebaseService.isFirebaseAvailable) {
       return;
     }
-    final favoriteIds = _favorites.map((pagoda) => pagoda.id).toList();
+    final resolvedFavoriteIds =
+        favoriteIds ?? _favorites.map((pagoda) => pagoda.id).toList();
     try {
-      await _firebaseService.syncFavorites(_currentOwnerId, favoriteIds);
+      await _firebaseService.syncFavorites(
+        _currentOwnerId,
+        resolvedFavoriteIds,
+      );
     } catch (e, stackTrace) {
       Logger.error('Error syncing favorites to Firestore', e, stackTrace);
     }
+  }
+
+  void _syncFavoriteFlags() {
+    final favoriteIds = _favorites.map((pagoda) => pagoda.id).toSet();
+    _pagodas = _pagodas
+        .map(
+          (pagoda) =>
+              pagoda.copyWith(isFavorite: favoriteIds.contains(pagoda.id)),
+        )
+        .toList(growable: false);
   }
 
   @override

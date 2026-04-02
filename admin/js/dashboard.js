@@ -48,7 +48,7 @@ function renderDashboardWarning() {
     const failedLabels = window.adminState.datasetErrors
       .map((error) => error.label)
       .join(', ');
-    messages.push(`These sections may be incomplete: ${escapeHtml(failedLabels)}.`);
+    messages.push(`These sections may be incomplete: ${failedLabels}.`);
     messages.push(
       window.adminState.datasetErrors
         .map((error) => `${error.label}: ${error.message || 'Unknown error'}`)
@@ -61,7 +61,7 @@ function renderDashboardWarning() {
   banner.innerHTML = `
     <div>
       <strong>Admin sync notice</strong>
-      <span>${messages.join(' ')}</span>
+      <span>${escapeHtml(messages.join(' '))}</span>
     </div>
     <button class="btn-secondary" type="button" onclick="handleAdminRefresh(false)">Retry</button>
   `;

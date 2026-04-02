@@ -1,0 +1,264 @@
+--- PAGE 1 ---
+T O U R  G U I D E
+A S S I S T A N T  F O R
+B A G A N  P A G O D A S  
+P R O J  3 0 0 2  S p e c i a l  P r o j e c t  I I
+                  B a g a n e t i c
+Instructor-in-charge : Dr. Myat Thuzar Tun
+Project supervisor :  Daw Khin Myat Nwe Win 
+Date : 10th October, 2025
+
+--- PAGE 2 ---
+PROJECT MEMBERS AND ROLES
+1. Khaing Thazin Tun     (2019-MIIT-CSE-014)   Team Leader & Backed Developer
+2. Kyaw Zay Ya Hein      (2022-MIIT-CSE-014)  Fronted Developer & Database
+3. Htun Lei Lei Win          (2022-MIIT-CSE-033)  Data Researcher & Documentation
+4. Phyu Hnin Aung         (2022-MIIT-CSE-040)  UI Designer & Researcher
+
+--- PAGE 3 ---
+Introduction to Baganetic
+1
+Abstract of the System
+2
+Purpose of developing Baganetic
+3
+Features of Baganetic
+4
+Flowchart
+5
+Tools & Technology Used
+6
+Conclusion
+7
+CONTENTS
+
+--- PAGE 4 ---
+INTRODUCTION
+•  Web-based platform for preserving
+and promoting Bagan’s heritage
+• User-friendly system with temple
+profiles, maps, and cultural details
+• Enhances accessibility and cultural
+education through digital heritage
+
+--- PAGE 5 ---
+PROBLEM STATEMENT
+(WHY OUR PROJECT IS UNIQUE?)
+B a g a n  h a s  o v e r  2 , 0 0 0  p a g o d a s ,  
+m a k i n g  i t  h a r d  f o r  t h e  t o u r i s t s  
+t o  f i n d  t h e  b e s t  r o u t e .
+O u r  s y s t e m  s o l v e s  t h i s  p r o b l e m
+w i t h  a n  i n n o v a t i v e  a p p r o a c h
+c a l l e d  A *  A l g o r i t h m .
+
+--- PAGE 6 ---
+ABSTRACT OF
+THE SYSTEM
+Web app to explore and preserve Bagan’s temples
+Interactive map with pagoda info
+Built with HTML, CSS, JavaScript, Python (Flask),
+and MongoDB
+A* pathfinding for optimized routes
+AI chatbot for instant travel tips
+Enhances tourist experience and promotes
+Myanmar’s heritage
+
+--- PAGE 7 ---
+PURPOSE OF DEVELOPING
+BAGANETIC
+• To implement an easy and enjoyable system
+for users
+• To provide an easy-to-use knowledge hub of
+temples
+• To help tourists easily navigate between
+landmarks in Bagan
+• To save time, enhance user travel
+experience in cultural heritage zones
+
+--- PAGE 8 ---
+USER SIDE FEATURES
+🏯  Explore Temple Catalog
+ 🔍  Advanced Search & Filter
+ 🗺  Interactive Map Navigation
+ 🧭  Shortest Path Finder 
+ 🤖  AI Chatbot Assistant 
+ ⭐  Favorite & Visited Marking System
+ 👤  User Profile Management 
+ 🌏  Bilingual Support (English/Myanmar) 
+
+--- PAGE 9 ---
+ADMIN SIDE FEATURES
+🔐  Secure Admin Login 
+ 📊  Dashboard Overview 
+ 🏗  Pagoda Management
+  👥  User Management 
+ ⚙  System Health Monitoring 
+ 📜  Admin Activity Log
+
+--- PAGE 10 ---
+FLOWCHART FOR
+USER
+
+
+--- PAGE 11 ---
+FLOWCHART FOR
+ADMIN
+
+
+--- PAGE 12 ---
+U S E  C A S E  D I A G R A M
+F O R  U S E R
+
+
+--- PAGE 13 ---
+U S E  C A S E  D I A G R A M
+F O R  A D M I N
+
+
+--- PAGE 14 ---
+FRONTENED
+BACKENED
+UI /UX DESIGN
+DATABASE
+T E C H N O L O G Y  
+
+--- PAGE 15 ---
+WHAT IS A* ALGORITHM?
+A* is a search algorithm used in maps,
+GPS, and games.
+It finds the shortest path between two
+points.
+Combination of Dijkstra's algorithm and
+Greedy Best-First Search algorithm
+
+--- PAGE 16 ---
+WHY CHOOSE A*
+A* is better than other algorithms:
+vs Dijkstra’s Algorithm: Dijkstra only use g(n) and explores
+everywhere equally; A* uses heuristic to go towards the goal.
+vs Greedy Best-First Search: Greedy only uses h(n) (can miss
+optimal path); A* balances g(n) and h(n).
+
+--- PAGE 17 ---
+Algorithm Pros Cons
+Dijkstra’s Always finds shortest path Explores too many nodes → slow
+Greedy Best-First Very fast, simple May fail to find shortest path/ risk to take a path
+that does not bring to the goal
+A* Shortest path + efficient Need good heuristic, use more memory
+COMPARISON OF
+ALGORITHMS
+
+--- PAGE 18 ---
+THE A* FORMULA
+f ( n )  =  g ( n )  +  h ( n )
+g ( n ) :  T h e  c o s t  t o  r e a c h  t h e  c u r r e n t  p o i n t  f r o m  t h e  s t a r t .
+h ( n ) :  T h e  h e u r i s t i c  ( e s t i m a t e d  d i s t a n c e )  f r o m  t h e  c u r r e n t
+p o i n t  t o  t h e  g o a l .
+f ( n ) :  T h e  t o t a l  e s t i m a t e d  c o s t .
+
+--- PAGE 19 ---
+HEURISTIC (H(N))
+In our project, we use GPS coordinates of pagodas.
+To estimate distance, we use the Haversine formula
+(straight-line distance).
+Example:
+Ananda →  Thambula
+h(n) ≈ 2.38 miles (straight line)
+ This helps the algorithm move in the right direction faster.
+
+--- PAGE 20 ---
+HEURISTIC EXAMPLE
+B l u e  c u r v e d  l i n e  =  r e a l  r o a d  ( g )
+H e u r i s t i c  g u i d e s  u s  i n  t h e  r i g h t
+d i r e c t i o n  f a s t e r
+S t r a i g h t  r e d  l i n e  =  h e u r i s t i c  ( h )
+
+--- PAGE 21 ---
+MAP OF BAGAN
+
+--- PAGE 22 ---
+
+
+--- PAGE 23 ---
+HEURISTIC DISTANCE TO THAMBULA
+
+
+--- PAGE 24 ---
+S t a g e s  i n  a n  A ∗  s e a r c h  f o r  T h a m b u l a
+( N o d e s  a r e  l a b e l e d  w i t h  g + h  =  f )
+
+--- PAGE 25 ---
+
+
+--- PAGE 26 ---
+
+
+--- PAGE 27 ---
+S h o r t e s t  p a t h  r e s u l t :
+Ananda →  Dhammayangyi →  Sulamani →
+Pyathetgyi →  Thambula = 4.7 miles
+
+--- PAGE 28 ---
+IDENTIFICATION AND RESOLUTION OF
+ BUGS AND ISSUES
+Problem / Bug Identified
+MongoDB Connection Failures
+Missing Pagoda Data – Search sometimes
+returned blank because no matching pagoda
+was found.
+Cluttered Map Popups – CSS-only popups
+made info hard to read and not interactive.
+A* Algorithm Implementation Bugs
+Server Configuration Issues : Port Conflicts
+R e s o l u t i o n  /  I m p r o v e m e n t
+F a l l b a c k  D a t a  L o a d i n g  f r o m  J a v a S c r i p t  f i l e s  w h e n
+M o n g o D B  u n a v a i l a b l e
+E r r o r  H a n d l i n g  –  D i s p l a y e d  “ N o  p a g o d a  f o u n d ”
+m e s s a g e  i n s t e a d  o f  b l a n k  r e s u l t s .
+S w i t c h e d  t o  L e a f l e t  P o p u p s  –  I n t e r a c t i v e ,  c l e a n
+i n f o  w i n d o w s  o n  t h e  m a p .
+C r e a t e d  i m p r o v e d _ p a t h f i n d e r . p y  w i t h  e n h a n c e d
+A *  i m p l e m e n t a t i o n
+P o r t  C o n f l i c t  D e t e c t i o n  a n d  r e s o l u t i o n
+
+--- PAGE 29 ---
+🗺  S h o r t e s t  P a t h  F i n d e r
+🤖  A I  C h a t b o t
+⭐  F a v o r i t e  M a r k i n g  S y s t e m  
+🛠  A d m i n  D a s h b o a r d
+AFTER MIDTERM IMPROVEMENTS
+
+--- PAGE 30 ---
+🌐 Mobile App Development
+🤖 AI-Powered Recommendations
+🗣 Multi-Language Support
+☁ Integration with External Services
+📊 User Feedback & Analytics
+FUTURE ENHANCEMENT
+
+--- PAGE 31 ---
+CONCLUSION
+Simplifies navigation with A* shortest path algorithm 
+Enhances tourism experience with interactive maps &
+pagoda info 
+Provides a reliable platform for future improvements 
+Supports digital preservation of Myanmar’s heritage
+
+--- PAGE 32 ---
+REFERENCES
+Book : Artificial Intelligence - A Modern Approach (3rd Ed)
+Leaflet JS : https://leafletjs.com/reference.html
+MongoDB : https://www.mongodb.com/docs/manual/
+
+--- PAGE 33 ---
+THANK YOU
+for your attention
+
+
+--- PAGE 34 ---
+LET'S GET INTO
+SEEING BAGENTIC IN ACTION
+
+--- PAGE 35 ---
+DISCUSSION SESSION
+

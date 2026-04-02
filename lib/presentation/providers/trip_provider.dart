@@ -10,7 +10,6 @@ import '../../core/services/logger.dart';
 
 class TripProvider with ChangeNotifier {
   final DatabaseService _db = DatabaseService();
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final FirebaseService _firebaseService = FirebaseService();
 
   List<Trip> _trips = [];
@@ -24,8 +23,8 @@ class TripProvider with ChangeNotifier {
   bool get canManageTrips => _currentOwnerId != AppConstants.guestOwnerId;
 
   TripProvider() {
-    _currentOwnerId = _resolveOwnerId(_auth.currentUser);
-    _authSub = _auth.authStateChanges().listen((user) async {
+    _currentOwnerId = _resolveOwnerId(_firebaseService.currentUser);
+    _authSub = _firebaseService.authStateChanges.listen((user) async {
       final nextOwnerId = _resolveOwnerId(user);
       if (nextOwnerId == _currentOwnerId) {
         return;

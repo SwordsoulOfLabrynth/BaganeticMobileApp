@@ -1,17 +1,22 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'firebase_options.dart';
+
 import 'core/constants/app_constants.dart';
 import 'core/localization/app_localizations.dart';
+import 'core/services/firestore_instance.dart';
+import 'core/services/logger.dart';
+import 'core/services/offline_map_service.dart';
+import 'core/services/offline_route_service.dart';
 import 'core/theme/app_theme.dart';
+import 'firebase_options.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/community_provider.dart';
 import 'presentation/providers/language_provider.dart';
@@ -19,10 +24,6 @@ import 'presentation/providers/pagoda_provider.dart';
 import 'presentation/providers/trip_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
-import 'core/services/offline_map_service.dart';
-import 'core/services/offline_route_service.dart';
-import 'core/services/logger.dart';
-import 'core/services/firestore_instance.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,9 +75,10 @@ Future<_BootstrapResult> _bootstrapApp() async {
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 8));
     firebaseReady = true;
-    FirestoreInstance.instance.settings = const Settings(
-      persistenceEnabled: true,
-    );
+    final firestore = FirestoreInstance.instanceOrNull;
+    if (firestore != null) {
+      firestore.settings = const Settings(persistenceEnabled: true);
+    }
     Logger.info(
       'Firestore DB: ${FirestoreInstance.configuredDatabaseId.isEmpty ? '(default)' : FirestoreInstance.configuredDatabaseId}',
     );
@@ -98,99 +100,88 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => LanguageProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => PagodaProvider()),
-        ChangeNotifierProvider(create: (_) => TripProvider()),
-        ChangeNotifierProvider(create: (_) => CommunityProvider()),
-      ],
-      child: Consumer<LanguageProvider>(
-        builder: (context, languageProvider, _) {
-          return MaterialApp(
-            onGenerateTitle: (context) =>
-                AppLocalizations.of(context).translate('app.title'),
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            locale: languageProvider.locale,
-            supportedLocales: const [Locale('en'), Locale('my')],
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            localeResolutionCallback: (locale, supportedLocales) {
-              if (locale == null) {
-                return supportedLocales.first;
-              }
-              for (final supportedLocale in supportedLocales) {
-                if (supportedLocale.languageCode == locale.languageCode) {
-                  return supportedLocale;
-                }
-              }
-              return supportedLocales.first;
-            },
-            home: const _StartupGate(),
-            routes: {
-              '/login': (context) => const LoginScreen(),
-              '/home': (context) => const HomeScreen(),
-            },
-          );
-        },
-      ),
-    );
+    return const _AppBootstrapShell();
   }
 }
 
-class _StartupGate extends StatefulWidget {
-  const _StartupGate();
+class _AppBootstrapShell extends StatefulWidget {
+  const _AppBootstrapShell();
 
   @override
-  State<_StartupGate> createState() => _StartupGateState();
+  State<_AppBootstrapShell> createState() => _AppBootstrapShellState();
 }
 
-class _StartupGateState extends State<_StartupGate> {
-  Future<_BootstrapResult>? _bootstrapFuture;
+class _AppBootstrapShellState extends State<_AppBootstrapShell> {
+  late final Future<_BootstrapResult> _bootstrapFuture;
   bool _backgroundServicesStarted = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _bootstrapFuture = _bootstrapApp();
-      });
-    });
+    _bootstrapFuture = _bootstrapApp();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bootstrapFuture = _bootstrapFuture;
-    if (bootstrapFuture == null) {
-      return const _StartupScreen();
-    }
-
     return FutureBuilder<_BootstrapResult>(
-      future: bootstrapFuture,
+      future: _bootstrapFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const _StartupScreen();
-        }
-
+        final isReady = snapshot.connectionState == ConnectionState.done;
         final result =
             snapshot.data ?? const _BootstrapResult(firebaseReady: false);
 
-        if (!_backgroundServicesStarted) {
+        if (isReady && !_backgroundServicesStarted) {
           _backgroundServicesStarted = true;
           unawaited(_startBackgroundServices(result));
         }
 
-        return const HomeScreen();
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => LanguageProvider()),
+            if (isReady) ChangeNotifierProvider(create: (_) => AuthProvider()),
+            if (isReady)
+              ChangeNotifierProvider(create: (_) => PagodaProvider()),
+            if (isReady) ChangeNotifierProvider(create: (_) => TripProvider()),
+            if (isReady)
+              ChangeNotifierProvider(create: (_) => CommunityProvider()),
+          ],
+          child: Consumer<LanguageProvider>(
+            builder: (context, languageProvider, _) {
+              return MaterialApp(
+                onGenerateTitle: (context) =>
+                    AppLocalizations.of(context).translate('app.title'),
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme,
+                locale: languageProvider.locale,
+                supportedLocales: const [Locale('en'), Locale('my')],
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                localeResolutionCallback: (locale, supportedLocales) {
+                  if (locale == null) {
+                    return supportedLocales.first;
+                  }
+                  for (final supportedLocale in supportedLocales) {
+                    if (supportedLocale.languageCode == locale.languageCode) {
+                      return supportedLocale;
+                    }
+                  }
+                  return supportedLocales.first;
+                },
+                home: isReady ? const HomeScreen() : const _StartupScreen(),
+                routes: isReady
+                    ? {
+                        '/login': (context) => const LoginScreen(),
+                        '/home': (context) => const HomeScreen(),
+                      }
+                    : const {},
+              );
+            },
+          ),
+        );
       },
     );
   }

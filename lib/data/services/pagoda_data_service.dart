@@ -314,6 +314,13 @@ class PagodaDataService {
     return _db.toggleFavorite(pagodaId, ownerUserId: ownerUserId);
   }
 
+  Future<void> replaceFavorites({
+    required String ownerUserId,
+    required Iterable<String> pagodaIds,
+  }) {
+    return _db.replaceFavorites(ownerUserId: ownerUserId, pagodaIds: pagodaIds);
+  }
+
   Future<Pagoda?> getPagodaById(String id, {String? ownerUserId}) {
     return _db.getPagodaById(id, ownerUserId: ownerUserId);
   }

@@ -24,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  late List<Widget> _screens;
 
   void _onNavigateToTab(int index) {
     setState(() {
@@ -34,12 +35,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _screens = _buildScreens();
     final index = widget.initialIndex;
     final maxIndex = _screens.length - 1;
     _currentIndex = index < 0 ? 0 : (index > maxIndex ? maxIndex : index);
   }
 
-  List<Widget> get _screens => [
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialMapPagoda?.id != widget.initialMapPagoda?.id) {
+      _screens = _buildScreens();
+    }
+  }
+
+  List<Widget> _buildScreens() => [
     HomeContentScreen(onNavigateToTab: _onNavigateToTab), // 0
     const PagodasListScreen(), // 1
     MapScreen(initialPagoda: widget.initialMapPagoda), // 2
@@ -117,7 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
             onNavigate: _onTabSelected,
             items: navigationItems,
           ),
-          Expanded(child: _screens[_currentIndex]),
+          Expanded(
+            child: IndexedStack(index: _currentIndex, children: _screens),
+          ),
         ],
       ),
     );
@@ -133,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: const Icon(Icons.support_agent_outlined),
         label: Text(context.l10n.translate('chat.fabLabel')),
       ),
-      body: Stack(fit: StackFit.expand, children: [_screens[_currentIndex]]),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: _buildMobileBottomNavigationBar(
         context,
         navigationItems,
