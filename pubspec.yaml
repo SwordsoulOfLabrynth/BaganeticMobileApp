@@ -118,7 +118,6 @@ flutter:
     - assets/images/pagodas/Sulamani Temple/
     - assets/images/pagodas/Thambula/
     - assets/images/pagodas/Thatbyinnyu Temple/
-    - assets/images/pagodas/xxx/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
