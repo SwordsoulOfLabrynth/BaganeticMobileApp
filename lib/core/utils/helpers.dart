@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../data/models/trip_model.dart';
 import '../localization/app_localizations.dart';
 
 class Helpers {
@@ -39,6 +40,57 @@ class Helpers {
       return '$meters ${l10n.translate('unit.meter')}';
     }
     return '${distanceKm.toStringAsFixed(2)} ${l10n.translate('unit.kilometer')}';
+  }
+
+  static String formatDuration(BuildContext context, int totalMinutes) {
+    final l10n = AppLocalizations.of(context);
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+
+    if (hours == 0) {
+      return '$minutes ${l10n.translate('common.minutesShort')}';
+    }
+
+    final hourLabel = l10n.translate('common.hoursShort');
+    final minuteLabel = l10n.translate('common.minutesShort');
+    if (minutes == 0) {
+      return '$hours $hourLabel';
+    }
+    return '$hours $hourLabel $minutes $minuteLabel';
+  }
+
+  static String formatSpeed(BuildContext context, double speedKph) {
+    final l10n = AppLocalizations.of(context);
+    final speedText = speedKph == speedKph.roundToDouble()
+        ? speedKph.toStringAsFixed(0)
+        : speedKph.toStringAsFixed(1);
+    return '$speedText ${l10n.translate('unit.kilometersPerHour')}';
+  }
+
+  static String transportModeLabel(
+    BuildContext context,
+    TripTransportMode mode,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    switch (mode) {
+      case TripTransportMode.walk:
+        return l10n.translate('trip.transportMode.walk');
+      case TripTransportMode.bike:
+        return l10n.translate('trip.transportMode.bike');
+      case TripTransportMode.car:
+        return l10n.translate('trip.transportMode.car');
+    }
+  }
+
+  static IconData transportModeIcon(TripTransportMode mode) {
+    switch (mode) {
+      case TripTransportMode.walk:
+        return Icons.directions_walk;
+      case TripTransportMode.bike:
+        return Icons.directions_bike;
+      case TripTransportMode.car:
+        return Icons.directions_car;
+    }
   }
 
   // Format date

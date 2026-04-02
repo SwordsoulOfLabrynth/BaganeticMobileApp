@@ -20,6 +20,7 @@ import 'migrations/migration_v9.dart';
 import 'migrations/migration_v10.dart';
 import 'migrations/migration_v11.dart';
 import 'migrations/migration_v12.dart';
+import 'migrations/migration_v13.dart';
 
 class DatabaseService {
   static Database? _database;
@@ -65,6 +66,7 @@ class DatabaseService {
       MigrationToV10(),
       MigrationToV11(),
       MigrationToV12(),
+      MigrationToV13(),
     ]..sort((a, b) => a.targetVersion.compareTo(b.targetVersion));
 
     for (final migration in migrations) {
@@ -114,6 +116,7 @@ class DatabaseService {
         ownerUserId TEXT NOT NULL,
         name TEXT NOT NULL,
         description TEXT,
+        transportMode TEXT NOT NULL DEFAULT 'walk',
         date TEXT NOT NULL,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
@@ -218,6 +221,7 @@ class DatabaseService {
       await MigrationToV10().migrate(db);
       await MigrationToV11().migrate(db);
       await MigrationToV12().migrate(db);
+      await MigrationToV13().migrate(db);
     } catch (e, stackTrace) {
       Logger.error('Database schema self-heal failed', e, stackTrace);
     }
@@ -564,6 +568,7 @@ class DatabaseService {
         'ownerUserId': trip.ownerUserId,
         'name': trip.name,
         'description': trip.description,
+        'transportMode': trip.transportMode.storageValue,
         'date': trip.date.toIso8601String(),
         'createdAt': trip.createdAt.toIso8601String(),
         'updatedAt': trip.updatedAt.toIso8601String(),

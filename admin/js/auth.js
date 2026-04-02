@@ -217,6 +217,12 @@ async function handleAdminRefresh(showSuccessToast = true) {
   } catch (error) {
     console.error('Failed to refresh admin data:', error);
     showToast('Failed to refresh admin data.', 'error');
+    if (syncStatus) {
+      const lastLoaded = window.adminState?.lastLoadedAt;
+      syncStatus.textContent = lastLoaded
+        ? `Last sync ${formatDateTime(lastLoaded)} · refresh failed`
+        : 'Refresh failed';
+    }
   } finally {
     if (refreshButton) {
       refreshButton.disabled = false;

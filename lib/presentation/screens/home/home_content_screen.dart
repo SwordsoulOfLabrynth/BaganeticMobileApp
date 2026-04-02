@@ -25,9 +25,8 @@ class HomeContentScreen extends StatelessWidget {
     final l10n = context.l10n;
     final pagePadding = Responsive.pagePadding(context);
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-
-    // Keep final home actions above the floating chat button and bottom nav.
-    final bottomReservedSpace = 136.0 + bottomInset;
+    final bottomReservedSpace =
+        (Responsive.isTabletOrLarger(context) ? 96.0 : 136.0) + bottomInset;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.translate('app.title')), elevation: 0),
@@ -95,6 +94,8 @@ class HomeContentScreen extends StatelessWidget {
 
   Widget _buildFeaturedPagodas(BuildContext context) {
     final l10n = context.l10n;
+    const sectionSpacing = 16.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -119,18 +120,63 @@ class HomeContentScreen extends StatelessWidget {
               return Center(child: Text(l10n.translate('home.featuredEmpty')));
             }
 
-            return SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: featuredPagodas.length,
-                itemBuilder: (context, index) {
-                  return _buildFeaturedPagodaCard(
-                    context,
-                    featuredPagodas[index],
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final showGrid = constraints.maxWidth >= 620;
+
+                if (!showGrid) {
+                  final cardWidth = constraints.maxWidth < 380 ? 150.0 : 170.0;
+
+                  return SizedBox(
+                    height: 200,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: featuredPagodas.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: sectionSpacing),
+                      itemBuilder: (context, index) => SizedBox(
+                        width: cardWidth,
+                        child: _buildFeaturedPagodaCard(
+                          context,
+                          featuredPagodas[index],
+                        ),
+                      ),
+                    ),
                   );
-                },
-              ),
+                }
+
+                final columnCount = _bestColumnCount(
+                  maxWidth: constraints.maxWidth,
+                  itemCount: featuredPagodas.length,
+                  minCardWidth: Responsive.isDesktopOrLarger(context)
+                      ? 240
+                      : 220,
+                );
+                final cardWidth =
+                    (constraints.maxWidth -
+                        (sectionSpacing * (columnCount - 1))) /
+                    columnCount;
+
+                return Wrap(
+                  spacing: sectionSpacing,
+                  runSpacing: sectionSpacing,
+                  children: featuredPagodas
+                      .map(
+                        (pagoda) => SizedBox(
+                          width: cardWidth,
+                          child: _buildFeaturedPagodaCard(
+                            context,
+                            pagoda,
+                            imageHeight: Responsive.isDesktopOrLarger(context)
+                                ? 156
+                                : 140,
+                            titleMaxLines: 2,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
             );
           },
         ),
@@ -160,64 +206,64 @@ class HomeContentScreen extends StatelessWidget {
     return [...curated, ...remaining].take(3).toList();
   }
 
-  Widget _buildFeaturedPagodaCard(BuildContext context, Pagoda pagoda) {
+  Widget _buildFeaturedPagodaCard(
+    BuildContext context,
+    Pagoda pagoda, {
+    double imageHeight = 100,
+    int titleMaxLines = 1,
+  }) {
     final l10n = context.l10n;
-    final width = MediaQuery.sizeOf(context).width;
-    final cardWidth = width < 380 ? 150.0 : 170.0;
-    return Container(
-      width: cardWidth,
-      margin: const EdgeInsets.only(right: 16),
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PagodaDetailScreen(pagoda: pagoda),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PagodaDetailScreen(pagoda: pagoda),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
               ),
-            );
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                child: PagodaImageWidget(
-                  imageUrl: pagoda.imageUrl,
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+              child: PagodaImageWidget(
+                imageUrl: pagoda.imageUrl,
+                height: imageHeight,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.pagodaName(pagoda.id, pagoda.name),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.pagodaName(pagoda.id, pagoda.name),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.categoryLabel(pagoda.category),
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
+                    maxLines: titleMaxLines,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.categoryLabel(pagoda.category),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -225,14 +271,37 @@ class HomeContentScreen extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     final l10n = context.l10n;
-    final isCompact = Responsive.isCompact(context);
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final constrainedWidth = screenWidth < Responsive.contentMaxWidth(context)
-        ? screenWidth
-        : Responsive.contentMaxWidth(context);
-    final availableWidth =
-        constrainedWidth - Responsive.pagePadding(context).horizontal;
-    final cardWidth = isCompact ? (availableWidth - 16) / 2 : 220.0;
+    const sectionSpacing = 16.0;
+    final actions = [
+      _QuickActionItem(
+        title: l10n.translate('home.actionExplore'),
+        icon: Icons.temple_buddhist,
+        onTap: () => onNavigateToTab(1),
+      ),
+      _QuickActionItem(
+        title: l10n.translate('home.actionProfile'),
+        icon: Icons.person,
+        onTap: () => onNavigateToTab(4),
+      ),
+      _QuickActionItem(
+        title: l10n.translate('home.actionMap'),
+        icon: Icons.map,
+        onTap: () => onNavigateToTab(2),
+      ),
+      _QuickActionItem(
+        title: l10n.translate('home.actionCommunity'),
+        icon: Icons.forum_outlined,
+        onTap: () => onNavigateToTab(3),
+      ),
+      _QuickActionItem(
+        title: l10n.translate('chat.title'),
+        icon: Icons.support_agent_outlined,
+        onTap: () => AIAssistantLauncher.open(
+          context,
+          entryContext: const AIEntryContext.global(),
+        ),
+      ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,67 +313,36 @@ class HomeContentScreen extends StatelessWidget {
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            SizedBox(
-              width: cardWidth,
-              child: _buildQuickActionCard(
-                context,
-                l10n.translate('home.actionExplore'),
-                Icons.temple_buddhist,
-                () {
-                  onNavigateToTab(1);
-                },
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: _buildQuickActionCard(
-                context,
-                l10n.translate('home.actionProfile'),
-                Icons.person,
-                () {
-                  onNavigateToTab(4);
-                },
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: _buildQuickActionCard(
-                context,
-                l10n.translate('home.actionMap'),
-                Icons.map,
-                () {
-                  onNavigateToTab(2);
-                },
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: _buildQuickActionCard(
-                context,
-                l10n.translate('home.actionCommunity'),
-                Icons.forum_outlined,
-                () {
-                  onNavigateToTab(3);
-                },
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: _buildQuickActionCard(
-                context,
-                l10n.translate('chat.title'),
-                Icons.support_agent_outlined,
-                () => AIAssistantLauncher.open(
-                  context,
-                  entryContext: const AIEntryContext.global(),
-                ),
-              ),
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columnCount = _bestColumnCount(
+              maxWidth: constraints.maxWidth,
+              itemCount: actions.length,
+              minCardWidth: Responsive.isCompact(context) ? 150 : 190,
+              minColumns: 2,
+            );
+            final cardWidth =
+                (constraints.maxWidth - (sectionSpacing * (columnCount - 1))) /
+                columnCount;
+
+            return Wrap(
+              spacing: sectionSpacing,
+              runSpacing: sectionSpacing,
+              children: actions
+                  .map(
+                    (action) => SizedBox(
+                      width: cardWidth,
+                      child: _buildQuickActionCard(
+                        context,
+                        action.title,
+                        action.icon,
+                        action.onTap,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
         ),
       ],
     );
@@ -316,30 +354,82 @@ class HomeContentScreen extends StatelessWidget {
     IconData icon,
     VoidCallback onTap,
   ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Icon(icon, size: 32, color: const Color(0xFFD4AF37)),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+    final cardHeight = Responsive.isTabletOrLarger(context) ? 128.0 : 112.0;
+
+    return SizedBox(
+      height: cardHeight,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 32, color: const Color(0xFFD4AF37)),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  int _bestColumnCount({
+    required double maxWidth,
+    required int itemCount,
+    required double minCardWidth,
+    int minColumns = 1,
+  }) {
+    if (itemCount <= minColumns) {
+      return itemCount;
+    }
+
+    const spacing = 16.0;
+    var bestCount = minColumns;
+
+    for (var columns = minColumns; columns <= itemCount; columns++) {
+      final cardWidth = (maxWidth - (spacing * (columns - 1))) / columns;
+      if (cardWidth >= minCardWidth) {
+        bestCount = columns;
+      }
+    }
+
+    if (bestCount > 2 && itemCount % bestCount == 1) {
+      final adjustedCount = bestCount - 1;
+      final adjustedCardWidth =
+          (maxWidth - (spacing * (adjustedCount - 1))) / adjustedCount;
+      if (adjustedCardWidth >= minCardWidth) {
+        return adjustedCount;
+      }
+    }
+
+    return bestCount;
+  }
+}
+
+class _QuickActionItem {
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _QuickActionItem({
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
 }

@@ -20,15 +20,7 @@ class CommunityDataService {
       _firestore.collection(AppConstants.communityPosts);
 
   Future<List<CommunityPost>> loadPosts({String? currentUserId}) async {
-    final resolvedUserId = _resolveSignedInUserId(currentUserId);
     final localPosts = await _safeLoadLocalPosts(currentUserId: currentUserId);
-
-    if (resolvedUserId != null) {
-      await _syncPendingLocalPosts(
-        currentUserId: resolvedUserId,
-        localPosts: localPosts,
-      );
-    }
 
     try {
       return await _loadPostsFromFirestore(
@@ -198,7 +190,7 @@ class CommunityDataService {
     List<CommunityPost>? localPosts,
   }) async {
     final snapshot = await _postsRef
-        .orderBy('updatedAt', descending: true)
+        .where('status', isEqualTo: CommunityPost.statusActive)
         .get();
     final docs = snapshot.docs;
     Set<String> upvotedPostIds = const <String>{};
@@ -228,14 +220,22 @@ class CommunityDataService {
 
     final resolvedUserId = _resolveSignedInUserId(currentUserId);
     if (resolvedUserId != null) {
-      await _syncPendingLocalPosts(
-        currentUserId: resolvedUserId,
-        localPosts: localPosts ?? const [],
-        remotePosts: posts,
-      );
+      try {
+        await _syncPendingLocalPosts(
+          currentUserId: resolvedUserId,
+          localPosts: localPosts ?? const [],
+          remotePosts: posts,
+        );
+      } catch (e, stackTrace) {
+        Logger.error(
+          'CommunityDataService: Failed to sync pending local posts after remote load',
+          e,
+          stackTrace,
+        );
+      }
     }
 
-    return posts;
+    return _mergePosts(localPosts: localPosts ?? const [], remotePosts: posts);
   }
 
   Future<Set<String>> _loadUpvotedPostIds({String? currentUserId}) async {
@@ -274,7 +274,11 @@ class CommunityDataService {
     try {
       return await _db.getCommunityPosts(currentUserId: currentUserId);
     } catch (e, stackTrace) {
-      Logger.error('CommunityDataService: Failed to load local posts', e, stackTrace);
+      Logger.error(
+        'CommunityDataService: Failed to load local posts',
+        e,
+        stackTrace,
+      );
       return const [];
     }
   }
@@ -290,24 +294,19 @@ class CommunityDataService {
   Future<void> _syncPendingLocalPosts({
     required String currentUserId,
     required List<CommunityPost> localPosts,
-    List<CommunityPost>? remotePosts,
+    required List<CommunityPost> remotePosts,
   }) async {
-    final ownedLocalPosts =
-        localPosts
-            .where(
-              (post) =>
-                  post.authorUserId == currentUserId &&
-                  !_shouldHidePost(post),
-            )
-            .toList(growable: false);
+    final ownedLocalPosts = localPosts
+        .where(
+          (post) =>
+              post.authorUserId == currentUserId && !_shouldHidePost(post),
+        )
+        .toList(growable: false);
     if (ownedLocalPosts.isEmpty) {
       return;
     }
 
-    final remotePostIds =
-        remotePosts != null
-            ? remotePosts.map((post) => post.id).toSet()
-            : await _loadRemotePostIdsForAuthor(currentUserId);
+    final remotePostIds = remotePosts.map((post) => post.id).toSet();
 
     for (final post in ownedLocalPosts) {
       if (remotePostIds.contains(post.id)) {
@@ -326,10 +325,38 @@ class CommunityDataService {
     }
   }
 
-  Future<Set<String>> _loadRemotePostIdsForAuthor(String currentUserId) async {
-    final snapshot =
-        await _postsRef.where('authorUserId', isEqualTo: currentUserId).get();
-    return snapshot.docs.map((doc) => doc.id).toSet();
+  List<CommunityPost> _mergePosts({
+    required List<CommunityPost> localPosts,
+    required List<CommunityPost> remotePosts,
+  }) {
+    final mergedById = <String, CommunityPost>{};
+
+    for (final post in localPosts) {
+      if (_shouldHidePost(post)) {
+        continue;
+      }
+      mergedById[post.id] = post;
+    }
+
+    for (final post in remotePosts) {
+      final existing = mergedById[post.id];
+      if (existing == null ||
+          post.updatedAt.isAfter(existing.updatedAt) ||
+          post.updatedAt.isAtSameMomentAs(existing.updatedAt)) {
+        mergedById[post.id] = post;
+      }
+    }
+
+    final merged = mergedById.values.toList(growable: false)
+      ..sort((a, b) {
+        final updatedCompare = b.updatedAt.compareTo(a.updatedAt);
+        if (updatedCompare != 0) {
+          return updatedCompare;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
+
+    return merged;
   }
 
   Map<String, dynamic> _serializePost(CommunityPost post) {

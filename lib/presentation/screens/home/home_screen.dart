@@ -93,14 +93,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
 
-    if (Responsive.isDesktopOrLarger(context)) {
-      return _buildDesktopLayout(context, navigationItems);
-    } else {
-      return _buildMobileLayout(context, navigationItems);
+    if (Responsive.isTabletOrLarger(context)) {
+      return _buildWideLayout(context, navigationItems);
     }
+
+    return _buildMobileLayout(context, navigationItems);
   }
 
-  Widget _buildDesktopLayout(
+  Widget _buildWideLayout(
     BuildContext context,
     List<NavigationItem> navigationItems,
   ) {
@@ -117,7 +117,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onNavigate: _onTabSelected,
             items: navigationItems,
           ),
-          const VerticalDivider(thickness: 1, width: 1),
           Expanded(child: _screens[_currentIndex]),
         ],
       ),

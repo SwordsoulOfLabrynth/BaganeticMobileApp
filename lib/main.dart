@@ -24,30 +24,11 @@ import 'core/services/offline_route_service.dart';
 import 'core/services/logger.dart';
 import 'core/services/firestore_instance.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
   _configureDesktopDatabase();
 
-  // Initialize Firebase
-  var firebaseReady = false;
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ).timeout(const Duration(seconds: 8));
-    firebaseReady = true;
-    FirestoreInstance.instance.settings = const Settings(
-      persistenceEnabled: true,
-    );
-    Logger.info(
-      'Firestore DB: ${FirestoreInstance.configuredDatabaseId.isEmpty ? '(default)' : FirestoreInstance.configuredDatabaseId}',
-    );
-  } catch (e) {
-    Logger.error('Firebase initialization failed', e);
-  }
-
   runApp(const MyApp());
-
-  unawaited(_initializeBackgroundServices(firebaseReady: firebaseReady));
 }
 
 void _configureDesktopDatabase() {
@@ -84,6 +65,32 @@ Future<void> _initializeBackgroundServices({
   }
 
   unawaited(OfflineRouteService.instance.startBackgroundSync());
+}
+
+Future<_BootstrapResult> _bootstrapApp() async {
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 8));
+    firebaseReady = true;
+    FirestoreInstance.instance.settings = const Settings(
+      persistenceEnabled: true,
+    );
+    Logger.info(
+      'Firestore DB: ${FirestoreInstance.configuredDatabaseId.isEmpty ? '(default)' : FirestoreInstance.configuredDatabaseId}',
+    );
+  } catch (e, stackTrace) {
+    Logger.error('Firebase initialization failed', e, stackTrace);
+  }
+
+  return _BootstrapResult(firebaseReady: firebaseReady);
+}
+
+class _BootstrapResult {
+  const _BootstrapResult({required this.firebaseReady});
+
+  final bool firebaseReady;
 }
 
 class MyApp extends StatelessWidget {
@@ -125,13 +132,147 @@ class MyApp extends StatelessWidget {
               }
               return supportedLocales.first;
             },
-            home: const HomeScreen(),
+            home: const _StartupGate(),
             routes: {
               '/login': (context) => const LoginScreen(),
               '/home': (context) => const HomeScreen(),
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _StartupGate extends StatefulWidget {
+  const _StartupGate();
+
+  @override
+  State<_StartupGate> createState() => _StartupGateState();
+}
+
+class _StartupGateState extends State<_StartupGate> {
+  Future<_BootstrapResult>? _bootstrapFuture;
+  bool _backgroundServicesStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _bootstrapFuture = _bootstrapApp();
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bootstrapFuture = _bootstrapFuture;
+    if (bootstrapFuture == null) {
+      return const _StartupScreen();
+    }
+
+    return FutureBuilder<_BootstrapResult>(
+      future: bootstrapFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _StartupScreen();
+        }
+
+        final result =
+            snapshot.data ?? const _BootstrapResult(firebaseReady: false);
+
+        if (!_backgroundServicesStarted) {
+          _backgroundServicesStarted = true;
+          unawaited(_startBackgroundServices(result));
+        }
+
+        return const HomeScreen();
+      },
+    );
+  }
+
+  Future<void> _startBackgroundServices(_BootstrapResult result) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await _initializeBackgroundServices(firebaseReady: result.firebaseReady);
+  }
+}
+
+class _StartupScreen extends StatelessWidget {
+  const _StartupScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFFCF6), Color(0xFFF4E6BF), Color(0xFFE6C978)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 116,
+                    height: 116,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.72),
+                      shape: BoxShape.circle,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x14000000),
+                          blurRadius: 28,
+                          offset: Offset(0, 14),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.temple_buddhist_rounded,
+                      size: 64,
+                      color: Color(0xFFB8860B),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Text(
+                    'Starting Baganetic',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF4C3410),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Preparing app services and offline data...',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF6A5630),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2.6),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

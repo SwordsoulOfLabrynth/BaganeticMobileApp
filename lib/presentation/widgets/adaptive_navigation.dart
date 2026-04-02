@@ -26,6 +26,11 @@ class AdaptiveNavigation extends StatefulWidget {
 }
 
 class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
+  static const Color _gold = Color(0xFFD4AF37);
+  static const Color _goldDark = Color(0xFFB8860B);
+  static const Color _panelBackground = Colors.white;
+  static const Color _panelBorder = Color(0xFFE9E2D3);
+
   @override
   Widget build(BuildContext context) {
     if (Responsive.isDesktopOrLarger(context)) {
@@ -38,44 +43,146 @@ class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
   }
 
   Widget _buildDesktopNavigation(BuildContext context) {
-    return NavigationRail(
-      selectedIndex: widget.currentIndex,
-      onDestinationSelected: widget.onNavigate,
-      extended: Responsive.isLarge(context),
-      leading: widget.leading,
-      destinations: widget.items
-          .map(
-            (item) => NavigationRailDestination(
-              icon: Icon(item.icon),
-              selectedIcon: Icon(item.selectedIcon ?? item.icon),
-              label: Text(item.label),
-            ),
-          )
-          .toList(),
-    );
+    return _buildWideNavigation(context, isDesktop: true);
   }
 
   Widget _buildTabletNavigation(BuildContext context) {
-    return Row(
-      children: [
-        if (widget.automaticallyImplyLeading && widget.leading != null)
-          widget.leading!,
-        NavigationRail(
+    return _buildWideNavigation(context, isDesktop: false);
+  }
+
+  Widget _buildWideNavigation(BuildContext context, {required bool isDesktop}) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: _panelBackground,
+        border: Border(right: BorderSide(color: _panelBorder)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: NavigationRail(
+          backgroundColor: Colors.transparent,
           selectedIndex: widget.currentIndex,
           onDestinationSelected: widget.onNavigate,
-          extended: false,
+          extended: isDesktop,
+          minWidth: 84,
+          minExtendedWidth: 196,
+          groupAlignment: -0.92,
+          labelType: isDesktop
+              ? NavigationRailLabelType.none
+              : NavigationRailLabelType.all,
+          useIndicator: true,
+          indicatorColor: const Color(0x1FD4AF37),
+          indicatorShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          selectedIconTheme: const IconThemeData(color: _goldDark, size: 24),
+          unselectedIconTheme: IconThemeData(
+            color: Colors.grey.shade700,
+            size: 22,
+          ),
+          selectedLabelTextStyle: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: _goldDark, fontWeight: FontWeight.w700),
+          unselectedLabelTextStyle: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+          leading: Padding(
+            padding: EdgeInsets.fromLTRB(isDesktop ? 14 : 10, 14, 10, 12),
+            child: _buildWideLeading(isDesktop: isDesktop),
+          ),
           destinations: widget.items
               .map(
                 (item) => NavigationRailDestination(
-                  icon: Icon(item.icon),
-                  selectedIcon: Icon(item.selectedIcon ?? item.icon),
-                  label: Text(item.label),
+                  icon: _buildWideDestinationIcon(item.icon),
+                  selectedIcon: _buildWideDestinationIcon(
+                    item.selectedIcon ?? item.icon,
+                    isSelected: true,
+                  ),
+                  label: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               )
               .toList(),
         ),
-        Expanded(child: Container()),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildWideLeading({required bool isDesktop}) {
+    final brandChip = _buildWideBrandChip(isDesktop: isDesktop);
+    final shouldShowExtraLeading =
+        widget.automaticallyImplyLeading && widget.leading != null;
+
+    if (!shouldShowExtraLeading) {
+      return brandChip;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [brandChip, const SizedBox(height: 10), widget.leading!],
+    );
+  }
+
+  Widget _buildWideBrandChip({required bool isDesktop}) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 12 : 0,
+        vertical: isDesktop ? 10 : 8,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0x12D4AF37),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0x33D4AF37)),
+      ),
+      child: isDesktop
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildWideBrandIcon(isDesktop: isDesktop),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    'Baganetic',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _goldDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Center(child: _buildWideBrandIcon(isDesktop: isDesktop)),
+    );
+  }
+
+  Widget _buildWideBrandIcon({required bool isDesktop}) {
+    return Container(
+      height: isDesktop ? 36 : 40,
+      width: isDesktop ? 36 : 40,
+      decoration: BoxDecoration(
+        color: _gold,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Icon(Icons.temple_buddhist, color: Colors.white, size: 22),
+    );
+  }
+
+  Widget _buildWideDestinationIcon(IconData icon, {bool isSelected = false}) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0x17D4AF37) : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(icon, color: isSelected ? _goldDark : null),
     );
   }
 
@@ -185,8 +292,8 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOutCubic,
-            height: navContainerHeight +
-                (_isMoreMenuOpen ? popupHitHeight : 0.0),
+            height:
+                navContainerHeight + (_isMoreMenuOpen ? popupHitHeight : 0.0),
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.bottomCenter,
@@ -269,8 +376,9 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                           highlightColor: Colors.transparent,
                           splashColor: Colors.transparent,
                           hoverColor: Colors.transparent,
-                          overlayColor:
-                              const WidgetStatePropertyAll(Colors.transparent),
+                          overlayColor: const WidgetStatePropertyAll(
+                            Colors.transparent,
+                          ),
                           child: Center(
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 220),

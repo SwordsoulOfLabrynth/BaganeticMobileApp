@@ -324,6 +324,9 @@ class AIChatbotService {
   static const String _directNvidiaEndpoint =
       'https://integrate.api.nvidia.com/v1/chat/completions';
   static const int _historyLimit = 12;
+  static const String englishOnlyFallbackReply =
+      'I can help in English only. Please ask your question again in English.';
+  static final RegExp _myanmarScriptPattern = RegExp(r'[\u1000-\u109F]');
 
   AIChatbotService({
     FirebaseFirestore? firestore,
@@ -529,9 +532,10 @@ class AIChatbotService {
     if (replyText.isEmpty) {
       throw StateError('Direct NVIDIA request returned no reply.');
     }
+    final sanitizedReply = _sanitizeAssistantReply(replyText);
 
     return AIReplyResult(
-      reply: replyText,
+      reply: sanitizedReply,
       createdAt: DateTime.now(),
       contextSummary: {
         'pagodaCount': relevantPagodas.length,
@@ -816,6 +820,33 @@ class AIChatbotService {
     return _readApiText(data['output_text']) ?? '';
   }
 
+  static bool containsMyanmarScript(String text) {
+    return _myanmarScriptPattern.hasMatch(text);
+  }
+
+  static String sanitizeAssistantReply(String reply) {
+    final trimmed = reply.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+    if (containsMyanmarScript(trimmed)) {
+      return englishOnlyFallbackReply;
+    }
+    return trimmed;
+  }
+
+  String _sanitizeAssistantReply(String reply) {
+    final trimmed = reply.trim();
+    final sanitized = sanitizeAssistantReply(reply);
+    if (sanitized == englishOnlyFallbackReply &&
+        trimmed != englishOnlyFallbackReply) {
+      Logger.warn(
+        'AI reply contained Myanmar script and was replaced with an English-only fallback.',
+      );
+    }
+    return sanitized;
+  }
+
   String? _readApiText(dynamic value) {
     if (value == null) {
       return null;
@@ -1098,6 +1129,9 @@ class AIChatbotService {
     return [
       "You are Baganetic's in-app travel assistant for Bagan pagodas.",
       'Stay inside the Bagan travel domain and answer concisely.',
+      'Always respond in English.',
+      'Do not use Myanmar/Burmese language or Myanmar script in any part of the reply.',
+      'If the user or provided context includes Myanmar text, summarize it in English instead of quoting it.',
       'Use the provided pagoda, trip, and community context when relevant.',
       'Community posts are user-submitted and unverified. Present them as community reports, not confirmed facts.',
       'If facts are missing, say so clearly rather than inventing details.',

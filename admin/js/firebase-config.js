@@ -15,6 +15,7 @@ window.adminCollections = {
   users: 'users',
   feedbacks: 'feedbacks',
   roadReports: 'roadReports',
+  aiChatMessages: 'aiChatMessages',
   communityPosts: 'communityPosts',
   communityComments: 'comments',
   communityVotes: 'votes',
@@ -266,7 +267,7 @@ const adminBootstrapPromise = (async () => {
   }
 
   const adminFirestoreRest = {
-    async listCollection(collectionId, pageSize = 100) {
+    async listDocuments(collectionPath, pageSize = 100) {
       const documents = [];
       let pageToken = '';
 
@@ -278,13 +279,16 @@ const adminBootstrapPromise = (async () => {
         }
 
         const payload = await adminRestFetch(
-          `${firestoreRestBase}/${collectionId}?${params.toString()}`,
+          `${firestoreRestBase}/${collectionPath}?${params.toString()}`,
         );
         documents.push(...(payload.documents || []));
         pageToken = payload.nextPageToken || '';
       } while (pageToken);
 
       return documents.map((doc) => decodeFirestoreDocument(doc));
+    },
+    async listCollection(collectionId, pageSize = 100) {
+      return this.listDocuments(collectionId, pageSize);
     },
     async listCollectionGroup(collectionId) {
       const payload = await adminRestFetch(
@@ -346,6 +350,7 @@ const adminBootstrapPromise = (async () => {
   window.adminAuth = compatAuth;
   window.adminDb = compatDb;
   window.adminStorage = storage;
+  window.adminStorageApi = storageApi;
   window.adminFirestoreRest = adminFirestoreRest;
   window.getAdminIdToken = getCurrentIdToken;
   window.auth = compatAuth;
@@ -358,6 +363,7 @@ const adminBootstrapPromise = (async () => {
     auth: compatAuth,
     db: compatDb,
     storage,
+    storageApi,
     firestoreApi,
     authApi,
   };
@@ -430,6 +436,10 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function serializeForInlineHandler(value) {
+  return escapeHtml(JSON.stringify(value ?? ''));
 }
 
 // ============================================================

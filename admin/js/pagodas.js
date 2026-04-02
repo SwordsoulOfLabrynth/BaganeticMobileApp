@@ -9,7 +9,9 @@ let pagodaCategory = 'all';
 let pagodaStatus = 'active';
 let pagodasBound = false;
 let currentPagodaEditId = null;
-let originalPagodaCoordinates = null;
+let pendingPagodaUploads = 0;
+const PAGODA_ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const PAGODA_UPLOAD_TIMEOUT_MS = 45000;
 
 function initPagodas() {
   if (!pagodasBound) {
@@ -18,8 +20,15 @@ function initPagodas() {
       pagodaStatus = event.target.value;
       filterPagodas();
     });
-    document.getElementById('btn-new-pagoda')?.addEventListener('click', openCreatePagodaModal);
+    document.getElementById('btn-new-pagoda')?.addEventListener('click', () => openCreatePagodaModal());
+    document.getElementById('btn-download-pagoda-json')?.addEventListener('click', downloadPagodaJsonTemplate);
+    document.getElementById('btn-import-pagoda-json')?.addEventListener('click', openPagodaJsonPicker);
+    document.getElementById('pagoda-json-file-input')?.addEventListener('change', handlePagodaJsonImport);
+    document.getElementById('btn-open-pagoda-editor')?.addEventListener('click', () => openCreatePagodaModal());
+    document.getElementById('btn-export-current-pagoda-json')?.addEventListener('click', downloadCurrentPagodaJson);
     document.getElementById('pagoda-form')?.addEventListener('submit', submitPagodaForm);
+    document.getElementById('pagoda-form-primary-image-file')?.addEventListener('change', handlePrimaryImageFileChange);
+    document.getElementById('pagoda-form-gallery-image-files')?.addEventListener('change', handleGalleryImageFilesChange);
 
     document.querySelectorAll('#page-pagodas .filter-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
@@ -133,8 +142,8 @@ function renderPagodasTable() {
         <td class="cell-nowrap cell-muted">${formatDate(pagoda.updatedAt || pagoda.createdAt)}</td>
         <td>
           <div class="action-row">
-            <button class="btn-warning" type="button" onclick="openEditPagodaModal(${JSON.stringify(pagoda.id)})">Edit</button>
-            <button class="btn-secondary" type="button" onclick="togglePagodaArchive(${JSON.stringify(pagoda.id)}, ${JSON.stringify(nextStatus)})">${archiveLabel}</button>
+            <button class="btn-warning" type="button" onclick='openEditPagodaModal(${serializeForInlineHandler(pagoda.id)})'>Edit</button>
+            <button class="btn-secondary" type="button" onclick='togglePagodaArchive(${serializeForInlineHandler(pagoda.id)}, ${serializeForInlineHandler(nextStatus)})'>${archiveLabel}</button>
           </div>
         </td>
       </tr>
@@ -178,15 +187,27 @@ function resetPagodaForm() {
   document.getElementById('pagoda-form-id').disabled = false;
   document.getElementById('pagoda-form-category').value = 'Pagoda';
   currentPagodaEditId = null;
-  originalPagodaCoordinates = null;
+  pendingPagodaUploads = 0;
+  resetPagodaUploadInputs();
+  syncCurrentFormImagesToPreview();
+  syncPagodaSubmitState();
 }
 
-function openCreatePagodaModal() {
+function openCreatePagodaModal(initialValues = null) {
   resetPagodaForm();
   document.getElementById('pagoda-modal-title').textContent = 'New Pagoda';
   document.getElementById('pagoda-modal-subtitle').textContent =
-    'Create a new live catalog entry. It will sync to the mobile app through Firestore.';
+    initialValues
+      ? 'Review the imported JSON, choose image files if needed, then save the pagoda.'
+      : 'Create a new catalog entry directly here, or start from the JSON template above.';
   document.getElementById('pagoda-form-submit').textContent = 'Create Pagoda';
+  document.getElementById('pagoda-form-submit').dataset.defaultLabel = 'Create Pagoda';
+
+  if (initialValues) {
+    populatePagodaForm(initialValues);
+  }
+
+  syncPagodaSubmitState();
   openModal('modal-pagoda-editor');
 }
 
@@ -196,27 +217,31 @@ function openEditPagodaModal(id) {
 
   resetPagodaForm();
   currentPagodaEditId = pagoda.id;
-  originalPagodaCoordinates = {
-    latitude: Number(pagoda.latitude || 0),
-    longitude: Number(pagoda.longitude || 0),
-  };
 
   document.getElementById('pagoda-modal-title').textContent = `Edit ${pagoda.name || 'Pagoda'}`;
   document.getElementById('pagoda-modal-subtitle').textContent =
-    'Update the shared catalog entry. ID is locked after creation to protect trips and routing.';
+    'Update the shared catalog entry. The ID stays locked after creation, but text and images can be changed here.';
   document.getElementById('pagoda-form-submit').textContent = 'Save Changes';
+  document.getElementById('pagoda-form-submit').dataset.defaultLabel = 'Save Changes';
 
-  document.getElementById('pagoda-form-id').value = pagoda.id || '';
+  populatePagodaForm(pagoda);
   document.getElementById('pagoda-form-id').disabled = true;
+
+  syncPagodaSubmitState();
+  openModal('modal-pagoda-editor');
+}
+
+function populatePagodaForm(pagoda = {}) {
+  document.getElementById('pagoda-form-id').value = pagoda.id || '';
   document.getElementById('pagoda-form-name').value = pagoda.name || '';
   document.getElementById('pagoda-form-category').value = normalizePagodaCategory(pagoda.category);
-  document.getElementById('pagoda-form-year-built').value = pagoda.yearBuilt || '';
+  document.getElementById('pagoda-form-year-built').value = pagoda.yearBuilt ?? '';
   document.getElementById('pagoda-form-latitude').value = pagoda.latitude ?? '';
   document.getElementById('pagoda-form-longitude').value = pagoda.longitude ?? '';
   document.getElementById('pagoda-form-image-url').value = pagoda.imageUrl || '';
   document.getElementById('pagoda-form-height').value = pagoda.height || '';
   document.getElementById('pagoda-form-description').value = pagoda.description || '';
-  document.getElementById('pagoda-form-images').value = serializeStringList(pagoda.images);
+  document.getElementById('pagoda-form-images').value = serializeStringList(normalizeStringArray(pagoda.images));
   document.getElementById('pagoda-form-historical-info').value = pagoda.historicalInfo || '';
   document.getElementById('pagoda-form-architectural-style').value = pagoda.architecturalStyle || '';
   document.getElementById('pagoda-form-legends').value = pagoda.legends || '';
@@ -229,9 +254,11 @@ function openEditPagodaModal(id) {
   document.getElementById('pagoda-form-entrance-fee').value = pagoda.entranceFee || '';
   document.getElementById('pagoda-form-photography-rules').value = pagoda.photographyRules || '';
   document.getElementById('pagoda-form-final-words').value = pagoda.finalWords || '';
-  document.getElementById('pagoda-form-unique-features').value = serializeUniqueFeatures(pagoda.uniqueFeatures);
-
-  openModal('modal-pagoda-editor');
+  document.getElementById('pagoda-form-unique-features').value = serializeUniqueFeatures(
+    normalizeUniqueFeaturesList(pagoda.uniqueFeatures),
+  );
+  resetPagodaUploadInputs();
+  syncCurrentFormImagesToPreview();
 }
 
 function serializeStringList(items) {
@@ -245,7 +272,7 @@ function serializeUniqueFeatures(features) {
     feature.description || '',
     feature.icon || '',
     feature.imageUrl || '',
-  ].join(' || ')).join('\n');
+  ].join(' | ')).join('\n');
 }
 
 function parseLineListInput(raw) {
@@ -255,23 +282,49 @@ function parseLineListInput(raw) {
     .filter(Boolean);
 }
 
+function parseUniqueFeatureLine(line) {
+  const separator = line.includes('||') ? '||' : '|';
+  const [title = '', description = '', icon = '', imageUrl = ''] = line
+    .split(separator)
+    .map((part) => part.trim());
+  return {
+    title,
+    description,
+    icon,
+    imageUrl,
+  };
+}
+
 function parseUniqueFeaturesInput(raw) {
   return String(raw || '')
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => {
-      const [title = '', description = '', icon = '', imageUrl = ''] = line
-        .split('||')
-        .map((part) => part.trim());
-      return {
-        title,
-        description,
-        icon,
-        imageUrl,
-      };
-    })
+    .map((line) => parseUniqueFeatureLine(line))
     .filter((feature) => feature.title || feature.description);
+}
+
+function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item || '').trim())
+      .filter(Boolean);
+  }
+  return parseLineListInput(value);
+}
+
+function normalizeUniqueFeaturesList(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((feature) => ({
+        title: String(feature?.title || '').trim(),
+        description: String(feature?.description || '').trim(),
+        icon: String(feature?.icon || '').trim(),
+        imageUrl: String(feature?.imageUrl || '').trim(),
+      }))
+      .filter((feature) => feature.title || feature.description || feature.icon || feature.imageUrl);
+  }
+  return parseUniqueFeaturesInput(value);
 }
 
 function buildPagodaPayloadFromForm() {
@@ -300,7 +353,7 @@ function buildPagodaPayloadFromForm() {
     throw new Error('Description is required.');
   }
   if (!imageUrl) {
-    throw new Error('Image URL is required.');
+    throw new Error('Primary image is required.');
   }
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     throw new Error('Valid latitude and longitude are required.');
@@ -336,47 +389,494 @@ function buildPagodaPayloadFromForm() {
   };
 }
 
+function slugifyPagodaValue(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function resetPagodaUploadInputs() {
+  const primaryInput = document.getElementById('pagoda-form-primary-image-file');
+  const galleryInput = document.getElementById('pagoda-form-gallery-image-files');
+  if (primaryInput) primaryInput.value = '';
+  if (galleryInput) galleryInput.value = '';
+}
+
+function getPagodaFieldValue(fieldId) {
+  return String(document.getElementById(fieldId)?.value || '').trim();
+}
+
+function syncPagodaSubmitState() {
+  const submitButton = document.getElementById('pagoda-form-submit');
+  if (!submitButton) return;
+
+  const defaultLabel = submitButton.dataset.defaultLabel || submitButton.textContent || 'Save';
+  if (pendingPagodaUploads > 0) {
+    submitButton.disabled = true;
+    submitButton.textContent = pendingPagodaUploads === 1
+      ? 'Uploading Image...'
+      : 'Uploading Images...';
+    return;
+  }
+
+  submitButton.disabled = false;
+  submitButton.textContent = defaultLabel;
+}
+
+function beginPagodaUpload() {
+  pendingPagodaUploads += 1;
+  syncPagodaSubmitState();
+}
+
+function finishPagodaUpload() {
+  pendingPagodaUploads = Math.max(0, pendingPagodaUploads - 1);
+  syncPagodaSubmitState();
+}
+
+function parseOptionalJsonNumber(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : value;
+}
+
+function parseOptionalJsonInteger(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  const numericValue = parseInt(value, 10);
+  return Number.isNaN(numericValue) ? value : numericValue;
+}
+
+function getPagodaDraftSnapshot() {
+  return {
+    id: getPagodaFieldValue('pagoda-form-id'),
+    name: getPagodaFieldValue('pagoda-form-name'),
+    category: normalizePagodaCategory(getPagodaFieldValue('pagoda-form-category') || 'Pagoda'),
+    yearBuilt: parseOptionalJsonInteger(getPagodaFieldValue('pagoda-form-year-built')),
+    latitude: parseOptionalJsonNumber(getPagodaFieldValue('pagoda-form-latitude')),
+    longitude: parseOptionalJsonNumber(getPagodaFieldValue('pagoda-form-longitude')),
+    height: getPagodaFieldValue('pagoda-form-height'),
+    description: getPagodaFieldValue('pagoda-form-description'),
+    imageUrl: getPagodaFieldValue('pagoda-form-image-url'),
+    images: parseLineListInput(document.getElementById('pagoda-form-images')?.value || ''),
+    historicalInfo: getPagodaFieldValue('pagoda-form-historical-info'),
+    architecturalStyle: getPagodaFieldValue('pagoda-form-architectural-style'),
+    legends: getPagodaFieldValue('pagoda-form-legends'),
+    religiousImportance: getPagodaFieldValue('pagoda-form-religious-importance'),
+    preservationInfo: getPagodaFieldValue('pagoda-form-preservation-info'),
+    bestTimeToVisit: getPagodaFieldValue('pagoda-form-best-time'),
+    visitorLocation: getPagodaFieldValue('pagoda-form-visitor-location'),
+    openingHours: getPagodaFieldValue('pagoda-form-opening-hours'),
+    dressCode: getPagodaFieldValue('pagoda-form-dress-code'),
+    entranceFee: getPagodaFieldValue('pagoda-form-entrance-fee'),
+    photographyRules: getPagodaFieldValue('pagoda-form-photography-rules'),
+    finalWords: getPagodaFieldValue('pagoda-form-final-words'),
+    uniqueFeatures: normalizeUniqueFeaturesList(
+      document.getElementById('pagoda-form-unique-features')?.value || '',
+    ),
+  };
+}
+
+function buildPagodaJsonTemplate() {
+  return {
+    id: '',
+    name: '',
+    category: 'Pagoda',
+    yearBuilt: '',
+    latitude: '',
+    longitude: '',
+    height: '',
+    description: '',
+    historicalInfo: '',
+    architecturalStyle: '',
+    legends: '',
+    religiousImportance: '',
+    preservationInfo: '',
+    bestTimeToVisit: '',
+    visitorLocation: '',
+    openingHours: '',
+    dressCode: '',
+    entranceFee: '',
+    photographyRules: '',
+    finalWords: '',
+    uniqueFeatures: [
+      {
+        title: '',
+        description: '',
+        icon: '',
+        imageUrl: '',
+      },
+    ],
+  };
+}
+
+function downloadJsonFile(fileName, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const downloadUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(downloadUrl);
+}
+
+function downloadPagodaJsonTemplate() {
+  downloadJsonFile('pagoda-template.json', buildPagodaJsonTemplate());
+}
+
+function openPagodaJsonPicker() {
+  const input = document.getElementById('pagoda-json-file-input');
+  if (!input) return;
+  input.value = '';
+  input.click();
+}
+
+function downloadCurrentPagodaJson() {
+  const snapshot = getPagodaDraftSnapshot();
+  const fileBase = snapshot.id || slugifyPagodaValue(snapshot.name) || 'pagoda-draft';
+  downloadJsonFile(`${fileBase}.json`, snapshot);
+}
+
+function normalizeImportedPagoda(raw) {
+  const source = Array.isArray(raw) ? raw[0] : raw?.pagoda || raw;
+  if (!source || typeof source !== 'object') {
+    throw new Error('The JSON file must contain one pagoda object.');
+  }
+
+  return {
+    id: String(source.id || '').trim(),
+    name: String(source.name || '').trim(),
+    category: normalizePagodaCategory(source.category || 'Pagoda'),
+    yearBuilt: source.yearBuilt ?? '',
+    latitude: source.latitude ?? '',
+    longitude: source.longitude ?? '',
+    height: String(source.height || '').trim(),
+    description: String(source.description || '').trim(),
+    imageUrl: String(source.imageUrl || '').trim(),
+    images: normalizeStringArray(source.images),
+    historicalInfo: String(source.historicalInfo || '').trim(),
+    architecturalStyle: String(source.architecturalStyle || '').trim(),
+    legends: String(source.legends || '').trim(),
+    religiousImportance: String(source.religiousImportance || '').trim(),
+    preservationInfo: String(source.preservationInfo || '').trim(),
+    bestTimeToVisit: String(source.bestTimeToVisit || '').trim(),
+    visitorLocation: String(source.visitorLocation || '').trim(),
+    openingHours: String(source.openingHours || '').trim(),
+    dressCode: String(source.dressCode || '').trim(),
+    entranceFee: String(source.entranceFee || '').trim(),
+    photographyRules: String(source.photographyRules || '').trim(),
+    finalWords: String(source.finalWords || '').trim(),
+    uniqueFeatures: normalizeUniqueFeaturesList(source.uniqueFeatures),
+  };
+}
+
+async function handlePagodaJsonImport(event) {
+  const input = event.target;
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  try {
+    const parsed = JSON.parse(await file.text());
+    const pagoda = normalizeImportedPagoda(parsed);
+    openCreatePagodaModal(pagoda);
+    showToast('JSON imported. Review the form and upload images before saving.', 'success');
+  } catch (error) {
+    console.error('Failed to import pagoda JSON:', error);
+    showToast(error?.message || 'Failed to import pagoda JSON.', 'error');
+  } finally {
+    input.value = '';
+  }
+}
+
+function extractFileName(value) {
+  const cleanValue = String(value || '').split('?')[0];
+  return cleanValue.split('/').pop() || 'image';
+}
+
+function resolvePagodaPreviewSrc(value) {
+  const normalized = String(value || '').trim();
+  if (!normalized) return '';
+  if (/^(https?:|data:|blob:)/i.test(normalized)) {
+    return normalized;
+  }
+  if (normalized.startsWith('/')) {
+    return normalized;
+  }
+  if (normalized.startsWith('assets/')) {
+    return `/${normalized}`;
+  }
+  return normalized;
+}
+
+function getFileExtension(fileName) {
+  const extensionMatch = String(fileName || '').match(/(\.[^.]+)$/);
+  return extensionMatch ? extensionMatch[1].toLowerCase() : '.jpg';
+}
+
+function isSupportedPagodaImageFile(file) {
+  return PAGODA_ALLOWED_IMAGE_EXTENSIONS.includes(getFileExtension(file?.name || ''));
+}
+
+function describeSupportedPagodaFormats() {
+  return 'JPG, JPEG, PNG, or WEBP';
+}
+
+function withTimeout(promise, timeoutMs, timeoutMessage) {
+  let timeoutId;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+    }),
+  ]).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+function getPagodaUploadFolderName() {
+  const name = getPagodaFieldValue('pagoda-form-name');
+  const id = getPagodaFieldValue('pagoda-form-id');
+  const folderName = name || id;
+  if (!folderName) {
+    throw new Error('Enter the pagoda name or ID before choosing images.');
+  }
+  return folderName;
+}
+
+function mergeUniqueStrings(existingValues, nextValues) {
+  const merged = Array.isArray(existingValues) ? [...existingValues] : [];
+  (nextValues || []).forEach((value) => {
+    if (value && !merged.includes(value)) {
+      merged.push(value);
+    }
+  });
+  return merged;
+}
+
+async function uploadPagodaFiles(files, subfolder) {
+  const fileList = Array.from(files || []).filter(Boolean);
+  if (!fileList.length) return [];
+
+  const formData = new FormData();
+  formData.append('pagodaFolder', getPagodaUploadFolderName());
+  formData.append('role', subfolder);
+  fileList.forEach((file) => {
+    formData.append('files', file, file.name);
+  });
+
+  const response = await withTimeout(
+    fetch('/admin/upload-pagoda-images', {
+      method: 'POST',
+      body: formData,
+    }),
+    PAGODA_UPLOAD_TIMEOUT_MS,
+    'Image upload timed out. Restart the local admin server and try again.',
+  );
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(payload?.error || 'Image upload failed on the local admin server.');
+  }
+
+  return Array.isArray(payload?.files) ? payload.files : [];
+}
+
+async function handlePrimaryImageFileChange(event) {
+  const input = event.target;
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  if (!isSupportedPagodaImageFile(file)) {
+    showToast(`Primary image must be ${describeSupportedPagodaFormats()}. HEIC is not supported here.`, 'error');
+    input.value = '';
+    return;
+  }
+
+  beginPagodaUpload();
+  input.disabled = true;
+
+  try {
+    const [uploadedImage] = await uploadPagodaFiles([file], 'primary');
+    document.getElementById('pagoda-form-image-url').value = uploadedImage?.url || '';
+    syncCurrentFormImagesToPreview();
+    showToast('Primary image uploaded.', 'success');
+  } catch (error) {
+    console.error('Failed to upload primary pagoda image:', error);
+    showToast(error?.message || 'Primary image upload failed.', 'error');
+  } finally {
+    input.value = '';
+    input.disabled = false;
+    finishPagodaUpload();
+  }
+}
+
+async function handleGalleryImageFilesChange(event) {
+  const input = event.target;
+  const files = Array.from(input?.files || []);
+  if (!files.length) return;
+
+  const unsupportedFiles = files.filter((file) => !isSupportedPagodaImageFile(file));
+  if (unsupportedFiles.length) {
+    showToast(`Gallery images must be ${describeSupportedPagodaFormats()}. HEIC is not supported here.`, 'error');
+    input.value = '';
+    return;
+  }
+
+  beginPagodaUpload();
+  input.disabled = true;
+
+  try {
+    const uploadedImages = await uploadPagodaFiles(files, 'gallery');
+    const currentImages = parseLineListInput(document.getElementById('pagoda-form-images')?.value || '');
+    const nextImages = mergeUniqueStrings(
+      currentImages,
+      uploadedImages.map((item) => item.url),
+    );
+    document.getElementById('pagoda-form-images').value = serializeStringList(nextImages);
+    syncCurrentFormImagesToPreview();
+    showToast(
+      `${uploadedImages.length} gallery image${uploadedImages.length === 1 ? '' : 's'} uploaded.`,
+      'success',
+    );
+  } catch (error) {
+    console.error('Failed to upload gallery pagoda images:', error);
+    showToast(error?.message || 'Gallery image upload failed.', 'error');
+  } finally {
+    input.value = '';
+    input.disabled = false;
+    finishPagodaUpload();
+  }
+}
+
+function syncCurrentFormImagesToPreview() {
+  const previewContainer = document.getElementById('pagoda-form-image-preview');
+  if (!previewContainer) return;
+
+  const primaryImageUrl = getPagodaFieldValue('pagoda-form-image-url');
+  const galleryImages = parseLineListInput(document.getElementById('pagoda-form-images')?.value || '');
+  const previewItems = [];
+
+  if (primaryImageUrl) {
+    previewItems.push({
+      url: primaryImageUrl,
+      role: 'Primary',
+      action: '<button class="image-preview-remove" type="button" onclick="clearPagodaPrimaryImage()">Remove</button>',
+    });
+  }
+
+  galleryImages.forEach((url, index) => {
+    previewItems.push({
+      url,
+      role: `Gallery ${index + 1}`,
+      action: `<button class="image-preview-remove" type="button" onclick='removePagodaGalleryImage(${serializeForInlineHandler(url)})'>Remove</button>`,
+    });
+  });
+
+  if (!previewItems.length) {
+    previewContainer.innerHTML = `
+      <div class="empty-state compact">
+        <div class="empty-icon">🖼️</div>
+        <p>No images assigned yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  previewContainer.innerHTML = previewItems.map((item) => `
+    <div class="image-preview-card">
+      <img class="image-preview-thumb" src="${escapeHtml(resolvePagodaPreviewSrc(item.url))}" alt="${escapeHtml(item.role)}" />
+      <div class="image-preview-meta">
+        <div class="image-preview-role">${escapeHtml(item.role)}</div>
+        <div class="image-preview-caption">${escapeHtml(extractFileName(item.url))}</div>
+        <div class="image-preview-actions">${item.action}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function clearPagodaPrimaryImage() {
+  const primaryImageField = document.getElementById('pagoda-form-image-url');
+  if (!primaryImageField) return;
+  primaryImageField.value = '';
+  syncCurrentFormImagesToPreview();
+}
+
+function removePagodaGalleryImage(url) {
+  const galleryField = document.getElementById('pagoda-form-images');
+  if (!galleryField) return;
+
+  galleryField.value = serializeStringList(
+    parseLineListInput(galleryField.value).filter((item) => item !== url),
+  );
+  syncCurrentFormImagesToPreview();
+}
+
 async function submitPagodaForm(event) {
   event.preventDefault();
 
   const submitButton = document.getElementById('pagoda-form-submit');
+  const shouldRestoreSubmitState = pendingPagodaUploads === 0;
+  if (pendingPagodaUploads > 0) {
+    showToast('Images are still uploading. Wait until the upload finishes.', 'info');
+    return;
+  }
   if (submitButton) {
     submitButton.disabled = true;
   }
 
   try {
     const payload = buildPagodaPayloadFromForm();
-    const docRef = db.collection(window.adminCollections.pagodas).doc(
-      currentPagodaEditId || payload.id,
-    );
-
-    const coordinatesChanged = currentPagodaEditId
-      ? Number(payload.latitude) !== Number(originalPagodaCoordinates?.latitude || 0) ||
-        Number(payload.longitude) !== Number(originalPagodaCoordinates?.longitude || 0)
-      : true;
+    const documentId = currentPagodaEditId || payload.id;
+    const documentPath = buildAdminDocumentPath(window.adminCollections.pagodas, documentId);
 
     if (currentPagodaEditId) {
-      await docRef.update({
-        ...payload,
-        id: currentPagodaEditId,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      const now = createAdminRestTimestamp();
+      await runAdminWriteOperation({
+        action: 'pagoda update',
+        sdkWrite: () =>
+          db.collection(window.adminCollections.pagodas).doc(documentId).update({
+            ...payload,
+            id: currentPagodaEditId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          }),
+        restWrite: () =>
+          window.adminFirestoreRest.patchDocument(documentPath, {
+            ...payload,
+            id: currentPagodaEditId,
+            updatedAt: now,
+          }),
       });
       showToast('Pagoda updated successfully.', 'success');
     } else {
-      await docRef.set({
-        ...payload,
-        status: 'active',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      const now = createAdminRestTimestamp();
+      await runAdminWriteOperation({
+        action: 'pagoda create',
+        sdkWrite: () =>
+          db.collection(window.adminCollections.pagodas).doc(documentId).set({
+            ...payload,
+            status: 'active',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          }),
+        restWrite: () =>
+          window.adminFirestoreRest.setDocument(documentPath, {
+            ...payload,
+            status: 'active',
+            createdAt: now,
+            updatedAt: now,
+          }),
       });
       showToast('Pagoda created successfully.', 'success');
-    }
-
-    if (coordinatesChanged) {
-      showToast(
-        'If coordinates changed, regenerate assets/data/pagoda_route_graph.json for optimal shortest-path routing.',
-        'info',
-      );
     }
 
     closeModal('modal-pagoda-editor');
@@ -385,8 +885,8 @@ async function submitPagodaForm(event) {
     console.error('Failed to save pagoda:', error);
     showToast(error?.message || 'Failed to save pagoda.', 'error');
   } finally {
-    if (submitButton) {
-      submitButton.disabled = false;
+    if (submitButton && shouldRestoreSubmitState) {
+      syncPagodaSubmitState();
     }
   }
 }
@@ -399,9 +899,20 @@ async function togglePagodaArchive(id, nextStatus) {
   if (!confirm(`Do you want to ${verb} ${pagoda.name || id}?`)) return;
 
   try {
-    await db.collection(window.adminCollections.pagodas).doc(id).update({
-      status: nextStatus,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    const documentPath = buildAdminDocumentPath(window.adminCollections.pagodas, id);
+    const now = createAdminRestTimestamp();
+    await runAdminWriteOperation({
+      action: 'pagoda archive update',
+      sdkWrite: () =>
+        db.collection(window.adminCollections.pagodas).doc(id).update({
+          status: nextStatus,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }),
+      restWrite: () =>
+        window.adminFirestoreRest.patchDocument(documentPath, {
+          status: nextStatus,
+          updatedAt: now,
+        }),
     });
 
     showToast(

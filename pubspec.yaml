@@ -98,6 +98,7 @@ flutter:
     - assets/data/offline_graph.json
     - assets/data/pagoda_route_graph.json
     - assets/data/sample_pagodas.json
+    - assets/images/pagodas/
     - assets/images/pagodas/Alodawpyae Pagoda/
     - assets/images/pagodas/Ananda Temple/
     - assets/images/pagodas/BuPaya/
@@ -117,6 +118,7 @@ flutter:
     - assets/images/pagodas/Sulamani Temple/
     - assets/images/pagodas/Thambula/
     - assets/images/pagodas/Thatbyinnyu Temple/
+    - assets/images/pagodas/xxx/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

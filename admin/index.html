@@ -251,12 +251,32 @@
           </div>
         </div>
 
-        <div class="data-banner data-banner-info">
-          <div>
-            <strong>Routing note</strong>
-            <span>If you add a new pagoda or change coordinates, regenerate <code>assets/data/pagoda_route_graph.json</code> for optimal shortest-path routing.</span>
+        <div class="pagoda-workflow-grid">
+          <div class="workflow-card">
+            <div class="workflow-step">Step 1</div>
+            <div class="workflow-title">Use a JSON template if that is easier</div>
+            <p class="workflow-text">
+              Download a JSON template for the pagoda text details, then upload it back to prefill the admin form.
+            </p>
+            <div class="workflow-actions">
+              <button class="btn-secondary" type="button" id="btn-download-pagoda-json">Download JSON Template</button>
+              <button class="btn-success" type="button" id="btn-import-pagoda-json">Upload JSON</button>
+            </div>
+          </div>
+
+          <div class="workflow-card">
+            <div class="workflow-step">Step 2</div>
+            <div class="workflow-title">Or create the pagoda directly here</div>
+            <p class="workflow-text">
+              Open the admin form and enter the details normally. Image files can be chosen directly inside the form.
+            </p>
+            <div class="workflow-actions">
+              <button class="btn-success" type="button" id="btn-open-pagoda-editor">New Pagoda</button>
+            </div>
           </div>
         </div>
+
+        <input type="file" id="pagoda-json-file-input" accept=".json,application/json" hidden />
 
         <div class="filter-bar">
           <button class="filter-chip" data-filter="Temple">Temple</button>
@@ -487,10 +507,6 @@
               <input type="number" id="pagoda-form-longitude" step="any" placeholder="94.867856" />
             </div>
             <div class="form-field">
-              <label for="pagoda-form-image-url">Primary Image URL</label>
-              <input type="text" id="pagoda-form-image-url" placeholder="assets/images/pagodas/Ananda Temple/ananda-temple-4899166_1280.jpg" />
-            </div>
-            <div class="form-field">
               <label for="pagoda-form-height">Height</label>
               <input type="text" id="pagoda-form-height" placeholder="51m" />
             </div>
@@ -499,10 +515,24 @@
             <label for="pagoda-form-description">Description</label>
             <textarea id="pagoda-form-description" rows="4" placeholder="Short overview shown in the app detail screen."></textarea>
           </div>
-          <div class="form-field">
-            <label for="pagoda-form-images">Gallery Images</label>
-            <textarea id="pagoda-form-images" rows="4" placeholder="One image path or URL per line."></textarea>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Images</div>
+          <div class="field-helper-text">Enter the pagoda name or ID first, then choose JPG, PNG, or WEBP files. Uploaded images will appear below.</div>
+          <input type="hidden" id="pagoda-form-image-url" />
+          <div class="form-grid form-grid-two">
+            <div class="form-field">
+              <label for="pagoda-form-primary-image-file">Primary Image File</label>
+              <input type="file" id="pagoda-form-primary-image-file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-gallery-image-files">Gallery Image Files</label>
+              <input type="file" id="pagoda-form-gallery-image-files" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple />
+            </div>
           </div>
+          <textarea id="pagoda-form-images" hidden></textarea>
+          <div class="image-preview-grid" id="pagoda-form-image-preview"></div>
         </div>
 
         <div class="form-section">
@@ -566,14 +596,18 @@
             <textarea
               id="pagoda-form-unique-features"
               rows="5"
-              placeholder="One feature per line using: title || description || icon || imageUrl"
+              placeholder="One feature per line using: title | description | icon | imageUrl(optional)"
             ></textarea>
+            <div class="field-helper-text">Feature image URLs can be included directly when needed.</div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" type="button" onclick="closeModal('modal-pagoda-editor')">Cancel</button>
-        <button class="btn-success" type="submit" id="pagoda-form-submit">Create Pagoda</button>
+        <button class="btn-secondary" type="button" id="btn-export-current-pagoda-json">Download JSON</button>
+        <div class="modal-footer-actions">
+          <button class="btn-secondary" type="button" onclick="closeModal('modal-pagoda-editor')">Cancel</button>
+          <button class="btn-success" type="submit" id="pagoda-form-submit">Create Pagoda</button>
+        </div>
       </div>
     </form>
   </div>
@@ -587,6 +621,7 @@
     </div>
     <div class="modal-body" id="user-detail-body"></div>
     <div class="modal-footer">
+      <button class="btn-danger" type="button" id="btn-delete-user-modal">Delete User Data</button>
       <button class="btn-secondary" onclick="closeModal('modal-user-detail')">Close</button>
     </div>
   </div>

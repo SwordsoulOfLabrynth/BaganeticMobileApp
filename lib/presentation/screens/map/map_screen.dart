@@ -362,10 +362,14 @@ class _MapScreenState extends State<MapScreen>
     if (!canContinue || !mounted) {
       return;
     }
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TripDetailScreen(trip: trip)),
     );
+    if (!mounted) return;
+    final refreshed = await context.read<TripProvider>().getTripById(trip.id);
+    if (!mounted || refreshed == null) return;
+    _selectTrip(refreshed);
   }
 
   Future<void> _openEditTrip(Trip trip) async {
@@ -1316,8 +1320,9 @@ class _MapScreenState extends State<MapScreen>
                   Helpers.formatDistance(context, trip.getTotalDistance()),
                 ),
                 _buildTripStat(
-                  Icons.access_time,
-                  '${trip.getEstimatedDuration()} ${context.l10n.translate('common.minutesShort')}',
+                  Helpers.transportModeIcon(trip.transportMode),
+                  '${Helpers.transportModeLabel(context, trip.transportMode)}: '
+                  '${Helpers.formatDuration(context, trip.getEstimatedTravelDuration())}',
                 ),
               ],
             ),

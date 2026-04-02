@@ -31,6 +31,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  TripTransportMode _selectedTransportMode = TripTransportMode.walk;
   DateTime _selectedDate = DateTime.now();
   List<Pagoda> _selectedPagodas = [];
   bool _isCalculatingRoute = false;
@@ -50,6 +51,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       final trip = widget.existingTrip!;
       _nameController.text = trip.name;
       _descriptionController.text = trip.description ?? '';
+      _selectedTransportMode = trip.transportMode;
       _selectedDate = trip.date;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _loadExistingStops();
@@ -163,6 +165,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         description: _descriptionController.text.isEmpty
             ? null
             : _descriptionController.text,
+        transportMode: _selectedTransportMode,
         date: _selectedDate,
         stops: stops,
         createdAt: isEditing ? widget.existingTrip!.createdAt : now,

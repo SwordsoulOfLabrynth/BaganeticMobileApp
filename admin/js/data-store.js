@@ -31,6 +31,125 @@ function isPermissionDeniedError(error) {
   );
 }
 
+async function refreshAdminTokenForFallback() {
+  if (typeof auth?.getIdTokenResult !== 'function' || !auth.currentUser) {
+    return;
+  }
+
+  try {
+    await auth.getIdTokenResult(true);
+  } catch (tokenError) {
+    console.warn('Failed to refresh admin token before REST fallback:', tokenError);
+  }
+}
+
+async function runAdminWriteOperation({ action, sdkWrite, restWrite }) {
+  try {
+    return await sdkWrite();
+  } catch (error) {
+    if (!isPermissionDeniedError(error) || !window.adminFirestoreRest || !restWrite) {
+      throw error;
+    }
+
+    console.warn(
+      `Firestore SDK ${action} failed; retrying with REST fallback.`,
+      error,
+    );
+    await refreshAdminTokenForFallback();
+    return restWrite();
+  }
+}
+
+function buildAdminDocumentPath(collectionId, documentId) {
+  return `${collectionId}/${documentId}`;
+}
+
+function createAdminRestTimestamp() {
+  return new Date().toISOString();
+}
+
+function splitAdminFirestorePath(path) {
+  return String(path || '')
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+function resolveAdminDocRef(documentPath) {
+  const segments = splitAdminFirestorePath(documentPath);
+  if (!segments.length || segments.length % 2 !== 0) {
+    throw new Error(`Invalid Firestore document path: ${documentPath}`);
+  }
+
+  let ref = db.collection(segments[0]).doc(segments[1]);
+  for (let index = 2; index < segments.length; index += 2) {
+    ref = ref.collection(segments[index]).doc(segments[index + 1]);
+  }
+  return ref;
+}
+
+function resolveAdminCollectionRef(collectionPath) {
+  const segments = splitAdminFirestorePath(collectionPath);
+  if (!segments.length || segments.length % 2 === 0) {
+    throw new Error(`Invalid Firestore collection path: ${collectionPath}`);
+  }
+
+  let ref = db.collection(segments[0]);
+  for (let index = 1; index < segments.length; index += 2) {
+    ref = ref.doc(segments[index]).collection(segments[index + 1]);
+  }
+  return ref;
+}
+
+function getAdminRecordPath(record, fallbackCollectionId = '') {
+  const existingPath = String(record?.__path || '').trim();
+  if (existingPath) {
+    return existingPath;
+  }
+
+  const id = String(record?.id || record?.firestoreId || '').trim();
+  if (!id || !fallbackCollectionId) {
+    return '';
+  }
+
+  return buildAdminDocumentPath(fallbackCollectionId, id);
+}
+
+async function listAdminDocuments(collectionPath, pageSize = 500) {
+  try {
+    const snapshot = await resolveAdminCollectionRef(collectionPath).get();
+    const key = splitAdminFirestorePath(collectionPath).at(-1) || collectionPath;
+    return mapDocs(snapshot, key);
+  } catch (error) {
+    if (!isPermissionDeniedError(error) || !window.adminFirestoreRest) {
+      throw error;
+    }
+
+    console.warn(
+      `Firestore SDK list failed for ${collectionPath}; retrying with REST fallback.`,
+      error,
+    );
+    await refreshAdminTokenForFallback();
+    return window.adminFirestoreRest.listDocuments(collectionPath, pageSize);
+  }
+}
+
+async function deleteAdminDocumentPath(documentPath, action = 'document delete') {
+  return runAdminWriteOperation({
+    action,
+    sdkWrite: () => resolveAdminDocRef(documentPath).delete(),
+    restWrite: () => window.adminFirestoreRest.deleteDocument(documentPath),
+  });
+}
+
+async function patchAdminDocumentPath(documentPath, partial, action = 'document update') {
+  return runAdminWriteOperation({
+    action,
+    sdkWrite: () => resolveAdminDocRef(documentPath).update(partial),
+    restWrite: () => window.adminFirestoreRest.patchDocument(documentPath, partial),
+  });
+}
+
 function buildRestSeedPagodaPayload(pagoda) {
   const normalized = normalizePagodaRecord(pagoda);
   const now = new Date().toISOString();
@@ -62,13 +181,7 @@ async function loadCollectionRecords({
       error,
     );
 
-    if (typeof auth?.getIdTokenResult === 'function' && auth.currentUser) {
-      try {
-        await auth.getIdTokenResult(true);
-      } catch (tokenError) {
-        console.warn('Failed to refresh admin token before REST fallback:', tokenError);
-      }
-    }
+    await refreshAdminTokenForFallback();
 
     const records = isCollectionGroup
       ? await window.adminFirestoreRest.listCollectionGroup(collectionId)
@@ -509,3 +622,13 @@ window.enrichTrip = enrichTrip;
 window.parseDateSafe = parseDateSafe;
 window.normalizePagodaCategory = normalizePagodaCategory;
 window.normalizePagodaRecord = normalizePagodaRecord;
+window.runAdminWriteOperation = runAdminWriteOperation;
+window.buildAdminDocumentPath = buildAdminDocumentPath;
+window.createAdminRestTimestamp = createAdminRestTimestamp;
+window.splitAdminFirestorePath = splitAdminFirestorePath;
+window.resolveAdminDocRef = resolveAdminDocRef;
+window.resolveAdminCollectionRef = resolveAdminCollectionRef;
+window.getAdminRecordPath = getAdminRecordPath;
+window.listAdminDocuments = listAdminDocuments;
+window.deleteAdminDocumentPath = deleteAdminDocumentPath;
+window.patchAdminDocumentPath = patchAdminDocumentPath;

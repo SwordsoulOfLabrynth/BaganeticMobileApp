@@ -1,0 +1,649 @@
+--------- beginning of main
+04-02 14:18:00.521 28152 28152 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+--------- beginning of system
+04-02 14:18:00.808   719  1182 I ActivityManager: Force stopping com.baganetic.baganetic_mobile appid=10239 user=0: from pid 28157
+04-02 14:18:00.877   719  1182 I ActivityManager: Killing 28039:com.baganetic.baganetic_mobile/u0a239 (adj 0): stop com.baganetic.baganetic_mobile due to from pid 28157
+04-02 14:18:00.998   719   927 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.007   719  1182 W ActivityTaskManager: Force removing ActivityRecord{24738518 u0 com.baganetic.baganetic_mobile/.MainActivity t232 f}}: app died, no saved state
+04-02 14:18:01.035   719   755 W Looper  : Slow dispatch took 190ms android.ui app=system_server main=false group=TOP_APP h=com.android.server.am.ActivityManagerService$UiHandler c=com.android.server.am.UidObserverController$$ExternalSyntheticLambda0@9b0d2ef m=0
+04-02 14:18:01.062   719   927 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+04-02 14:18:01.067   719   927 D InetDiagMessage: Destroyed 1 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+04-02 14:18:01.067   719   927 D InetDiagMessage: Destroyed live tcp sockets for uids={10239} in 7ms
+04-02 14:18:01.100   719   927 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET, states=14
+04-02 14:18:01.103   719   927 D InetDiagMessage: Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14
+04-02 14:18:01.103   719   927 D InetDiagMessage: Destroyed live tcp sockets for uids={20239} in 35ms
+04-02 14:18:01.142   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:01.151  1037  1112 V WindowManagerShell: Transition requested (#151): android.os.BinderProxy@c02dc0f TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=232 effectiveUid=10239 displayId=0 isRunning=false baseIntent=Intent { flg=0x10000000 cmp=com.baganetic.baganetic_mobile/.MainActivity } baseActivity=null topActivity=null origActivity=null realActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} numActivities=0 lastActiveTime=99566697 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@ede749c} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 0 - 0, 0) topActivityInfo=null launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=true lastNonFullscreenBounds=Rect(284, 660 - 796, 1740) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= false isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 0, 0) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=undefined}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 151 }
+04-02 14:18:01.190   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.193   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.195   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.195   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.198   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.199   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.199   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.199   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.203   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.203   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.203   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.203   719   877 W InputDispatcher: channel '501da7f com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity' ~ Consumer closed input channel or an error occurred.  events=0x9
+04-02 14:18:01.203   719   877 E InputDispatcher: channel '501da7f com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity' ~ Channel is unrecoverably broken and will be disposed!
+04-02 14:18:01.204   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:01.204   545   561 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+04-02 14:18:01.207   553   553 I adbd    : Remote process closed the socket (on MSG_PEEK)
+04-02 14:18:01.208   719   826 I ImeTracker: com.baganetic.baganetic_mobile:6f4fa912: onRequestHide at ORIGIN_SERVER reason HIDE_REMOVE_CLIENT fromUser false
+04-02 14:18:01.209   719   826 I ImeTracker: com.baganetic.baganetic_mobile:6f4fa912: onCancelled at PHASE_SERVER_SHOULD_HIDE
+04-02 14:18:01.213   470   470 I Zygote  : Process 28039 exited due to signal 9 (Killed)
+04-02 14:18:01.214  2665  9655 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-02 14:18:01.228  2665  9655 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.233   719   927 D ConnectivityService: releasing NetworkRequest [ REQUEST id=956, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ] (release request)
+04-02 14:18:01.245   719   927 D ConnectivityService: releasing NetworkRequest [ REQUEST id=958, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ] (release request)
+04-02 14:18:01.272  2665  9655 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.276  2665  9655 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.282  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.291  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.293   719   765 I libprocessgroup: Removed cgroup /sys/fs/cgroup/apps/uid_10239/pid_28039
+04-02 14:18:01.301   719   877 I WindowManager: WINDOW DIED Window{501da7f u0 com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity}
+04-02 14:18:01.302  4618  4618 D ViewRootImpl: Skipping stats log for color mode
+04-02 14:18:01.308  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.308   719   826 I WindowManager: WIN DEATH: Window{501da7f u0 com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity EXITING}
+04-02 14:18:01.312   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:01.324   545   545 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+04-02 14:18:01.329   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.329   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.330   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.330   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.332  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.335  1037  1112 D WindowManagerShell: setLauncherKeepClearAreaHeight: visible=true, height=527
+04-02 14:18:01.342  4618  4618 D NexusLauncherModelDelegate: notifySmartspaceEvent: SmartspaceTargetEvent{mSmartspaceTarget=null, mSmartspaceActionId='null', mEventType=6}
+04-02 14:18:01.343  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:01.345   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:01.349  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.356  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_252635100000.apk has no usable artifacts
+04-02 14:18:01.358  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000003/DynamiteLoader.apk has no usable artifacts
+04-02 14:18:01.361  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/CF98DA544914DD75038B6CE6DBC852B6C43EC876/the.apk has no usable artifacts
+04-02 14:18:01.363  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/BF7C023AB90CCF01D1F467FC1CEBAF866511FF29/the.apk has no usable artifacts
+04-02 14:18:01.363  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.374  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000f/dl-VisionOcr.optional_252635100000.apk has no usable artifacts
+04-02 14:18:01.379  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/0B5F21648920603C6816E0B76773EED17E15FB77/the.apk has no usable artifacts
+04-02 14:18:01.381   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.381   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.382   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.382   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.383   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.386  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~VbKF_9WTMkw5hyiCXa_gYQ==/com.android.vending-ZCz5sblkqCgT-MeKokLJyw==/base.apk, fd=-1
+04-02 14:18:01.410  4618  4618 D BaseDepthController: setSurface:
+04-02 14:18:01.410  4618  4618 D BaseDepthController: 	mWaitingOnSurfaceValidity: false
+04-02 14:18:01.410  4618  4618 D BaseDepthController: 	mBaseSurface: Surface(name=com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity)/@0xc54c6f4
+04-02 14:18:01.415  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002c/dl-Appsearch.optional_260235100800.apk has no usable artifacts
+04-02 14:18:01.430  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000029/dl-VisionOcr.optional_260235100000.apk has no usable artifacts
+04-02 14:18:01.435  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-MlkitOcrCommon.optional_252635100800.apk has no usable artifacts
+04-02 14:18:01.447  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/F0F8A06E96E38F743B8A604780FBF66862861FC4/the.apk has no usable artifacts
+04-02 14:18:01.464  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002f/dl-MlkitOcrCommon.optional_260235100800.apk has no usable artifacts
+04-02 14:18:01.471  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.481  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000009/dl-MlkitBarcodeUi.optional_252635100800.apk has no usable artifacts
+04-02 14:18:01.481   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.486   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.491  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/340EB38090EA011D0D9DA2A3BF92ADF73C6EB4AB/the.apk has no usable artifacts
+04-02 14:18:01.492  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.520   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.521  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/A3CA675C42809307C9989FB51FF5403F49F05332/the.apk has no usable artifacts
+04-02 14:18:01.522   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.522   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.522  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.522   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.523   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.523   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.525   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.526   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.526   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.528   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.533   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.533   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.535   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.536   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.536   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.536   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.539  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/5AC9373FDFDAAD124F293DA08D126973E019582A/the.apk has no usable artifacts
+04-02 14:18:01.541   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.542   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.543   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.545   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.547   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.547   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.549   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.551   719  1182 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:01.554  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.560  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/CronetDynamite.apk has no usable artifacts
+04-02 14:18:01.563  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.570  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.574  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.575  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.583  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000006/GoogleCertificates.apk has no usable artifacts
+04-02 14:18:01.584  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/BE7EF7B4C46169C70551CAA4FB9F9DFEAA13427D/the.apk has no usable artifacts
+04-02 14:18:01.587  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.595  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.601   719  2893 V ActivityManager: Got obituary of 28039:com.baganetic.baganetic_mobile
+04-02 14:18:01.612  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000a/dl-TfliteDynamiteDynamite.integ_243930801100800.apk has no usable artifacts
+04-02 14:18:01.614  4618  4618 D StatsLog: LAUNCHER_ONRESUME
+04-02 14:18:01.624  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002b/dl-TfliteDynamiteDynamite.integ_252130102100800.apk has no usable artifacts
+04-02 14:18:01.630  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.632   719   757 W ActivityManager: setHasOverlayUi called on unknown pid: 28039
+04-02 14:18:01.641  2665  9655 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/E054CA794C125F959C88D4849C82AB3F226237E6/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-02 14:18:01.644  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.657  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002e/dl-MlkitBarcodeUi.optional_260235100800.apk has no usable artifacts
+04-02 14:18:01.661  1037 29085 V WindowManagerShell: onTransitionReady(transaction=3088081493552)
+04-02 14:18:01.665  1037  1112 V WindowManagerShell: onTransitionReady (#151) android.os.BinderProxy@c02dc0f: {id=151 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+04-02 14:18:01.665  1037  1112 V WindowManagerShell:         {m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x8e75ea5 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:01.665  1037  1112 V WindowManagerShell:         {m=CLOSE f=NONE leash=Surface(name=Task=232)/@0x1f7c27a sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:01.665  1037  1112 V WindowManagerShell:         {m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0x81b2a2b sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}
+04-02 14:18:01.665  1037  1112 V WindowManagerShell:     ]}
+04-02 14:18:01.669  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.674  1037  1112 V WindowManagerShell: Playing animation for (#151) android.os.BinderProxy@c02dc0f@0
+04-02 14:18:01.674  1037  1112 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+04-02 14:18:01.675  1037  1112 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=151 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x8e75ea5 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},{m=CLOSE f=NONE leash=Surface(name=Task=232)/@0x1f7c27a sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},{m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0x81b2a2b sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}]}
+04-02 14:18:01.675  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null taskFragmentToken=android.os.BinderProxy@28178da windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@68f110b, appThread = android.app.IApplicationThread$Stub$Proxy@b9dcbe8, debugName = overlayBackTransition }}
+04-02 14:18:01.680  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@3c0b201, appThread = android.app.IApplicationThread$Stub$Proxy@d0e48a6, debugName = LauncherToDream }}
+04-02 14:18:01.680  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null windowingMode=undefined},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{NOT atype=undefined independent=true modes=[] flags=NONE mustBeTask=true order=ANY topActivity=null launchCookie=null customAnim=true windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@f9bb2e7, appThread = android.app.IApplicationThread$Stub$Proxy@b77be94, debugName = QuickstepLaunchHome }}
+04-02 14:18:01.680  1037  1112 D RemoteTransitionHandler: Found filterPair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null windowingMode=undefined},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{NOT atype=undefined independent=true modes=[] flags=NONE mustBeTask=true order=ANY topActivity=null launchCookie=null customAnim=true windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@f9bb2e7, appThread = android.app.IApplicationThread$Stub$Proxy@b77be94, debugName = QuickstepLaunchHome }}
+04-02 14:18:01.681  1037  1112 V WindowManagerShell:  Delegate animation for (#151) to RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@f9bb2e7, appThread = android.app.IApplicationThread$Stub$Proxy@b77be94, debugName = QuickstepLaunchHome }
+04-02 14:18:01.685  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:01.697  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000e/dl-MapsCoreDynamite.integ_252130101100800.apk has no usable artifacts
+04-02 14:18:01.716  2665  9655 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/492BB24C67899DCD3E45A896813896109D71DC84/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-02 14:18:01.746  4618  4618 D StateManager: createAtomicAnimation - fromState: Background, toState: Normal, partial trace:
+04-02 14:18:01.746  4618  4618 D StateManager: 	at com.android.quickstep.util.ScalingWorkspaceRevealAnim.<init>(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:39)
+04-02 14:18:01.746  4618  4618 D StateManager: 	at com.android.launcher3.QuickstepTransitionManager.createWallpaperOpenAnimations(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:168)
+04-02 14:18:01.746  4618  4618 D StateManager: 	at com.android.launcher3.QuickstepTransitionManager$WallpaperOpenLauncherAnimationRunner.onAnimationStart(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:17)
+04-02 14:18:01.749   719   754 V WindowManager: Sent Transition (#151) createdAt=04-02 14:18:01.021 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=232 effectiveUid=10239 displayId=0 isRunning=false baseIntent=Intent { flg=0x10000000 cmp=com.baganetic.baganetic_mobile/.MainActivity } baseActivity=null topActivity=null origActivity=null realActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} numActivities=0 lastActiveTime=99566697 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{8444586 Task{baab157 #232 type=standard I=com.baganetic.baganetic_mobile/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 0 - 0, 0) topActivityInfo=null launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=true lastNonFullscreenBounds=Rect(284, 660 - 796, 1740) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= false isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 0, 0) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=undefined}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 151 }
+04-02 14:18:01.749   719   754 V WindowManager:     startWCT=WindowContainerTransaction { changes= {} hops= [] errorCallbackToken=null taskFragmentOrganizer=null }
+04-02 14:18:01.750  4618  4618 D b/311077782: LauncherAnimationRunner.setAnimation
+04-02 14:18:01.759   719   754 V WindowManager:     info={id=151 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+04-02 14:18:01.759   719   754 V WindowManager:         {WCT{RemoteToken{7bacf98 Task{7cdbf0b #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0x828ad26 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:01.759   719   754 V WindowManager:         {WCT{RemoteToken{8444586 Task{baab157 #232 type=standard I=com.baganetic.baganetic_mobile/.MainActivity}}} m=CLOSE f=NONE leash=Surface(name=Task=232)/@0xf5fc7dc sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:01.759   719   754 V WindowManager:         {m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0xba52a41 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}
+04-02 14:18:01.759   719   754 V WindowManager:     ]}
+04-02 14:18:01.762   719   757 V WindowManager: Unknown focus tokens, dropping reportFocusChanged
+04-02 14:18:01.762  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000d/dl-Appsearch.optional_252635100800.apk has no usable artifacts
+04-02 14:18:01.767  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/1F581356BF4B59901D0F7EA66B202E5AF16400E0/the.apk has no usable artifacts
+04-02 14:18:01.779  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002a/dl-PlayCloudSearch.optional_260235100000.apk has no usable artifacts
+04-02 14:18:01.818  1037  1112 V WindowManagerShell:  animated by com.android.wm.shell.transition.RemoteTransitionHandler@33176d2
+04-02 14:18:01.849   719   886 I ImeTracker: com.google.android.apps.nexuslauncher:3a1ce8ed: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+04-02 14:18:01.878   545   545 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+04-02 14:18:01.879  1187  1187 D CarrierSvcBindHelper: onHandleForceStop: [com.baganetic.baganetic_mobile]
+04-02 14:18:01.891  4618  4706 I s.nexuslauncher: AssetManager2(0x7d35571967d8) locale list changing from [] to [en-US]
+04-02 14:18:01.917  4618  4618 D InsetsController: hide(ime(), fromIme=false)
+04-02 14:18:01.918  4618  4618 I ImeTracker: com.google.android.apps.nexuslauncher:3a1ce8ed: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+04-02 14:18:01.959  7660  7660 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():2092 
+04-02 14:18:01.961  7660  7660 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 0, locked = false
+04-02 14:18:01.965   719  2893 I ImeTracker: system_server:873b22a: onRequestHide at ORIGIN_SERVER reason IME_REQUESTED_CHANGED_LISTENER fromUser false
+04-02 14:18:01.975  7660  7660 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1349 onStartInput(EditorInfo{EditorInfo{packageName=com.google.android.apps.nexuslauncher, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+04-02 14:18:01.977   719   757 I ImeTracker: system_server:873b22a: onCancelled at PHASE_SERVER_SHOULD_HIDE
+04-02 14:18:01.981  7660  7660 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 1, locked = false
+04-02 14:18:01.982   719  1310 W ActivityTaskManager: callingPackage for (uid=2000, pid=28164) has no WPC
+04-02 14:18:01.991  1187  1187 D CarrierSvcBindHelper: No carrier app for: 0
+04-02 14:18:02.029   719  1473 W PackageConfigPersister: App-specific configuration not found for packageName: com.google.android.apps.nexuslauncher and userId: 0
+04-02 14:18:02.037  4618  4706 W HWUI    : Image decoding logging dropped!
+04-02 14:18:02.051   719  1310 V GrammaticalInflectionUtils: AttributionSource: android.content.AttributionSource@7fbfb7c1 does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+04-02 14:18:02.078   719  1310 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+04-02 14:18:02.083   719  1310 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+04-02 14:18:02.085   719  1310 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+04-02 14:18:02.085   719   887 I system_server: AssetManager2(0x7d35571f0b98) locale list changing from [] to [en-US]
+04-02 14:18:02.085   719  1310 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+04-02 14:18:02.160  7424  7597 I AiAiEcho: Predicting[0]:  [CONTEXT sampling_count=5 ]
+04-02 14:18:02.162   719  1310 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE
+04-02 14:18:02.171  4618  4706 D QuickstepModelDelegate: notifyAppTargetEvent action=1 launchLocation=workspace/0/[-1,-1]/[1,1]
+04-02 14:18:02.171  7424  7597 I AiAiEcho: EchoTargets: 
+04-02 14:18:02.171  7424  7597 I AiAiEcho: Filtered by AiAi flag check: 
+04-02 14:18:02.171  7424  7597 I AiAiEcho: [CONTEXT ratelimit_period="10 SECONDS" ]
+04-02 14:18:02.201   545   698 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+04-02 14:18:02.217  1037  1130 W HWUI    : Image decoding logging dropped!
+04-02 14:18:02.238   719  1310 I ActivityTaskManager: Add Task{baab157 #232 type=standard I=com.baganetic.baganetic_mobile/.MainActivity} to hidden list because adding Task{48e0de9 #233 type=standard I=com.baganetic.baganetic_mobile/.MainActivity}
+04-02 14:18:02.251   719  1310 I ActivityTaskManager: START u0 {flg=0x10000000 xflg=0x5 cmp=com.baganetic.baganetic_mobile/.MainActivity} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+04-02 14:18:02.257  1037  1112 V WindowManagerShell: Transition requested (#152): android.os.BinderProxy@83059b8 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=233 effectiveUid=10239 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.baganetic.baganetic_mobile/.MainActivity } baseActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} topActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} origActivity=null realActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} numActivities=1 lastActiveTime=99602474 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@43c7391} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 0 - 0, 0) topActivityInfo=ActivityInfo{c1992f6 com.baganetic.baganetic_mobile.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=false lastNonFullscreenBounds=Rect(284, 660 - 796, 1740) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 1080, 2400) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=inactive}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 152 }
+04-02 14:18:02.258  1037  1112 D ShellSplitScreen: logExit: no-op, mLoggerSessionId is null
+04-02 14:18:02.265   719   757 V GrammaticalInflectionUtils: AttributionSource: android.content.AttributionSource@7fbfb7c1 does not have READ_SYSTEM_GRAMMATICAL_GENDER permission.
+04-02 14:18:02.364   719   757 W ActivityManager: Slow operation: 51ms so far, now at startProcess: done starting proc!
+04-02 14:18:02.367   719   764 W ActivityManager: Slow operation: 81ms so far, now at startProcess: asking zygote to start proc
+04-02 14:18:02.391  7424  7597 I AiAiEcho: #remoteViewsTwiddler: feature disabled.
+04-02 14:18:02.394  4618  4618 W SplitSelectStateCtor: Missing session instanceIds
+04-02 14:18:02.394  4618  4618 D StatsLog: LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED
+04-02 14:18:02.425   470   470 D Zygote  : Forked child process 28167
+04-02 14:18:02.426   719   887 I system_server: AssetManager2(0x7d35571c7518) locale list changing from [] to [en-US]
+04-02 14:18:02.433   719   764 W ActivityManager: Slow operation: 162ms so far, now at startProcess: returned from zygote!
+04-02 14:18:02.449  1037  1112 D WindowManagerShell: setLauncherKeepClearAreaHeight: visible=false, height=527
+04-02 14:18:02.459   719   764 W ActivityManager: Slow operation: 193ms so far, now at startProcess: done updating battery stats
+04-02 14:18:02.460   719   764 W ActivityManager: Slow operation: 194ms so far, now at startProcess: building log message
+04-02 14:18:02.463   585   585 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:02.479   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.479   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.540  7424  7597 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0 (types=[])
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.542   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.543   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.543   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.543   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.543   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.544   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.544   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.544   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.544   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.544   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:02.548   719   764 I ActivityManager: Start proc 28167:com.baganetic.baganetic_mobile/u0a239 for next-top-activity {com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity}
+04-02 14:18:02.551   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:02.552   719   764 W ActivityManager: Slow operation: 286ms so far, now at startProcess: starting to update pids map
+04-02 14:18:02.552   719   764 I ActivityManager: ProcessObserver broadcast disabled
+04-02 14:18:02.552   719   764 W ActivityManager: Slow operation: 286ms so far, now at startProcess: done updating pids map
+04-02 14:18:02.575 28167 28167 I aganetic_mobile: Late-enabling -Xcheck:jni
+04-02 14:18:02.622   719   719 W Looper  : Slow dispatch took 839ms main app=system_server main=true group=FOREGROUND h=android.app.ActivityThread$H c=android.app.LoadedApk$ReceiverDispatcher$Args$$ExternalSyntheticLambda0@78f0491 m=0
+04-02 14:18:02.630  1037 29085 V WindowManagerShell: onTransitionReady(transaction=3088081493569)
+04-02 14:18:02.631   719   754 V WindowManager: Sent Transition (#152) createdAt=04-02 14:18:02.087 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=233 effectiveUid=10239 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.baganetic.baganetic_mobile/.MainActivity } baseActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} topActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} origActivity=null realActivity=ComponentInfo{com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity} numActivities=1 lastActiveTime=99602474 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{c062ff7 Task{48e0de9 #233 type=standard I=com.baganetic.baganetic_mobile/.MainActivity}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 0 - 0, 0) topActivityInfo=ActivityInfo{149de64 com.baganetic.baganetic_mobile.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isTopActivityNoDisplay=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false isActivityStackTransparent=false lastNonFullscreenBounds=Rect(284, 660 - 796, 1740) capturedLink=null capturedLinkTimestamp=0 requestedVisibleTypes=-9 topActivityRequestOpenInBrowserEducationTimestamp=0 appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false eligibleForLetterboxEducation= false isLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false eligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 topActivityAppBounds=Rect(0, 0 - 1080, 2400) isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false hasMinAspectRatioOverride=false topActivityLetterboxBounds=null cameraCompatTaskInfo=CameraCompatTaskInfo { freeformCameraCompatMode=inactive}} topActivityMainWindowFrame=null}, pipChange = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 152 }
+04-02 14:18:02.631   719   754 V WindowManager:     startWCT=WindowContainerTransaction { changes= {} hops= [] errorCallbackToken=null taskFragmentOrganizer=null }
+04-02 14:18:02.631   719   754 V WindowManager:     info={id=152 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+04-02 14:18:02.631   719   754 V WindowManager:         {WCT{RemoteToken{c062ff7 Task{48e0de9 #233 type=standard I=com.baganetic.baganetic_mobile/.MainActivity}}} m=OPEN f=NONE leash=Surface(name=Task=233)/@0xb40dd1b sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:02.631   719   754 V WindowManager:         {WCT{RemoteToken{7bacf98 Task{7cdbf0b #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x828ad26 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:02.631   719   754 V WindowManager:         {m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0xba52a41 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}
+04-02 14:18:02.631   719   754 V WindowManager:     ]}
+04-02 14:18:02.633  1037  1112 V WindowManagerShell: onTransitionReady (#152) android.os.BinderProxy@83059b8: {id=152 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[
+04-02 14:18:02.633  1037  1112 V WindowManagerShell:         {m=OPEN f=NONE leash=Surface(name=Task=233)/@0xa7f8def sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:02.633  1037  1112 V WindowManagerShell:         {m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xb6870fc sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},
+04-02 14:18:02.633  1037  1112 V WindowManagerShell:         {m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0xccd1385 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}
+04-02 14:18:02.633  1037  1112 V WindowManagerShell:     ]}
+04-02 14:18:02.634  1037  1112 V WindowManagerShell: Transition (#152) android.os.BinderProxy@83059b8@0 ready while (#151) android.os.BinderProxy@c02dc0f@0 is still animating. Notify the animating transition in case they can be merged
+04-02 14:18:02.634  1037  1112 V WindowManagerShell:    Merge into remote: RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@f9bb2e7, appThread = android.app.IApplicationThread$Stub$Proxy@b77be94, debugName = QuickstepLaunchHome }
+04-02 14:18:02.636   719   719 W Looper  : Slow delivery took 918ms main app=system_server main=true group=FOREGROUND h=android.app.ActivityThread$H c=android.app.LoadedApk$ReceiverDispatcher$Args$$ExternalSyntheticLambda0@38e58cd m=0
+04-02 14:18:02.660  1037  1112 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#151) android.os.BinderProxy@c02dc0f@0
+04-02 14:18:02.664   719   719 W Looper  : Drained
+04-02 14:18:02.666   719   754 V WindowManager: Finish Transition (#151): created at 04-02 14:18:01.021 collect-started=30.187ms request-sent=40.782ms started=284.933ms ready=416.811ms sent=625.503ms commit=81.6ms finished=1643.175ms
+04-02 14:18:02.675   719  2895 E IPCThreadState: Binder transaction failure. id: 16216455, BR_*: 29189, error: -22 (Invalid argument)
+04-02 14:18:02.679   719  2895 W ActivityManager: pid 719 system sent binder code 7 with flags 1 to frozen apps and got error -32
+04-02 14:18:02.701   719  2895 W WindowManager: Exception thrown during dispatchAppVisibility Window{501da7f u0 com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity EXITING}
+04-02 14:18:02.701   719  2895 W WindowManager: android.os.DeadObjectException
+04-02 14:18:02.701   719  2895 W WindowManager: 	at android.os.BinderProxy.transactNative(Native Method)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at android.os.BinderProxy.transact(BinderProxy.java:592)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at android.view.IWindow$Stub$Proxy.dispatchAppVisibility(IWindow.java:557)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.WindowState.sendAppVisibilityToClients(WindowState.java:3151)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.WindowContainer.sendAppVisibilityToClients(WindowContainer.java:1311)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.WindowToken.setClientVisible(WindowToken.java:389)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.ActivityRecord.setClientVisible(ActivityRecord.java:6650)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.ActivityRecord.commitVisibility(ActivityRecord.java:5561)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.Transition.finishTransition(Transition.java:1391)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.TransitionController.finishTransition(TransitionController.java:1029)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.WindowOrganizerController.finishTransition(WindowOrganizerController.java:496)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at android.window.IWindowOrganizerController$Stub.onTransact(IWindowOrganizerController.java:261)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at com.android.server.wm.WindowOrganizerController.onTransact(WindowOrganizerController.java:223)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at android.os.Binder.execTransactInternal(Binder.java:1426)
+04-02 14:18:02.701   719  2895 W WindowManager: 	at android.os.Binder.execTransact(Binder.java:1365)
+04-02 14:18:02.702   719  2895 W Process : Unable to open /proc/28039/status
+04-02 14:18:02.722  1037  1112 V WindowManagerShell: Playing animation for (#152) android.os.BinderProxy@83059b8@0
+04-02 14:18:02.722  1037  1112 V ShellRecents: RecentsTransitionHandler.startAnimation: no controller found
+04-02 14:18:02.723  1037  1112 V WindowManagerShell: Transition doesn't have explicit remote, search filters for match for {id=152 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=OPEN f=NONE leash=Surface(name=Task=233)/@0xa7f8def sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},{m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xb6870fc sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},{m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0xccd1385 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}]}
+04-02 14:18:02.723  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null taskFragmentToken=android.os.BinderProxy@28178da windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@68f110b, appThread = android.app.IApplicationThread$Stub$Proxy@b9dcbe8, debugName = overlayBackTransition }}
+04-02 14:18:02.723  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@3c0b201, appThread = android.app.IApplicationThread$Stub$Proxy@d0e48a6, debugName = LauncherToDream }}
+04-02 14:18:02.723  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null windowingMode=undefined},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{NOT atype=undefined independent=true modes=[] flags=NONE mustBeTask=true order=ANY topActivity=null launchCookie=null customAnim=true windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@f9bb2e7, appThread = android.app.IApplicationThread$Stub$Proxy@b77be94, debugName = QuickstepLaunchHome }}
+04-02 14:18:02.723  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=undefined independent=true modes=[CLOSE,TO_BACK] flags=IN_TASK_WITH_EMBEDDED_ACTIVITY mustBeTask=false order=ANY topActivity=null launchCookie=null taskFragmentToken=android.os.BinderProxy@28178da windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@afad83, appThread = android.app.IApplicationThread$Stub$Proxy@7fcfb00, debugName = overlayBackTransition }}
+04-02 14:18:02.723  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x0 checks=[{atype=dream independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{atype=home independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@d310f39, appThread = android.app.IApplicationThread$Stub$Proxy@f9d097e, debugName = LauncherToDream }}
+04-02 14:18:02.724  1037  1112 V WindowManagerShell:  Checking filter Pair{{types=[] flags=0x0] notFlags=0x100 checks=[{atype=home independent=true modes=[OPEN,TO_FRONT] flags=NONE mustBeTask=false order=TOP topActivity=ComponentInfo{com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity} launchCookie=null windowingMode=undefined},{atype=standard independent=true modes=[CLOSE,TO_BACK] flags=NONE mustBeTask=false order=ANY topActivity=null launchCookie=null windowingMode=undefined},{NOT atype=undefined independent=true modes=[] flags=NONE mustBeTask=true order=ANY topActivity=null launchCookie=null customAnim=true windowingMode=undefined}]} RemoteTransition { remoteTransition = android.window.IRemoteTransition$Stub$Proxy@4359edf, appThread = android.app.IApplicationThread$Stub$Proxy@b6c72c, debugName = QuickstepLaunchHome }}
+04-02 14:18:02.724  1037  1112 V WindowManagerShell:  Delegate animation for (#152) to null
+04-02 14:18:02.724  1037  1112 V WindowManagerShell: start default transition animation, info = {id=152 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{m=OPEN f=NONE leash=Surface(name=Task=233)/@0xa7f8def sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},{m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xb6870fc sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0 taskParent=-1},{m=TO_BACK f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{1ebb7d4 showWhenLocked=false})/@0xccd1385 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) epz=Point(1080, 2400) d=0}]}
+04-02 14:18:02.725  1037  1112 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@7d06301 animAttr=0x13 type=OPEN isEntrance=false
+04-02 14:18:02.725  1037  1112 V WindowManagerShell: loadAnimation: anim=android.view.animation.AnimationSet@5aaa5a6 animAttr=0x12 type=OPEN isEntrance=true
+04-02 14:18:02.727  1037  1112 V WindowManagerShell:  animated by com.android.wm.shell.transition.DefaultTransitionHandler@f0dc9db
+04-02 14:18:02.793   545   545 E BpTransactionCompletedListener: Failed to transact (-32)
+04-02 14:18:02.795   545   545 E BpTransactionCompletedListener: Failed to transact (-32)
+04-02 14:18:02.822  4618  4618 D SsBaseTemplateCard: No text view can be set up
+04-02 14:18:02.822  4618  4618 D SsBaseTemplateCard: Passed-in item info is null
+04-02 14:18:02.822  4618  4618 D SsBaseTemplateCard: Passed-in item info is null
+04-02 14:18:02.822  4618  4618 D SsBaseTemplateCard: Passed-in item info is null
+04-02 14:18:02.822  4618  4618 I SsBaseTemplateCard: Secondary card pane is null
+04-02 14:18:02.832  4618  4618 D ScalingWorkspaceRevealAnim: alpha of workspace at the end of animation: 1.0
+04-02 14:18:02.854  4618  4618 D RecentsView: onTaskRemoved: 232, not handling task stack changes
+04-02 14:18:02.854  4618  4618 D RecentsView: onTaskRemoved: 232, not handling task stack changes
+04-02 14:18:02.873 28167 28167 I aganetic_mobile: Using CollectorTypeCC GC.
+04-02 14:18:02.875 28167 28167 W aganetic_mobile: Unexpected CPU variant for x86: x86_64.
+04-02 14:18:02.875 28167 28167 W aganetic_mobile: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+04-02 14:18:02.967   553   570 I adbd    : jdwp connection from 28167
+04-02 14:18:02.990 28167 28167 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+04-02 14:18:03.082  1037  1112 V WindowManagerShell: Transition animation finished (aborted=false), notifying core (#152) android.os.BinderProxy@83059b8@0
+04-02 14:18:03.103   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:03.113   719   754 V WindowManager: Finish Transition (#152): created at 04-02 14:18:02.087 collect-started=1.787ms request-sent=159.44ms started=254.629ms ready=526.78ms sent=535.115ms commit=150.884ms finished=1015.486ms
+04-02 14:18:03.119  1037  1112 V WindowManagerShell: Track 0 became idle
+04-02 14:18:03.119  1037  1112 V WindowManagerShell: All active transition animations finished
+04-02 14:18:03.251  4618  4618 D VRI[NexusLauncherActivity]: visibilityChanged oldVisibility=true newVisibility=false
+04-02 14:18:03.252  4618  4618 D NexusLauncherModelDelegate: notifySmartspaceEvent: SmartspaceTargetEvent{mSmartspaceTarget=null, mSmartspaceActionId='null', mEventType=7}
+04-02 14:18:03.299   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.299   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.299   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.300   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.300   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.300   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.306   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.306   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.306   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.307   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.307   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.309   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.309   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.309   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.310   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.310   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.310   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.311   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:03.317 28167 28167 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+04-02 14:18:03.317 28167 28167 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+04-02 14:18:03.874 28167 28167 D nativeloader: Configuring clns-9 for other apk /data/app/~~1eBb1ILstdpnAeB14DhYUQ==/com.baganetic.baganetic_mobile-EUHyvNKasSwERnc1WyTJXg==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~1eBb1ILstdpnAeB14DhYUQ==/com.baganetic.baganetic_mobile-EUHyvNKasSwERnc1WyTJXg==/lib/x86_64:/data/app/~~1eBb1ILstdpnAeB14DhYUQ==/com.baganetic.baganetic_mobile-EUHyvNKasSwERnc1WyTJXg==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.baganetic.baganetic_mobile
+04-02 14:18:03.902 28167 28167 I aganetic_mobile: AssetManager2(0x7d3557176438) locale list changing from [] to [en-US]
+04-02 14:18:03.972 28167 28167 V GraphicsEnvironment: Currently set values for:
+04-02 14:18:03.972 28167 28167 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+04-02 14:18:03.972 28167 28167 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+04-02 14:18:03.972 28167 28167 V GraphicsEnvironment: com.baganetic.baganetic_mobile is not listed in per-application setting
+04-02 14:18:03.973 28167 28167 V GraphicsEnvironment: ANGLE allowlist from config: com.dreamgames.royalmatch com.dts.freefiremax com.dxx.firenow com.gramgames.mergedragons com.ludo.king com.mojang.minecraftpe com.my.defense com.nintendo.zaka com.os.airforce com.playrix.fishdomdd.gplay io.teslatech.callbreak jp.konami.prospia net.peakgames.toonblast
+04-02 14:18:03.973 28167 28167 V GraphicsEnvironment: com.baganetic.baganetic_mobile is not listed in ANGLE allowlist or settings, returning default
+04-02 14:18:03.973 28167 28167 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+04-02 14:18:04.160 28167 28167 I FirebaseApp: Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+04-02 14:18:04.229 28167 28167 I FirebaseInitProvider: FirebaseApp initialization successful
+04-02 14:18:04.349   719  2887 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ENABLE_FAKE_FOCUS
+04-02 14:18:04.363   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:04.380   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:04.382 28167 28186 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+04-02 14:18:04.390 28167 28167 I aganetic_mobile: AssetManager2(0x7d355717e458) locale list changing from [] to [en-US]
+04-02 14:18:04.428 28167 28167 E ashmem  : Pinning is deprecated since Android Q. Please use trim or other methods.
+04-02 14:18:04.454 28167 28184 W aganetic_mobile: ClassLoaderContext classpath size mismatch. expected=1, found=0 (DLC[];PCL[base.apk*1390061875]{PCL[/system/framework/org.apache.http.legacy.jar*4247870504]#PCL[/system/framework/com.android.location.provider.jar*1570284764]#PCL[/system/framework/com.android.media.remotedisplay.jar*487574312]#PCL[/system_ext/framework/androidx.window.extensions.jar*1030441313]#PCL[/system_ext/framework/androidx.window.sidecar.jar*3860983653]} | DLC[];PCL[])
+04-02 14:18:04.470 28167 28184 I DynamiteModule: Considering local module com.google.android.gms.measurement.dynamite:155 and remote module com.google.android.gms.measurement.dynamite:175
+04-02 14:18:04.470 28167 28184 I DynamiteModule: Selected remote version of com.google.android.gms.measurement.dynamite, version >= 175
+04-02 14:18:04.473 28167 28184 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils
+04-02 14:18:04.513 28167 28190 I ResourceExtractor: Found extracted resources res_timestamp-1-1775115871931
+04-02 14:18:04.517 28167 28186 I EGL_emulation: Opening libGLESv1_CM_emulation.so
+04-02 14:18:04.522 28167 28186 I EGL_emulation: Opening libGLESv2_emulation.so
+04-02 14:18:04.670 28167 28189 W aganetic_mobile: Verification of void com.getkeepsafe.relinker.ApkLibraryInstaller.closeSilently(java.io.Closeable) took 143.850ms (62.56 bytecodes/s) (0B arena alloc)
+04-02 14:18:04.671 28167 28185 W aganetic_mobile: Verification of kotlin.sequences.Sequence kotlinx.coroutines.JobSupport.getChildren() took 153.637ms (84.61 bytecodes/s) (0B arena alloc)
+04-02 14:18:04.671 28167 28184 W System  : ClassLoader referenced unknown path: 
+04-02 14:18:04.673 28167 28189 D FlutterJNI: Beginning load of flutter...
+04-02 14:18:04.674 28167 28184 D nativeloader: Configuring clns-10 for other apk . target_sdk_version=36, uses_libraries=, library_path=/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/lib/x86_64:/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+04-02 14:18:04.685 28167 28186 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+04-02 14:18:04.685 28167 28186 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+04-02 14:18:04.709 28167 28184 I aganetic_mobile: AssetManager2(0x7d3557179c78) locale list changing from [] to [en-US]
+04-02 14:18:04.749 28167 28184 W aganetic_mobile: ClassLoaderContext classpath element checksum mismatch. expected=1390061875, found=2403120103 (DLC[];PCL[base.apk*1390061875]{PCL[/system/framework/org.apache.http.legacy.jar*4247870504]#PCL[/system/framework/com.android.location.provider.jar*1570284764]#PCL[/system/framework/com.android.media.remotedisplay.jar*487574312]#PCL[/system_ext/framework/androidx.window.extensions.jar*1030441313]#PCL[/system_ext/framework/androidx.window.sidecar.jar*3860983653]} | DLC[];PCL[/data/app/~~1eBb1ILstdpnAeB14DhYUQ==/com.baganetic.baganetic_mobile-EUHyvNKasSwERnc1WyTJXg==/base.apk*2403120103]{PCL[/system_ext/framework/androidx.window.extensions.jar*1030441313]#PCL[/system_ext/framework/androidx.window.sidecar.jar*3860983653]})
+04-02 14:18:04.773 28167 28184 I aganetic_mobile: AssetManager2(0x7d355717edb8) locale list changing from [] to [en-US]
+04-02 14:18:04.774 28167 28184 I aganetic_mobile: AssetManager2(0x7d3557177d38) locale list changing from [] to [en-US]
+04-02 14:18:04.907 28167 28189 D nativeloader: Load /data/app/~~1eBb1ILstdpnAeB14DhYUQ==/com.baganetic.baganetic_mobile-EUHyvNKasSwERnc1WyTJXg==/base.apk!/lib/x86_64/libflutter.so using class loader ns clns-9 (caller=/data/app/~~1eBb1ILstdpnAeB14DhYUQ==/com.baganetic.baganetic_mobile-EUHyvNKasSwERnc1WyTJXg==/base.apk): ok
+04-02 14:18:04.924 28167 28189 D FlutterJNI: flutter (null) was loaded normally!
+04-02 14:18:04.928   719  2887 D FileUtils: Rounded bytes from 2067255296 to 4000000000
+04-02 14:18:04.985 28167 28167 I aganetic_mobile: AssetManager2(0x7d355717b258) locale list changing from [] to [en-US]
+04-02 14:18:05.035 28167 28194 I aganetic_mobile: hiddenapi: Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (runtime_flags=0, domain=core-platform, api=unsupported) from Lm7/aou; (domain=app) using reflection: allowed
+04-02 14:18:05.042 28167 28167 W aganetic_mobile: type=1400 audit(0.0:1527): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=127375 scontext=u:r:untrusted_app:s0:c239,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=com.baganetic.baganetic_mobile
+04-02 14:18:05.074 28167 28194 I PhClient: Unable to retrieve flag snapshot for com.google.android.gms.measurement#com.baganetic.baganetic_mobile, using defaults.
+04-02 14:18:05.080 28167 28193 E aganetic_mobile: No package ID 6a found for resource ID 0x6a0b0013.
+04-02 14:18:05.137 28167 28193 I FA      : App measurement initialized, version: 151001
+04-02 14:18:05.137 28167 28193 I FA      : To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+04-02 14:18:05.137 28167 28193 I FA      : To enable faster debug mode event logging run:
+04-02 14:18:05.137 28167 28193 I FA      :   adb shell setprop debug.firebase.analytics.app com.baganetic.baganetic_mobile
+04-02 14:18:05.160  7746  3488 I PhenotypeResourceReader: unable to find any Phenotype resource metadata for com.baganetic.baganetic_mobile
+04-02 14:18:05.244 28167 28167 D DesktopModeFlags: Toggle override initialized to: OVERRIDE_UNSET
+04-02 14:18:05.246 28167 28195 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+04-02 14:18:05.622 28167 28203 I flutter : The Dart VM service is listening on http://127.0.0.1:44149/-itO8_DFseY=/
+04-02 14:18:05.710   719  2895 D ActivityManager: sync unfroze 19159 com.google.android.gms for 6
+04-02 14:18:05.712   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:05.712   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:05.745 19159 19159 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.measurement.START xflg=0x4 pkg=com.google.android.gms }
+04-02 14:18:05.745 19159 19159 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.measurement.START xflg=0x4 pkg=com.google.android.gms }
+04-02 14:18:05.756   719  2895 W ProcessStats: Tracking association SourceState{ae62fa6 com.baganetic.baganetic_mobile/10239 BTop #32421} whose proc state 2 is better than process ProcessState{3e63ab5 com.google.android.gms/10146 pkg=com.google.android.gms} proc state 14 (0 skipped)
+04-02 14:18:06.034   719  2895 D WifiNl80211Manager: Scan result ready event
+04-02 14:18:06.034   719  2895 D WifiNative: Scan result ready event
+04-02 14:18:06.044  7746  9168 I WifiScanner: onFullResults
+04-02 14:18:06.049  7746  8053 I WifiScanner: onFullResults
+04-02 14:18:06.082   719   921 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+04-02 14:18:06.564 28167 28167 I aganetic_mobile: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+04-02 14:18:06.564 28167 28167 I aganetic_mobile: hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+04-02 14:18:06.565 28167 28167 I aganetic_mobile: hiddenapi: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+04-02 14:18:06.565 28167 28167 I aganetic_mobile: hiddenapi: Accessing hidden method Landroid/util/LongArray;->get(I)J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app) using reflection: allowed
+04-02 14:18:06.602 28167 28167 D CompatChangeReporter: Compat change id reported: 377864165; UID 10239; state: ENABLED
+04-02 14:18:06.642 28167 28193 I FA      : Tag Manager is not found and thus will not be used
+04-02 14:18:06.658 28167 28167 W HWUI    : Unknown dataspace 0
+04-02 14:18:07.160   719  2895 D CoreBackPreview: Window{3c472cb u0 com.baganetic.baganetic_mobile/com.baganetic.baganetic_mobile.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@6f349c1, mPriority=-1, mIsAnimationCallback=false, mOverrideBehavior=0}
+04-02 14:18:07.185 28167 28167 I WindowExtensionsImpl: Initializing Window Extensions, vendor API level=9, activity embedding enabled=true
+04-02 14:18:07.914  1187  1420 D SatelliteController: iisInCarrierRoamingNbIotNtn: satellite is disabled
+04-02 14:18:07.916   719  2887 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:08.453 28167 28167 I Choreographer: Skipped 73 frames!  The application may be doing too much work on its main thread.
+04-02 14:18:08.462 28167 28167 D WindowLayoutComponentImpl: Register WindowLayoutInfoListener on Context=com.baganetic.baganetic_mobile.MainActivity@f127bb4, of which baseContext=android.app.ContextImpl@1306594
+04-02 14:18:08.500 19159 28220 D AdvertisingIdClient: AdvertisingIdClient already created.
+04-02 14:18:08.501 19159 28220 D AdvertisingIdClient: AdvertisingIdClient is not bounded. Starting to bind it...
+04-02 14:18:08.525 19159 28220 D AdvertisingIdClient: AdvertisingIdClient is bounded
+04-02 14:18:08.546 19159 28220 I AdvertisingIdClient: shouldSendLog 99577485
+04-02 14:18:08.546 19159 28220 I AdvertisingIdClient: GetInfoInternal elapse 45ms
+04-02 14:18:08.674  7746  7746 D BoundBrokerSvc: onRebind: Intent { act=com.google.android.gms.common.telemetry.service.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentApiService }
+04-02 14:18:08.736  7746 27929 I NetworkScheduler: (REDACTED) Error inserting %s
+04-02 14:18:08.787 28167 28167 I flutter : Firestore DB: baganetic-mobile
+04-02 14:18:09.361 28167 28172 I aganetic_mobile: Compiler allocated 5057KB to compile void android.view.ViewRootImpl.performTraversals()
+04-02 14:18:10.050 28167 28167 I Choreographer: Skipped 72 frames!  The application may be doing too much work on its main thread.
+04-02 14:18:10.547 28224 28224 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: package
+04-02 14:18:10.870   719   741 I system_server: Background young concurrent copying GC freed 23MB AllocSpace bytes, 19(576KB) LOS objects, 34% free, 41MB/62MB, paused 392us,178us total 264.496ms
+04-02 14:18:10.880   719   743 W System  : A resource failed to call release. 
+04-02 14:18:10.911  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/base.odex) is kOatUpToDate with filter 'speed-profile' executable 'false'
+04-02 14:18:10.916  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_AdsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.925  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_CronetDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.930  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_DynamiteLoader_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.935  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_DynamiteModulesA_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.938  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_DynamiteModulesC_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.942  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_GoogleCertificates_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.945  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_MapsDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.950  2665 15762 I artd    : GetBestInfo: odex next to the dex file (/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/split_MeasurementDynamite_installtime.odex) is kOatUpToDate with filter 'speed' executable 'false'
+04-02 14:18:10.953  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:10.957  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000011/dl-PlayCloudSearch.optional_252635100000.apk has no usable artifacts
+04-02 14:18:10.959  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000003/DynamiteLoader.apk has no usable artifacts
+04-02 14:18:10.961  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/CF98DA544914DD75038B6CE6DBC852B6C43EC876/the.apk has no usable artifacts
+04-02 14:18:10.965  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/BF7C023AB90CCF01D1F467FC1CEBAF866511FF29/the.apk has no usable artifacts
+04-02 14:18:10.968  2665 15762 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:10.995  2665 15762 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000f/dl-VisionOcr.optional_252635100000.apk has no usable artifacts
+04-02 14:18:10.999  2665 15762 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/0B5F21648920603C6816E0B76773EED17E15FB77/the.apk has no usable artifacts
+04-02 14:18:11.000  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~VbKF_9WTMkw5hyiCXa_gYQ==/com.android.vending-ZCz5sblkqCgT-MeKokLJyw==/base.apk, fd=-1
+04-02 14:18:11.003  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002c/dl-Appsearch.optional_260235100800.apk has no usable artifacts
+04-02 14:18:11.006  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000029/dl-VisionOcr.optional_260235100000.apk has no usable artifacts
+04-02 14:18:11.010  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000010/dl-MlkitOcrCommon.optional_252635100800.apk has no usable artifacts
+04-02 14:18:11.013  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/F0F8A06E96E38F743B8A604780FBF66862861FC4/the.apk has no usable artifacts
+04-02 14:18:11.016  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002f/dl-MlkitOcrCommon.optional_260235100800.apk has no usable artifacts
+04-02 14:18:11.017  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.020  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000009/dl-MlkitBarcodeUi.optional_252635100800.apk has no usable artifacts
+04-02 14:18:11.022  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/340EB38090EA011D0D9DA2A3BF92ADF73C6EB4AB/the.apk has no usable artifacts
+04-02 14:18:11.023  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.026  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/A3CA675C42809307C9989FB51FF5403F49F05332/the.apk has no usable artifacts
+04-02 14:18:11.027  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.030  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/5AC9373FDFDAAD124F293DA08D126973E019582A/the.apk has no usable artifacts
+04-02 14:18:11.031  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.032  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000002/CronetDynamite.apk has no usable artifacts
+04-02 14:18:11.033  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.034  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.036  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.037  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.038  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/00000006/GoogleCertificates.apk has no usable artifacts
+04-02 14:18:11.042  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/BE7EF7B4C46169C70551CAA4FB9F9DFEAA13427D/the.apk has no usable artifacts
+04-02 14:18:11.043  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.044  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.047  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000a/dl-TfliteDynamiteDynamite.integ_243930801100800.apk has no usable artifacts
+04-02 14:18:11.048  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002b/dl-TfliteDynamiteDynamite.integ_252130102100800.apk has no usable artifacts
+04-02 14:18:11.049  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.052  2665  9655 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/E054CA794C125F959C88D4849C82AB3F226237E6/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-02 14:18:11.053  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.055  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002e/dl-MlkitBarcodeUi.optional_260235100800.apk has no usable artifacts
+04-02 14:18:11.059  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.060  2665  9655 W artd    : Could not get dex checksums for location /data/app/~~uNyi8t6WAVOpxGSNHrCSxw==/com.google.android.gms-vikV0Y0dikouQ_wg4w7l2w==/base.apk, fd=-1
+04-02 14:18:11.061  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000e/dl-MapsCoreDynamite.integ_252130101100800.apk has no usable artifacts
+04-02 14:18:11.064  2665  9655 I artd    : GetBestInfo: vdex next to the dex file (/data/user/0/com.google.android.gms/app_dg_cache/492BB24C67899DCD3E45A896813896109D71DC84/oat/x86_64/the.vdex) is kOatUpToDate with filter 'verify' executable 'false'
+04-02 14:18:11.066  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000000d/dl-Appsearch.optional_252635100800.apk has no usable artifacts
+04-02 14:18:11.068  2665  9655 I artd    : GetBestInfo: /data/user/0/com.google.android.gms/app_dg_cache/1F581356BF4B59901D0F7EA66B202E5AF16400E0/the.apk has no usable artifacts
+04-02 14:18:11.070  2665  9655 I artd    : GetBestInfo: /data/user_de/0/com.google.android.gms/app_chimera/m/0000002a/dl-PlayCloudSearch.optional_260235100000.apk has no usable artifacts
+04-02 14:18:12.242   719   757 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+04-02 14:18:12.597 28167 28167 I Choreographer: Skipped 152 frames!  The application may be doing too much work on its main thread.
+04-02 14:18:12.846 28167 28228 D ProfileInstaller: Installing profile for com.baganetic.baganetic_mobile
+04-02 14:18:13.172   719   754 I ActivityTaskManager: Displayed com.baganetic.baganetic_mobile/.MainActivity for user 0: +11s311ms
+04-02 14:18:13.172   719   754 I ActivityTaskManager: Fully drawn com.baganetic.baganetic_mobile/.MainActivity: +11s311ms
+04-02 14:18:13.195   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.195   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.195   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.197   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.198   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.198   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.198   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.199   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.199   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.200   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.200   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.200   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.222   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.222   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.222   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.225   719   886 I ImeTracker: com.baganetic.baganetic_mobile:c0c287e5: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+04-02 14:18:13.226  4618  4618 D BaseDepthController: setSurface:
+04-02 14:18:13.226  4618  4618 D BaseDepthController: 	mWaitingOnSurfaceValidity: false
+04-02 14:18:13.226  4618  4618 D BaseDepthController: 	mBaseSurface: null
+04-02 14:18:13.226  4618  4618 D BaseDepthController: mSurface is null and mCurrentBlur is: 0
+04-02 14:18:13.227  4618  4618 D StateManager: goToState - fromState: Normal, toState: Normal, partial trace:
+04-02 14:18:13.227  4618  4618 D StateManager: 	at com.android.launcher3.statemanager.StateManager.moveToRestState(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:4)
+04-02 14:18:13.227  4618  4618 D StateManager: 	at com.android.launcher3.statemanager.StateManager.moveToRestState(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:1)
+04-02 14:18:13.227  4618  4618 D StateManager: 	at com.android.launcher3.statemanager.StatefulActivity.onStop(go/retraceme 72a59688580715d19f0e415c69e80376c2f062d1648c80db6730905005a27c20:34)
+04-02 14:18:13.227  4618  4618 D StatsLog: LAUNCHER_ONSTOP
+04-02 14:18:13.235  4618  4754 D GmsPlayProvider: Forcefully shut down the binder channel
+04-02 14:18:13.244   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.246   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.247  4618  4618 D StatsLog: LAUNCHER_GOOGLE_SEARCH_RESTORE_LIST_SIZE_AFTER_ACTIVITY_RESTART
+04-02 14:18:13.250   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.251   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.252   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.254   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.257   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.258   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.259   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.262   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.263   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.264   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.268  7660  7660 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():2092 
+04-02 14:18:13.269   719  2895 I ImeTracker: system_server:ad42db04: onRequestHide at ORIGIN_SERVER reason IME_REQUESTED_CHANGED_LISTENER fromUser false
+04-02 14:18:13.271   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.277   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.277   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.278   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.281   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.285   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.286   719   757 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.287  7660  7660 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 0, locked = false
+04-02 14:18:13.307  7660  7660 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1349 onStartInput(EditorInfo{EditorInfo{packageName=com.baganetic.baganetic_mobile, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+04-02 14:18:13.307 28167 28167 D InsetsController: hide(ime(), fromIme=false)
+04-02 14:18:13.308 28167 28167 I ImeTracker: com.baganetic.baganetic_mobile:c0c287e5: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+04-02 14:18:13.345   719   757 I ImeTracker: system_server:ad42db04: onCancelled at PHASE_SERVER_SHOULD_HIDE
+04-02 14:18:13.347   719   982 D BackgroundInstallControlService: Package event received: 0
+04-02 14:18:13.373  7660  7660 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 1, locked = false
+04-02 14:18:13.373  7660  7660 W NotificationCenter: NotificationCenter$NotificationQueue.notifyPendingNotificationsOnExecutor():877 Heavy notify work detected on UI thread: [mnh->lrg, mnh->kko, mnh->mmk, mnh->kmi, mnh->obd, mnh->kko, mnh->kko, mnh->kko, mnh->kko, mnh->kko, mnh->gix, mnh->lze, mnh->hiz, mnh->iah, mnh->kko, mnh->mma, mnh->kko, mnh->opo, mnh->kko, mnh->kko, mnh->kko, mnh->kko, mnh->glh, mnh->khy, mnh->kko, mnh->kko] takes 28ms
+04-02 14:18:13.381   719  2895 W PackageConfigPersister: App-specific configuration not found for packageName: com.baganetic.baganetic_mobile and userId: 0
+04-02 14:18:13.420 28167 28190 W DynamiteModule: Local module descriptor class for com.google.android.gms.providerinstaller.dynamite not found.
+04-02 14:18:13.462  7746  9168 W ProviderHelper: Unknown dynamite feature providerinstaller.dynamite
+04-02 14:18:13.466 28167 28190 I DynamiteModule: Considering local module com.google.android.gms.providerinstaller.dynamite:0 and remote module com.google.android.gms.providerinstaller.dynamite:0
+04-02 14:18:13.470 28167 28190 W ProviderInstaller: Failed to load providerinstaller module: No acceptable module com.google.android.gms.providerinstaller.dynamite found. Local version is 0 and remote version is 0.
+04-02 14:18:13.470   719  2887 D ConnectivityService: requestNetwork for uid/pid:10239/28167 activeRequest: null callbackRequest: 959 [NetworkRequest [ REQUEST id=960, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647 isUidTracked: false declaredMethods: AVAIL|LOST
+04-02 14:18:13.472   719   927 D ConnectivityService: NetReassign [960 : null → 108] [c 0] [a 1] [i 1]
+04-02 14:18:13.475   719   921 D WifiNetworkFactory: got request NetworkRequest [ REQUEST id=960, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:13.481   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.481   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.481   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.482   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.482   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.482   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.483   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.496   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.497   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.497   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.497   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.497   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.498   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.498   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.505   719   921 D UntrustedWifiNetworkFactory: got request NetworkRequest [ REQUEST id=960, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:13.505   719   921 D OemPaidWifiNetworkFactory: got request NetworkRequest [ REQUEST id=960, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:13.505   719   921 D MultiInternetWifiNetworkFactory: got request NetworkRequest [ REQUEST id=960, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:13.507   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.507   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.507   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.507   719   847 W JobScheduler.JobStatus: Exempted app com.android.vending considered buggy
+04-02 14:18:13.554   585   585 W IPCThreadState: Sending oneway calls to frozen process.
+04-02 14:18:13.563 28167 28190 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+04-02 14:18:13.563 28167 28190 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/com.android.location.provider.jar
+04-02 14:18:13.563 28167 28190 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/com.android.media.remotedisplay.jar
+04-02 14:18:13.563 28167 28190 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+04-02 14:18:13.563 28167 28190 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+04-02 14:18:13.610 28167 28190 W aganetic_mobile: Loading /data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/oat/x86_64/base.odex non-executable as it requires an image which we failed to load
+04-02 14:18:13.646 28167 28190 D nativeloader: Configuring clns-11 for other apk /data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/lib/x86_64:/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+04-02 14:18:13.677 28167 28190 I aganetic_mobile: Waiting for a blocking GC ClassLinker
+04-02 14:18:13.783  7746  7746 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.common.telemetry.service.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentApiService }
+04-02 14:18:13.800 28167 28173 I aganetic_mobile: NativeAlloc concurrent copying GC freed 2913KB AllocSpace bytes, 13(544KB) LOS objects, 49% free, 4322KB/8644KB, paused 4.712ms,467us total 745.229ms
+04-02 14:18:13.804 28167 28190 I aganetic_mobile: WaitForGcToComplete blocked ClassLinker on NativeAlloc for 126.372ms
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: Failed to get service from broker. 
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3340)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Parcel.createException(Parcel.java:3324)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Parcel.readException(Parcel.java:3307)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Parcel.readException(Parcel.java:3249)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at bdxl.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):36)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at bdvm.z(:com.google.android.gms@260235038@26.02.35 (260800-862924022):143)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at bdbo.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):42)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Handler.handleCallback(Handler.java:995)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Handler.dispatchMessage(Handler.java:103)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at crvf.mD(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at crvf.dispatchMessage(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Looper.loopOnce(Looper.java:248)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.Looper.loop(Looper.java:338)
+04-02 14:18:13.995 28167 28235 E GoogleApiManager: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+04-02 14:18:13.996 28167 28235 W GoogleApiManager: Not showing notification since connectionResult is not user-facing: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: Failed to register com.google.android.gms.providerinstaller#com.baganetic.baganetic_mobile
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: fxxy: 17: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at fxya.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):13)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gvzc.d(:com.google.android.gms@260235038@26.02.35 (260800-862924022):3)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gvze.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):130)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gwbl.execute(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gvzm.f(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gvzm.m(:com.google.android.gms@260235038@26.02.35 (260800-862924022):99)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gvzm.r(:com.google.android.gms@260235038@26.02.35 (260800-862924022):17)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at fqmm.hC(:com.google.android.gms@260235038@26.02.35 (260800-862924022):35)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at fdqm.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):12)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at gwbl.execute(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at fdqn.b(:com.google.android.gms@260235038@26.02.35 (260800-862924022):18)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at fdrc.b(:com.google.android.gms@260235038@26.02.35 (260800-862924022):34)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at fdre.d(:com.google.android.gms@260235038@26.02.35 (260800-862924022):25)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bcyx.c(:com.google.android.gms@260235038@26.02.35 (260800-862924022):9)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bdbm.q(:com.google.android.gms@260235038@26.02.35 (260800-862924022):48)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bdbm.d(:com.google.android.gms@260235038@26.02.35 (260800-862924022):10)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bdbm.g(:com.google.android.gms@260235038@26.02.35 (260800-862924022):191)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bdbm.onConnectionFailed(:com.google.android.gms@260235038@26.02.35 (260800-862924022):2)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bdbo.run(:com.google.android.gms@260235038@26.02.35 (260800-862924022):70)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at android.os.Handler.handleCallback(Handler.java:995)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at android.os.Handler.dispatchMessage(Handler.java:103)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at crvf.mD(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at crvf.dispatchMessage(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at android.os.Looper.loopOnce(Looper.java:248)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at android.os.Looper.loop(Looper.java:338)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: Caused by: bcxe: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bduy.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):15)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bcza.a(:com.google.android.gms@260235038@26.02.35 (260800-862924022):1)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	at bcyx.c(:com.google.android.gms@260235038@26.02.35 (260800-862924022):5)
+04-02 14:18:14.000 28167 28234 W FlagRegistrar: 	... 12 more
+04-02 14:18:14.045 28167 28236 I fxxm    : Unable to retrieve flag snapshot for com.google.android.gms.providerinstaller#com.baganetic.baganetic_mobile, using defaults.
+04-02 14:18:14.126 28167 28190 D nativeloader: Load /data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/base.apk!/lib/x86_64/libconscrypt_gmscore_jni.so using class loader ns clns-11 (caller=/data/app/~~KfdPxdq2BQrv7ZoAgQmElA==/com.google.android.gms-F19kFDD7h2iSF4V3lknHqA==/base.apk): ok
+04-02 14:18:14.128 28167 28190 V NativeCrypto: Registering com/google/android/gms/org/conscrypt/NativeCrypto's 333 native methods...
+04-02 14:18:14.186 28167 28190 I aganetic_mobile: hiddenapi: Accessing hidden method Ljava/security/spec/ECParameterSpec;->getCurveName()Ljava/lang/String; (runtime_flags=0, domain=core-platform, api=unsupported) from Lcom/google/android/gms/org/conscrypt/Platform; (domain=app) using reflection: allowed
+04-02 14:18:14.220 28167 28190 I ProviderInstaller: Installed default security provider GmsCore_OpenSSL
+04-02 14:18:14.733   719  2895 D ConnectivityService: requestNetwork for uid/pid:10239/28167 activeRequest: null callbackRequest: 961 [NetworkRequest [ REQUEST id=962, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647 isUidTracked: false declaredMethods: AVAIL|BLK
+04-02 14:18:14.737   719   921 D WifiNetworkFactory: got request NetworkRequest [ REQUEST id=962, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:14.737   719   921 D UntrustedWifiNetworkFactory: got request NetworkRequest [ REQUEST id=962, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:14.737   719   921 D OemPaidWifiNetworkFactory: got request NetworkRequest [ REQUEST id=962, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:14.737   719   927 D ConnectivityService: NetReassign [962 : null → 108] [c 0] [a 1] [i 1]
+04-02 14:18:14.737   719   921 D MultiInternetWifiNetworkFactory: got request NetworkRequest [ REQUEST id=962, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10239 RequestorUid: 10239 RequestorPkg: com.baganetic.baganetic_mobile UnderlyingNetworks: Null] ]
+04-02 14:18:14.916 28167 28173 I aganetic_mobile: Background young concurrent copying GC freed 2642KB AllocSpace bytes, 1(544KB) LOS objects, 40% free, 5163KB/8644KB, paused 1.668ms,140us total 127.532ms
+04-02 14:18:15.785 28167 28251 I aganetic_mobile: hiddenapi: Accessing hidden field Ljava/net/Socket;->impl:Ljava/net/SocketImpl; (runtime_flags=0, domain=core-platform, api=unsupported) from Lcom/google/android/gms/org/conscrypt/Platform; (domain=app) using reflection: allowed
+04-02 14:18:16.268 28167 28251 I aganetic_mobile: hiddenapi: Accessing hidden method Ljava/security/spec/ECParameterSpec;->setCurveName(Ljava/lang/String;)V (runtime_flags=0, domain=core-platform, api=unsupported) from Lcom/google/android/gms/org/conscrypt/Platform; (domain=app) using reflection: allowed

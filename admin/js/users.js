@@ -76,6 +76,12 @@ function renderUsersTable() {
     const userId = getUserId(user);
     const initial = (user.displayName || user.name || user.email || '?')[0].toUpperCase();
     const metrics = getUserMetrics(userId);
+    const isCurrentAdmin = auth.currentUser?.uid === userId;
+    const actionButtons = isCurrentAdmin
+      ? '<button class="btn-secondary" type="button" disabled>Current</button>'
+      : `
+          <button class="btn-danger" type="button" onclick='deleteUser(${serializeForInlineHandler(userId)})'>Delete</button>
+        `;
 
     return `
       <tr>
@@ -92,7 +98,12 @@ function renderUsersTable() {
         <td><span class="badge ${metrics.tripCount ? 'badge-gold' : 'badge-gray'}">${metrics.tripCount}</span></td>
         <td><span class="badge ${metrics.postCount ? 'badge-green' : 'badge-gray'}">${metrics.postCount}</span></td>
         <td class="cell-nowrap cell-muted">${formatDate(user.createdAt)}</td>
-        <td><button class="btn-warning" type="button" onclick="viewUser(${JSON.stringify(userId)})">Profile</button></td>
+        <td>
+          <div class="action-row">
+            <button class="btn-warning" type="button" onclick='viewUser(${serializeForInlineHandler(userId)})'>Profile</button>
+            ${actionButtons}
+          </div>
+        </td>
       </tr>
     `;
   }).join('');
@@ -134,8 +145,10 @@ function viewUser(userId) {
   const favoriteNames = favoriteIds.map((pagodaId) => getPagodaName(pagodaId));
   const recentTrips = getUserTrips(userId, 5);
   const recentPosts = getUserPosts(userId, 5);
+  const isCurrentAdmin = auth.currentUser?.uid === userId;
 
   const body = document.getElementById('user-detail-body');
+  const deleteButton = document.getElementById('btn-delete-user-modal');
   if (!body) return;
 
   body.innerHTML = `
@@ -189,5 +202,151 @@ function viewUser(userId) {
     </div>
   `;
 
+  if (deleteButton) {
+    deleteButton.disabled = isCurrentAdmin;
+    deleteButton.textContent = isCurrentAdmin ? 'Current Admin' : 'Delete User Data';
+    deleteButton.onclick = isCurrentAdmin ? null : () => deleteUser(userId);
+  }
+
   openModal('modal-user-detail');
+}
+
+async function loadUserScopedDocuments(userId, collectionId) {
+  return listAdminDocuments(`${window.adminCollections.users}/${userId}/${collectionId}`);
+}
+
+async function collectUserCommunityCleanup(userId, ownedPostIds) {
+  const commentDocs = [];
+  const voteDocs = [];
+  const commentAdjustments = new Map();
+  const voteAdjustments = new Map();
+  const visiblePosts = window.adminState.posts.filter((post) => !ownedPostIds.has(post.id));
+
+  for (const post of visiblePosts) {
+    const [comments, votes] = await Promise.all([
+      loadCommunitySubcollectionDocuments(post.id, window.adminCollections.communityComments),
+      loadCommunitySubcollectionDocuments(post.id, window.adminCollections.communityVotes),
+    ]);
+
+    const userComments = comments.filter((comment) => comment.authorUserId === userId);
+    const userVotes = votes.filter((vote) => vote.userId === userId);
+
+    if (userComments.length) {
+      commentDocs.push(...userComments);
+      commentAdjustments.set(post.id, userComments.length);
+    }
+    if (userVotes.length) {
+      voteDocs.push(...userVotes);
+      voteAdjustments.set(post.id, userVotes.length);
+    }
+  }
+
+  return {
+    commentDocs,
+    voteDocs,
+    commentAdjustments,
+    voteAdjustments,
+  };
+}
+
+async function updatePostEngagementAfterUserCleanup(postId, removedComments, removedVotes) {
+  if (!removedComments && !removedVotes) {
+    return;
+  }
+
+  const post = window.adminState.posts.find((item) => item.id === postId);
+  const postPath = getAdminRecordPath(post, window.adminCollections.communityPosts);
+  if (!post || !postPath) {
+    return;
+  }
+
+  await patchAdminDocumentPath(
+    postPath,
+    {
+      commentCount: Math.max(0, Number(post.commentCount || 0) - removedComments),
+      upvoteCount: Math.max(0, Number(post.upvoteCount || 0) - removedVotes),
+      updatedAt: createAdminRestTimestamp(),
+    },
+    'community post engagement cleanup',
+  );
+}
+
+async function deleteUser(userId) {
+  const user = allUsers.find((item) => getUserId(item) === userId)
+    || window.adminState.users.find((item) => getUserId(item) === userId);
+  if (!user) {
+    showToast('User record not found.', 'error');
+    return;
+  }
+
+  if (auth.currentUser?.uid === userId) {
+    showToast('Sign in with another admin account before deleting this admin user data.', 'error');
+    return;
+  }
+
+  const displayName = user.displayName || user.name || user.email || userId;
+  if (!confirm(
+    `Delete ${displayName}? This removes the synced user profile, trips, AI chat history, and community activity from Firestore. The Firebase Auth sign-in account itself will remain.`,
+  )) {
+    return;
+  }
+
+  try {
+    const tripDocs = window.adminState.trips.filter((trip) => trip.ownerUserId === userId);
+    const ownedPosts = window.adminState.posts.filter((post) => post.authorUserId === userId);
+    const ownedPostIds = new Set(ownedPosts.map((post) => post.id));
+    const [aiChatDocs, communityCleanup] = await Promise.all([
+      loadUserScopedDocuments(userId, window.adminCollections.aiChatMessages),
+      collectUserCommunityCleanup(userId, ownedPostIds),
+    ]);
+
+    await Promise.all(
+      ownedPosts.map((post) => deleteCommunityPostCascade(post.id, { skipRefresh: true, skipToast: true })),
+    );
+
+    await Promise.all([
+      ...tripDocs
+        .map((trip) => getAdminRecordPath(trip, `${window.adminCollections.users}/${userId}/${window.adminCollections.trips}`))
+        .filter(Boolean)
+        .map((documentPath) => deleteAdminDocumentPath(documentPath, 'user trip delete')),
+      ...aiChatDocs
+        .map((message) => getAdminRecordPath(message))
+        .filter(Boolean)
+        .map((documentPath) => deleteAdminDocumentPath(documentPath, 'user ai chat delete')),
+      ...communityCleanup.commentDocs
+        .map((comment) => getAdminRecordPath(comment))
+        .filter(Boolean)
+        .map((documentPath) => deleteAdminDocumentPath(documentPath, 'user community comment delete')),
+      ...communityCleanup.voteDocs
+        .map((vote) => getAdminRecordPath(vote))
+        .filter(Boolean)
+        .map((documentPath) => deleteAdminDocumentPath(documentPath, 'user community vote delete')),
+    ]);
+
+    for (const post of window.adminState.posts) {
+      if (ownedPostIds.has(post.id)) {
+        continue;
+      }
+      await updatePostEngagementAfterUserCleanup(
+        post.id,
+        communityCleanup.commentAdjustments.get(post.id) || 0,
+        communityCleanup.voteAdjustments.get(post.id) || 0,
+      );
+    }
+
+    await deleteAdminDocumentPath(
+      buildAdminDocumentPath(window.adminCollections.users, userId),
+      'user profile delete',
+    );
+
+    closeModal('modal-user-detail');
+    showToast(
+      `User data deleted: ${tripDocs.length} trip${tripDocs.length === 1 ? '' : 's'}, ${ownedPosts.length} post${ownedPosts.length === 1 ? '' : 's'}, ${communityCleanup.commentDocs.length} comment${communityCleanup.commentDocs.length === 1 ? '' : 's'}, and ${communityCleanup.voteDocs.length} vote${communityCleanup.voteDocs.length === 1 ? '' : 's'} cleaned up.`,
+      'success',
+    );
+    await refreshAdminData();
+  } catch (error) {
+    console.error('Failed to delete user data:', error);
+    showToast(error?.message || 'Failed to delete user data.', 'error');
+  }
 }

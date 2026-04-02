@@ -33,12 +33,14 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   final ScreenshotController _screenshotController = ScreenshotController();
   bool _isExporting = false;
   late Trip _trip;
+  late TripTransportMode _selectedTransportMode;
   late Future<List<LatLng>> _routeFuture;
 
   @override
   void initState() {
     super.initState();
     _trip = widget.trip;
+    _selectedTransportMode = widget.trip.transportMode;
     _refreshRoute();
   }
 
@@ -96,6 +98,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeader(),
+                      const SizedBox(height: 20),
+                      _buildTransportModeSelector(),
                       const SizedBox(height: 24),
                       _buildStats(),
                       const SizedBox(height: 24),
@@ -272,6 +276,24 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   }
 
   Widget _buildStats() {
+    final estimatedTravelDuration = Helpers.formatDuration(
+      context,
+      _trip
+          .copyWith(transportMode: _selectedTransportMode)
+          .getEstimatedTravelDuration(),
+    );
+    final durationCalculation = context.l10n.translate(
+      'tripDetail.durationCalculation',
+      args: {
+        'mode': Helpers.transportModeLabel(context, _selectedTransportMode),
+        'distance': Helpers.formatDistance(context, _trip.getTotalDistance()),
+        'speed': Helpers.formatSpeed(
+          context,
+          _selectedTransportMode.averageSpeedKph,
+        ),
+      },
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = constraints.maxWidth >= 900
@@ -306,10 +328,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             SizedBox(
               width: cardWidth,
               child: _buildStatCard(
-                icon: Icons.access_time,
-                label: context.l10n.translate('tripDetail.duration'),
-                value:
-                    '${_trip.getEstimatedDuration()} ${context.l10n.translate('common.minutesShort')}',
+                icon: Helpers.transportModeIcon(_selectedTransportMode),
+                label: context.l10n.translate('tripDetail.travelTime'),
+                value: estimatedTravelDuration,
+                supportingText: durationCalculation,
               ),
             ),
           ],
@@ -318,10 +340,41 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
+  Widget _buildTransportModeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.translate('trip.transportMode'),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: TripTransportMode.values.map((mode) {
+            final isSelected = _selectedTransportMode == mode;
+            return ChoiceChip(
+              selected: isSelected,
+              avatar: Icon(Helpers.transportModeIcon(mode), size: 18),
+              label: Text(Helpers.transportModeLabel(context, mode)),
+              onSelected: isSelected
+                  ? null
+                  : (_) => setState(() {
+                      _selectedTransportMode = mode;
+                    }),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatCard({
     required IconData icon,
     required String label,
     required String value,
+    String? supportingText,
   }) {
     return Card(
       elevation: 1,
@@ -333,10 +386,25 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             const SizedBox(height: 8),
             Text(
               value,
+              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            if (supportingText != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                supportingText,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],

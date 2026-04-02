@@ -116,9 +116,9 @@ function renderCommunityTable() {
         <td class="cell-nowrap cell-muted">${formatDate(post.createdAt)}</td>
         <td>
           <div class="action-row">
-            <button class="btn-warning" type="button" onclick="viewPost('${escapeHtml(post.id)}')">View</button>
-            <button class="btn-secondary" type="button" onclick="togglePostStatus('${escapeHtml(post.id)}','${escapeHtml(post.status || 'active')}')">${toggleLabel}</button>
-            <button class="btn-danger" type="button" onclick="deletePost('${escapeHtml(post.id)}')">Delete</button>
+            <button class="btn-warning" type="button" onclick='viewPost(${serializeForInlineHandler(post.id)})'>View</button>
+            <button class="btn-secondary" type="button" onclick='togglePostStatus(${serializeForInlineHandler(post.id)}, ${serializeForInlineHandler(post.status || 'active')})'>${toggleLabel}</button>
+            <button class="btn-danger" type="button" onclick='deletePost(${serializeForInlineHandler(post.id)})'>Delete</button>
           </div>
         </td>
       </tr>
@@ -183,12 +183,72 @@ function viewPost(postId) {
   openModal('modal-post-detail');
 }
 
+async function loadCommunitySubcollectionDocuments(postId, collectionId) {
+  return listAdminDocuments(
+    `${window.adminCollections.communityPosts}/${postId}/${collectionId}`,
+  );
+}
+
+async function deleteCommunityPostCascade(postId, options = {}) {
+  const { skipRefresh = false, skipToast = false } = options;
+  const post = allPosts.find((item) => item.id === postId)
+    || window.adminState.posts.find((item) => item.id === postId);
+  const postPath = getAdminRecordPath(post, window.adminCollections.communityPosts);
+
+  if (!postPath) {
+    throw new Error('Community post path could not be resolved.');
+  }
+
+  const [commentDocs, voteDocs] = await Promise.all([
+    loadCommunitySubcollectionDocuments(postId, window.adminCollections.communityComments),
+    loadCommunitySubcollectionDocuments(postId, window.adminCollections.communityVotes),
+  ]);
+
+  await Promise.all([
+    ...commentDocs
+      .map((comment) => getAdminRecordPath(comment))
+      .filter(Boolean)
+      .map((documentPath) => deleteAdminDocumentPath(documentPath, 'community comment delete')),
+    ...voteDocs
+      .map((vote) => getAdminRecordPath(vote))
+      .filter(Boolean)
+      .map((documentPath) => deleteAdminDocumentPath(documentPath, 'community vote delete')),
+  ]);
+
+  await deleteAdminDocumentPath(postPath, 'community post delete');
+
+  if (!skipToast) {
+    const removedChildren = commentDocs.length + voteDocs.length;
+    showToast(
+      removedChildren
+        ? `Post deleted with ${commentDocs.length} comment${commentDocs.length === 1 ? '' : 's'} and ${voteDocs.length} vote${voteDocs.length === 1 ? '' : 's'}.`
+        : 'Post deleted.',
+      'success',
+    );
+  }
+
+  if (!skipRefresh) {
+    await refreshAdminData();
+  }
+}
+
 async function togglePostStatus(postId, currentStatus) {
   const newStatus = currentStatus === 'active' ? 'hidden' : 'active';
   try {
-    await db.collection(window.adminCollections.communityPosts).doc(postId).update({
-      status: newStatus,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    const documentPath = buildAdminDocumentPath(window.adminCollections.communityPosts, postId);
+    const now = createAdminRestTimestamp();
+    await runAdminWriteOperation({
+      action: 'community post status update',
+      sdkWrite: () =>
+        db.collection(window.adminCollections.communityPosts).doc(postId).update({
+          status: newStatus,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }),
+      restWrite: () =>
+        window.adminFirestoreRest.patchDocument(documentPath, {
+          status: newStatus,
+          updatedAt: now,
+        }),
     });
     showToast(`Post ${newStatus === 'active' ? 'restored' : 'hidden'} successfully.`, 'success');
     await refreshAdminData();
@@ -199,11 +259,9 @@ async function togglePostStatus(postId, currentStatus) {
 }
 
 async function deletePost(postId) {
-  if (!confirm('Delete this community post permanently? This cannot be undone.')) return;
+  if (!confirm('Delete this community post permanently? Related comments and votes will also be removed.')) return;
   try {
-    await db.collection(window.adminCollections.communityPosts).doc(postId).delete();
-    showToast('Post deleted.', 'success');
-    await refreshAdminData();
+    await deleteCommunityPostCascade(postId);
   } catch (error) {
     console.error('Failed to delete post:', error);
     showToast('Failed to delete post.', 'error');

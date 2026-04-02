@@ -19,7 +19,7 @@ class AppConstants {
 
   // Database
   static const String dbName = 'baganetic.db';
-  static const int dbVersion = 12;
+  static const int dbVersion = 13;
   static const String guestOwnerId = '__guest__';
 
   // Tables

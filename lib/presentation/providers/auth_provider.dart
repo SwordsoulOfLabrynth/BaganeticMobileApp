@@ -67,7 +67,11 @@ class AuthProvider with ChangeNotifier {
     return success;
   }
 
-  Future<bool> signUp(String email, String password) async {
+  Future<bool> signUp(
+    String email,
+    String password, {
+    String? displayName,
+  }) async {
     _isLoading = true;
     _errorKey = null;
     _errorDetails = null;
@@ -78,6 +82,7 @@ class AuthProvider with ChangeNotifier {
       final credential = await _firebaseService.signUpWithEmail(
         email,
         password,
+        displayName: displayName,
       );
       _user = credential.user;
       _isGuest = false;
@@ -128,6 +133,31 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> updateDisplayName(String displayName) async {
+    _isLoading = true;
+    _errorKey = null;
+    _errorDetails = null;
+    notifyListeners();
+
+    var success = false;
+    try {
+      await _firebaseService.updateDisplayName(displayName);
+      _user = _firebaseService.currentUser;
+      success = true;
+    } on AuthFailure catch (e) {
+      _setAuthFailure(e);
+      Logger.error('Update display name error: ${e.code}', e.cause);
+    } catch (e) {
+      _errorKey = 'auth.failed';
+      _errorDetails = e.toString();
+      Logger.error('Update display name error: $_errorKey', e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+    return success;
+  }
+
   void setGuestMode() {
     _isGuest = true;
     notifyListeners();
@@ -135,6 +165,15 @@ class AuthProvider with ChangeNotifier {
 
   void exitGuestMode() {
     _isGuest = false;
+    notifyListeners();
+  }
+
+  void clearError() {
+    if (_errorKey == null && _errorDetails == null) {
+      return;
+    }
+    _errorKey = null;
+    _errorDetails = null;
     notifyListeners();
   }
 

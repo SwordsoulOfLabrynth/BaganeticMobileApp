@@ -97,7 +97,7 @@ function renderTripsTable() {
         <td><span class="badge badge-blue">${trip.stopCount}</span></td>
         <td class="cell-nowrap cell-muted">${formatDate(trip.date)}</td>
         <td class="cell-nowrap cell-muted">${formatDate(trip.updatedAt || trip.createdAt)}</td>
-        <td><button class="btn-warning" type="button" onclick="viewTrip('${escapeHtml(trip.id)}')">Details</button></td>
+        <td><button class="btn-warning" type="button" onclick='viewTrip(${serializeForInlineHandler(trip.id)})'>Details</button></td>
       </tr>
     `;
   }).join('');

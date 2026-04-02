@@ -67,8 +67,9 @@ class FirebaseService {
 
   Future<firebase_auth.UserCredential> signUpWithEmail(
     String email,
-    String password,
-  ) async {
+    String password, {
+    String? displayName,
+  }) async {
     try {
       _ensureFirebaseAvailable();
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -77,9 +78,28 @@ class FirebaseService {
       );
 
       // Create user document
-      final user = userCredential.user;
-      if (user == null) {
+      final initialUser = userCredential.user;
+      if (initialUser == null) {
         throw AuthFailure('auth.unexpectedError');
+      }
+      firebase_auth.User user = initialUser;
+
+      final normalizedDisplayName = displayName?.trim();
+      if (normalizedDisplayName != null && normalizedDisplayName.isNotEmpty) {
+        try {
+          await user.updateDisplayName(normalizedDisplayName);
+          await user.reload();
+          final refreshedUser = _auth.currentUser;
+          if (refreshedUser != null) {
+            user = refreshedUser;
+          }
+        } catch (e, st) {
+          Logger.error(
+            'FirebaseService: Failed to set display name during sign up',
+            e,
+            st,
+          );
+        }
       }
 
       try {
@@ -119,6 +139,39 @@ class FirebaseService {
     } catch (e, st) {
       final failure = _handleAuthException(e);
       Logger.error('FirebaseService: Reset password failed', e, st);
+      throw failure;
+    }
+  }
+
+  Future<void> updateDisplayName(String displayName) async {
+    try {
+      _ensureFirebaseAvailable();
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw AuthFailure('auth.failed');
+      }
+
+      final normalized = displayName.trim();
+      await user.updateDisplayName(normalized);
+      await user.reload();
+
+      try {
+        await _firestore.collection('users').doc(user.uid).set({
+          'id': user.uid,
+          'email': user.email,
+          'displayName': normalized,
+          'photoUrl': user.photoURL,
+        }, SetOptions(merge: true));
+      } catch (e, st) {
+        Logger.error(
+          'FirebaseService: Failed to sync display name to Firestore',
+          e,
+          st,
+        );
+      }
+    } catch (e, st) {
+      final failure = _handleAuthException(e);
+      Logger.error('FirebaseService: Update display name failed', e, st);
       throw failure;
     }
   }
@@ -262,8 +315,11 @@ class FirebaseService {
   }
 
   Future<List<Trip>> getTrips(String uid) async {
-    final snapshot =
-        await _firestore.collection('users').doc(uid).collection('trips').get();
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('trips')
+        .get();
 
     final trips =
         snapshot.docs

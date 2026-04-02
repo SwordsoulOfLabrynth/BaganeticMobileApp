@@ -118,7 +118,7 @@ function renderRecentUsersPanel(items) {
           <div class="insight-title">${escapeHtml(user.displayName || user.name || user.email || 'Unknown user')}</div>
           <div class="insight-meta">${metrics.favoriteCount} saved · ${metrics.tripCount} trips · ${metrics.postCount} posts</div>
         </div>
-        <button class="btn-secondary" type="button" onclick="viewUser(${JSON.stringify(userId)})">View</button>
+        <button class="btn-secondary" type="button" onclick='viewUser(${serializeForInlineHandler(userId)})'>View</button>
       </div>
     `;
   }).join('');
@@ -144,7 +144,7 @@ function renderRecentTripsPanel(items) {
         <div class="insight-title">${escapeHtml(trip.name || 'Untitled Trip')}</div>
         <div class="insight-meta">${trip.stopCount} stops · ${formatDate(trip.date)}</div>
       </div>
-      <button class="btn-secondary" type="button" onclick="viewTrip(${JSON.stringify(trip.id)})">View</button>
+      <button class="btn-secondary" type="button" onclick='viewTrip(${serializeForInlineHandler(trip.id)})'>View</button>
     </div>
   `).join('');
 }
