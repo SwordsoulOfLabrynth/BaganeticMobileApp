@@ -28,6 +28,18 @@ class AppLocalizations {
       'assets/languages/${locale.languageCode}.json',
     );
     _localizedStrings = json.decode(jsonString) as Map<String, dynamic>;
+
+    final extraAssetPath =
+        'assets/languages/${locale.languageCode}_extra.json';
+    try {
+      final extraJsonString = await rootBundle.loadString(extraAssetPath);
+      _localizedStrings.addAll(
+        json.decode(extraJsonString) as Map<String, dynamic>,
+      );
+    } on FlutterError {
+      // Extra locale overlays are optional.
+    }
+
     return true;
   }
 

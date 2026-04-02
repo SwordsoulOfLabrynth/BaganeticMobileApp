@@ -123,8 +123,22 @@ class PagodaDataService {
       return true;
     }
 
+    if (current.imageUrl != sample.imageUrl) {
+      return true;
+    }
+
     if (current.images.length < sample.images.length) {
       return true;
+    }
+
+    if (current.images.length != sample.images.length) {
+      return true;
+    }
+
+    for (var index = 0; index < current.images.length; index++) {
+      if (current.images[index] != sample.images[index]) {
+        return true;
+      }
     }
 
     return false;

@@ -1,0 +1,512 @@
+[
+  {
+    "id": "shwesandaw",
+    "name": "Shwesandaw Pagoda",
+    "assetPath": "assets/images/pagodas/researched/shwesandaw.jpg",
+    "sourceKind": "bagan_pagoda_page",
+    "sourceRef": "https://www.bagan-pagoda.com/17Shwesandaw.html",
+    "sourcePage": "https://www.bagan-pagoda.com/17Shwesandaw.html",
+    "resolvedUrl": "https://www.bagan-pagoda.com/17Shwesandaw.html",
+    "confidence": "exact"
+  },
+  {
+    "id": "mingalazedi",
+    "name": "Mingalazedi Pagoda",
+    "assetPath": "assets/images/pagodas/researched/mingalazedi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Mingalazedi.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Mingalazedi.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Mingalazedi.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "nagayon",
+    "name": "Nagayon Temple",
+    "assetPath": "assets/images/pagodas/researched/nagayon.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Nagayon.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Nagayon.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Nagayon.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "nanpaya",
+    "name": "Nanpaya Temple",
+    "assetPath": "assets/images/pagodas/researched/nanpaya.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Nanpaya.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Nanpaya.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Nanpaya.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "mahabodhi",
+    "name": "Mahabodhi Temple",
+    "assetPath": "assets/images/pagodas/researched/mahabodhi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Mahabodhi.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Mahabodhi.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Mahabodhi.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "myazedi",
+    "name": "Myazedi Pagoda",
+    "assetPath": "assets/images/pagodas/researched/myazedi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://www.myanmars.net/images/bagan/myazedi.jpg",
+    "sourcePage": "https://www.myanmars.net/images/bagan/myazedi.jpg",
+    "resolvedUrl": "https://www.myanmars.net/images/bagan/myazedi.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "payathonzu",
+    "name": "Payathonzu Temple",
+    "assetPath": "assets/images/pagodas/researched/payathonzu.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Payathonsu.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Payathonsu.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Payathonsu.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "tayokpye",
+    "name": "Tayok Pye Temple",
+    "assetPath": "assets/images/pagodas/researched/tayokpye.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/07/Tayokepyay.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/07/Tayokepyay.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/07/Tayokepyay.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "bulethi",
+    "name": "Bulethi Pagoda",
+    "assetPath": "assets/images/pagodas/researched/bulethi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://www.findawayphotography.com/wp-content/uploads/2018/01/bulethi-pagoda-in-bagan.jpg",
+    "sourcePage": "https://www.findawayphotography.com/wp-content/uploads/2018/01/bulethi-pagoda-in-bagan.jpg",
+    "resolvedUrl": "https://www.findawayphotography.com/wp-content/uploads/2018/01/bulethi-pagoda-in-bagan.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "northguni",
+    "name": "North Guni Temple (Myauk Guni) Sunset Pagoda",
+    "assetPath": "assets/images/pagodas/researched/northguni.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/myanmar-bagan-north-guni-temple-suzy-bennett.jpg",
+    "sourcePage": "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/myanmar-bagan-north-guni-temple-suzy-bennett.jpg",
+    "resolvedUrl": "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/myanmar-bagan-north-guni-temple-suzy-bennett.jpg",
+    "confidence": "likely"
+  },
+  {
+    "id": "southguni",
+    "name": "South Guni Temple (Taung Guni)",
+    "assetPath": "assets/images/pagodas/researched/southguni.jpg",
+    "sourceKind": "oriental_architecture_page",
+    "sourceRef": "https://www.orientalarchitecture.com/sid/1281/myanmar/bagan/south-guni-temple",
+    "sourcePage": "https://www.orientalarchitecture.com/sid/1281/myanmar/bagan/south-guni-temple",
+    "resolvedUrl": "https://www.orientalarchitecture.com/sid/1281/myanmar/bagan/south-guni-temple",
+    "confidence": "exact"
+  },
+  {
+    "id": "thitsarwadi",
+    "name": "Thitsarwadi Temple The Balloon Temple",
+    "assetPath": "assets/images/pagodas/researched/thitsarwadi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://havecamerawilltravel.photography/wp-content/uploads/2016/10/bagan-exterior-of-thisa-wadi-temple-bagan-myanmar-burma-14-copyright-havecamerawilltravel-com.jpg",
+    "sourcePage": "https://havecamerawilltravel.photography/wp-content/uploads/2016/10/bagan-exterior-of-thisa-wadi-temple-bagan-myanmar-burma-14-copyright-havecamerawilltravel-com.jpg",
+    "resolvedUrl": "https://havecamerawilltravel.photography/wp-content/uploads/2016/10/bagan-exterior-of-thisa-wadi-temple-bagan-myanmar-burma-14-copyright-havecamerawilltravel-com.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "wetkyiingubyaukgyi",
+    "name": "Gu Byauk Gyi Temple (Wetkyi-In)",
+    "assetPath": "assets/images/pagodas/researched/wetkyiingubyaukgyi.jpg",
+    "sourceKind": "oriental_architecture_page",
+    "sourceRef": "https://www.orientalarchitecture.com/sid/1223/myanmar/bagan/wetkyi-in-kubyauk-gyi",
+    "sourcePage": "https://www.orientalarchitecture.com/sid/1223/myanmar/bagan/wetkyi-in-kubyauk-gyi",
+    "resolvedUrl": "https://www.orientalarchitecture.com/sid/1223/myanmar/bagan/wetkyi-in-kubyauk-gyi",
+    "confidence": "exact"
+  },
+  {
+    "id": "abeyadana",
+    "name": "Abeyadana Temple",
+    "assetPath": "assets/images/pagodas/researched/abeyadana.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2020/07/abeyadana_01.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2020/07/abeyadana_01.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2020/07/abeyadana_01.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "lemyethna",
+    "name": "Lemyethna Temple",
+    "assetPath": "assets/images/pagodas/researched/lemyethna.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Laymyethna.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Laymyethna.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Laymyethna.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "nandamannya",
+    "name": "Nandamannya Temple",
+    "assetPath": "assets/images/pagodas/researched/nandamannya.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Nandamannya.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Nandamannya.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Nandamannya.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "somingyi",
+    "name": "Somingyi Pagoda",
+    "assetPath": "assets/images/pagodas/researched/somingyi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Somingyi_pagoda.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Somingyi_pagoda.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Somingyi_pagoda.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "kyaukguumin",
+    "name": "Kyauk Gu U Min (The Cave Temple)",
+    "assetPath": "assets/images/pagodas/researched/kyaukguumin.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Kyaukgu-umin.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Kyaukgu-umin.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Kyaukgu-umin.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "pahtothamya",
+    "name": "Pahto Thamya Temple",
+    "assetPath": "assets/images/pagodas/researched/pahtothamya.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Pahtothamya.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Pahtothamya.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Pahtothamya.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "tantkyitaung",
+    "name": "Tant Kyi Taung Pagoda",
+    "assetPath": "assets/images/pagodas/researched/tantkyitaung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Tantkyitaung.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Tantkyitaung.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Tantkyitaung.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "thabeikhmauk",
+    "name": "Thabeik Hmauk Temple",
+    "assetPath": "assets/images/pagodas/researched/thabeikhmauk.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://media.gody.vn/images/bagan/den-thabeik-hmauk-thabeik-hmauk/7c90f8de1045d5d15e0633444e88f1e73d0a07c7.jpg",
+    "sourcePage": "https://media.gody.vn/images/bagan/den-thabeik-hmauk-thabeik-hmauk/7c90f8de1045d5d15e0633444e88f1e73d0a07c7.jpg",
+    "resolvedUrl": "https://media.gody.vn/images/bagan/den-thabeik-hmauk-thabeik-hmauk/7c90f8de1045d5d15e0633444e88f1e73d0a07c7.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "gubyauknge",
+    "name": "Gubyauk Nge Temple",
+    "assetPath": "assets/images/pagodas/researched/gubyauknge.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://www.gomyanmartours.com/wp-content/uploads/2015/09/Myinkaba-Gubyauk-Nge-Temple-Bagan.jpg",
+    "sourcePage": "https://www.gomyanmartours.com/wp-content/uploads/2015/09/Myinkaba-Gubyauk-Nge-Temple-Bagan.jpg",
+    "resolvedUrl": "https://www.gomyanmartours.com/wp-content/uploads/2015/09/Myinkaba-Gubyauk-Nge-Temple-Bagan.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "kyaunggyi",
+    "name": "Kyaung Gyi Temple (Kyaung Gyi Nyiat or Kyaung Gyi Paya)",
+    "assetPath": "assets/images/pagodas/researched/kyaunggyi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://media-cdn.tripadvisor.com/media/photo-s/13/2b/6d/4c/under-renovation-2017.jpg",
+    "sourcePage": "https://media-cdn.tripadvisor.com/media/photo-s/13/2b/6d/4c/under-renovation-2017.jpg",
+    "resolvedUrl": "https://media-cdn.tripadvisor.com/media/photo-s/13/2b/6d/4c/under-renovation-2017.jpg",
+    "confidence": "likely"
+  },
+  {
+    "id": "shweleiktoo",
+    "name": "Shwe Leik Too Temple",
+    "assetPath": "assets/images/pagodas/researched/shweleiktoo.jpg",
+    "sourceKind": "bagan_pagoda_page",
+    "sourceRef": "https://www.bagan-pagoda.com/12ShweLeikToo.html",
+    "sourcePage": "https://www.bagan-pagoda.com/12ShweLeikToo.html",
+    "resolvedUrl": "https://www.bagan-pagoda.com/12ShweLeikToo.html",
+    "confidence": "exact"
+  },
+  {
+    "id": "kyamingatemple",
+    "name": "Kya Min Ga Temple",
+    "assetPath": "assets/images/pagodas/researched/kyamingatemple.jpg",
+    "sourceKind": "bagan_pagoda_page",
+    "sourceRef": "https://www.bagan-pagoda.com/14Khaymingha.html",
+    "sourcePage": "https://www.bagan-pagoda.com/14Khaymingha.html",
+    "resolvedUrl": "https://www.bagan-pagoda.com/14Khaymingha.html",
+    "confidence": "exact"
+  },
+  {
+    "id": "ashepetleik",
+    "name": "Ashe Petleik Pagoda",
+    "assetPath": "assets/images/pagodas/researched/ashepetleik.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://www.myanmars.net/images/petleik_east_pagoda.jpg",
+    "sourcePage": "https://www.myanmars.net/images/petleik_east_pagoda.jpg",
+    "resolvedUrl": "https://www.myanmars.net/images/petleik_east_pagoda.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "anaukpetleik",
+    "name": "Anauk Petleik Pagoda",
+    "assetPath": "assets/images/pagodas/researched/anaukpetleik.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://www.myanmars.net/images/petleik_west_pagoda.jpg",
+    "sourcePage": "https://www.myanmars.net/images/petleik_west_pagoda.jpg",
+    "resolvedUrl": "https://www.myanmars.net/images/petleik_west_pagoda.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "nathlaungkyaung",
+    "name": "Nathlaung Kyaung Temple",
+    "assetPath": "assets/images/pagodas/researched/nathlaungkyaung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Nathlaung-kyaung.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Nathlaung-kyaung.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Nathlaung-kyaung.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "lokahteikpan",
+    "name": "Lokahteikpan Temple",
+    "assetPath": "assets/images/pagodas/researched/lokahteikpan.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Lawkahteikpan_02.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Lawkahteikpan_02.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Lawkahteikpan_02.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "tuywintaung",
+    "name": "Tuywin Taung Pagoda",
+    "assetPath": "assets/images/pagodas/researched/tuywintaung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/05/Tuyintaung.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/05/Tuyintaung.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/05/Tuyintaung.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "mineyeingon",
+    "name": "Mi-nyein-gon Pagoda",
+    "assetPath": "assets/images/pagodas/researched/mineyeingon.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://i2.pickpik.com/photos/765/840/62/bagan-myanmar-archaeological-area-panorama-preview.jpg",
+    "sourcePage": "https://i2.pickpik.com/photos/765/840/62/bagan-myanmar-archaeological-area-panorama-preview.jpg",
+    "resolvedUrl": "https://i2.pickpik.com/photos/765/840/62/bagan-myanmar-archaeological-area-panorama-preview.jpg",
+    "confidence": "likely"
+  },
+  {
+    "id": "thakyamuni",
+    "name": "Thakyamuni Temple",
+    "assetPath": "assets/images/pagodas/researched/thakyamuni.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Thetkyamuni.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Thetkyamuni.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Thetkyamuni.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "shinbinthalyaung",
+    "name": "Shinthalyung Temple",
+    "assetPath": "assets/images/pagodas/researched/shinbinthalyaung.jpg",
+    "sourceKind": "bagan_pagoda_page",
+    "sourceRef": "https://www.bagan-pagoda.com/18Shinbinthalyaung.html",
+    "sourcePage": "https://www.bagan-pagoda.com/18Shinbinthalyaung.html",
+    "resolvedUrl": "https://www.bagan-pagoda.com/18Shinbinthalyaung.html",
+    "confidence": "exact"
+  },
+  {
+    "id": "letputkan",
+    "name": "Let Put Kan Temple",
+    "assetPath": "assets/images/pagodas/researched/letputkan.jpg",
+    "sourceKind": "bagan_pagoda_page",
+    "sourceRef": "https://www.bagan-pagoda.com/27LetPutKan.html",
+    "sourcePage": "https://www.bagan-pagoda.com/27LetPutKan.html",
+    "resolvedUrl": "https://www.bagan-pagoda.com/27LetPutKan.html",
+    "confidence": "exact"
+  },
+  {
+    "id": "tawethpaya",
+    "name": "Ta Wet Hpaya Temple",
+    "assetPath": "assets/images/pagodas/researched/tawethpaya.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://images.ansharimages.com/photo/myanmar/bagan/dhammayan-gyi-temple-and-ta-wet-hpaya-bagan-myanmar.jpg",
+    "sourcePage": "https://images.ansharimages.com/photo/myanmar/bagan/dhammayan-gyi-temple-and-ta-wet-hpaya-bagan-myanmar.jpg",
+    "resolvedUrl": "https://images.ansharimages.com/photo/myanmar/bagan/dhammayan-gyi-temple-and-ta-wet-hpaya-bagan-myanmar.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "lawkaousaung",
+    "name": "Law Ka Ou Saung",
+    "assetPath": "assets/images/pagodas/researched/lawkaousaung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://viaggiatore.net/wp-content/uploads/2019/01/Law-Ka-Ou-Shaung-temple-with-a-traditionally-dressed-lady-with-umbrella-in-front-Bagan-Myanmar-.jpg",
+    "sourcePage": "https://viaggiatore.net/wp-content/uploads/2019/01/Law-Ka-Ou-Shaung-temple-with-a-traditionally-dressed-lady-with-umbrella-in-front-Bagan-Myanmar-.jpg",
+    "resolvedUrl": "https://viaggiatore.net/wp-content/uploads/2019/01/Law-Ka-Ou-Shaung-temple-with-a-traditionally-dressed-lady-with-umbrella-in-front-Bagan-Myanmar-.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "kyansittharumin",
+    "name": "Kyan Sit Thar Umin",
+    "assetPath": "assets/images/pagodas/researched/kyansittharumin.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Kyansittha_Umin.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Kyansittha_Umin.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Kyansittha_Umin.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "ngakywenataung",
+    "name": "Ngakywe Nataung",
+    "assetPath": "assets/images/pagodas/researched/ngakywenataung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Ngakywenadaung.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Ngakywenadaung.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Ngakywenadaung.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "minochantha",
+    "name": "Minochantha",
+    "assetPath": "assets/images/pagodas/researched/minochantha.jpg",
+    "sourceKind": "oriental_architecture_page",
+    "sourceRef": "https://www.orientalarchitecture.com/sid/525/myanmar/bagan/minochantha-stupa-group",
+    "sourcePage": "https://www.orientalarchitecture.com/sid/525/myanmar/bagan/minochantha-stupa-group",
+    "resolvedUrl": "https://www.orientalarchitecture.com/sid/525/myanmar/bagan/minochantha-stupa-group",
+    "confidence": "exact"
+  },
+  {
+    "id": "hsutaungpyi",
+    "name": "Hsu Taung Pyi Pagoda",
+    "assetPath": "assets/images/pagodas/researched/hsutaungpyi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://media.istockphoto.com/id/694106660/photo/hsu-taung-pyi-pagoda-bagan-myanmar.jpg?s=170667a&w=0&k=20&c=liYTPRTC-Cx9hb9SpwldlhXgzv1vrCWr-7eatPDeP0g=",
+    "sourcePage": "https://media.istockphoto.com/id/694106660/photo/hsu-taung-pyi-pagoda-bagan-myanmar.jpg?s=170667a&w=0&k=20&c=liYTPRTC-Cx9hb9SpwldlhXgzv1vrCWr-7eatPDeP0g=",
+    "resolvedUrl": "https://media.istockphoto.com/id/694106660/photo/hsu-taung-pyi-pagoda-bagan-myanmar.jpg?s=170667a&w=0&k=20&c=liYTPRTC-Cx9hb9SpwldlhXgzv1vrCWr-7eatPDeP0g=",
+    "confidence": "exact"
+  },
+  {
+    "id": "sapada",
+    "name": "Sapada Pagoda",
+    "assetPath": "assets/images/pagodas/researched/sapada.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Sapada.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Sapada.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Sapada.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "pebingyaung",
+    "name": "Pebingyaung Pagoda",
+    "assetPath": "assets/images/pagodas/researched/pebingyaung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Pebingyaung.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Pebingyaung.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Pebingyaung.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "winido",
+    "name": "Winido Temple",
+    "assetPath": "assets/images/pagodas/researched/winido.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Winido.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Winido.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Winido.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "sinphyushin",
+    "name": "Sin-phyu-shin Temple",
+    "assetPath": "assets/images/pagodas/researched/sinphyushin.jpg",
+    "sourceKind": "bagan_pagoda_page",
+    "sourceRef": "https://www.bagan-pagoda.com/30HsinPhyushin.html",
+    "sourcePage": "https://www.bagan-pagoda.com/30HsinPhyushin.html",
+    "resolvedUrl": "https://www.bagan-pagoda.com/30HsinPhyushin.html",
+    "confidence": "exact"
+  },
+  {
+    "id": "kondawgyi",
+    "name": "Kondawgyi Temple",
+    "assetPath": "assets/images/pagodas/researched/kondawgyi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Kondawgyi.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Kondawgyi.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Kondawgyi.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "kusinara",
+    "name": "Kusinara Temple",
+    "assetPath": "assets/images/pagodas/researched/kusinara.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://budsas.net/hh2004/04-kusinara/11-kusinara-a.jpg",
+    "sourcePage": "https://budsas.net/hh2004/04-kusinara/11-kusinara-a.jpg",
+    "resolvedUrl": "https://budsas.net/hh2004/04-kusinara/11-kusinara-a.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "sittanagyi",
+    "name": "Sittanagyi Pagoda",
+    "assetPath": "assets/images/pagodas/researched/sittanagyi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Sittanagyi.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Sittanagyi.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Sittanagyi.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "khamaunggyi",
+    "name": "Kha-maung-gyi",
+    "assetPath": "assets/images/pagodas/researched/khamaunggyi.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://www.losviajeros.net/fotos/asia/Myanmar/Bagan5.jpg",
+    "sourcePage": "https://www.losviajeros.net/fotos/asia/Myanmar/Bagan5.jpg",
+    "resolvedUrl": "https://www.losviajeros.net/fotos/asia/Myanmar/Bagan5.jpg",
+    "confidence": "approximate"
+  },
+  {
+    "id": "thandawkya",
+    "name": "Than-daw-kya",
+    "assetPath": "assets/images/pagodas/researched/thandawkya.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Thandawgya.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Thandawgya.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Thandawgya.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "thamanhpaya",
+    "name": "Tha-man-hpaya Temple",
+    "assetPath": "assets/images/pagodas/researched/thamanhpaya.jpg",
+    "sourceKind": "oriental_architecture_page",
+    "sourceRef": "https://www.orientalarchitecture.com/sid/1228/myanmar/bagan/tha-man-hpaya-temple",
+    "sourcePage": "https://www.orientalarchitecture.com/sid/1228/myanmar/bagan/tha-man-hpaya-temple",
+    "resolvedUrl": "https://www.orientalarchitecture.com/gallery/myanmar/bagan/tha-man-hpaya/photos/tha-man-hpaya09.jpg",
+    "confidence": "exact"
+  },
+  {
+    "id": "hgnetpyittaung",
+    "name": "Hgnet Pyit Taung Temple",
+    "assetPath": "assets/images/pagodas/researched/hgnetpyittaung.jpg",
+    "sourceKind": "direct",
+    "sourceRef": "https://baganpaper.com/wp-content/uploads/2019/06/Hgnetpyit-taung.jpg",
+    "sourcePage": "https://baganpaper.com/wp-content/uploads/2019/06/Hgnetpyit-taung.jpg",
+    "resolvedUrl": "https://baganpaper.com/wp-content/uploads/2019/06/Hgnetpyit-taung.jpg",
+    "confidence": "exact"
+  }
+]
