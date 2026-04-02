@@ -29,8 +29,7 @@ class AppLocalizations {
     );
     _localizedStrings = json.decode(jsonString) as Map<String, dynamic>;
 
-    final extraAssetPath =
-        'assets/languages/${locale.languageCode}_extra.json';
+    final extraAssetPath = 'assets/languages/${locale.languageCode}_extra.json';
     try {
       final extraJsonString = await rootBundle.loadString(extraAssetPath);
       _localizedStrings.addAll(
@@ -162,8 +161,6 @@ class AppLocalizations {
         return translate('category.temple');
       case 'Pagoda':
         return translate('category.pagoda');
-      case 'Stupa':
-        return translate('category.stupa');
       default:
         return category;
     }

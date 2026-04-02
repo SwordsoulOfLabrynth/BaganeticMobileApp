@@ -15,10 +15,15 @@ class PagodaDataService {
   final DatabaseService _db;
 
   Future<List<Pagoda>> loadPagodas({String? ownerUserId}) async {
+    final bundledPagodas = await _loadSamplePagodas();
     final remotePagodas = await _loadRemotePagodas();
     if (remotePagodas.isNotEmpty) {
+      final preferredCatalog = _mergeCatalogs(
+        remotePagodas: remotePagodas,
+        bundledPagodas: bundledPagodas,
+      );
       try {
-        await _db.syncPagodaCatalog(remotePagodas);
+        await _db.syncPagodaCatalog(preferredCatalog);
         final syncedPagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
         Logger.info(
           'Loaded ${syncedPagodas.length} pagodas from Firestore-backed catalog',
@@ -32,7 +37,7 @@ class PagodaDataService {
           e,
           stackTrace,
         );
-        return remotePagodas;
+        return preferredCatalog;
       }
     }
 
@@ -40,12 +45,17 @@ class PagodaDataService {
       var pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
 
       if (pagodas.isEmpty) {
-        Logger.info('Database is empty, initializing with sample data...');
-        await initializeSampleData();
+        Logger.info(
+          'Database is empty, initializing with bundled pagoda data...',
+        );
+        await initializeSampleData(samplePagodas: bundledPagodas);
         pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
         Logger.info('Initialized ${pagodas.length} pagodas with sample data');
       } else if (pagodas.isNotEmpty) {
-        final didRefresh = await _refreshFromSampleIfNeeded(pagodas);
+        final didRefresh = await _refreshFromSampleIfNeeded(
+          pagodas,
+          bundledPagodas: bundledPagodas,
+        );
         if (didRefresh) {
           pagodas = await _db.getAllPagodas(ownerUserId: ownerUserId);
           Logger.info('Refreshed pagoda data from sample JSON');
@@ -61,7 +71,7 @@ class PagodaDataService {
     }
 
     // Keep the app usable even when local DB init/query fails.
-    final fallback = await _loadSamplePagodas();
+    final fallback = bundledPagodas;
     Logger.info(
       'Using bundled sample pagodas fallback (${fallback.length} items)',
     );
@@ -100,11 +110,9 @@ class PagodaDataService {
     }
   }
 
-  Future<void> initializeSampleData() async {
-    final samplePagodas = await _loadSamplePagodas();
-    for (final pagoda in samplePagodas) {
-      await _db.insertPagoda(pagoda);
-    }
+  Future<void> initializeSampleData({List<Pagoda>? samplePagodas}) async {
+    final pagodasToSync = samplePagodas ?? await _loadSamplePagodas();
+    await _db.syncPagodaCatalog(pagodasToSync);
   }
 
   Future<List<Pagoda>> _loadSamplePagodas() async {
@@ -117,8 +125,11 @@ class PagodaDataService {
         .toList();
   }
 
-  Future<bool> _refreshFromSampleIfNeeded(List<Pagoda> existing) async {
-    final samplePagodas = await _loadSamplePagodas();
+  Future<bool> _refreshFromSampleIfNeeded(
+    List<Pagoda> existing, {
+    List<Pagoda>? bundledPagodas,
+  }) async {
+    final samplePagodas = bundledPagodas ?? await _loadSamplePagodas();
     final Map<String, Pagoda> existingById = {
       for (final pagoda in existing) pagoda.id: pagoda,
     };
@@ -147,6 +158,98 @@ class PagodaDataService {
     }
 
     return updated;
+  }
+
+  List<Pagoda> _mergeCatalogs({
+    required List<Pagoda> remotePagodas,
+    required List<Pagoda> bundledPagodas,
+  }) {
+    if (bundledPagodas.isEmpty) {
+      return remotePagodas;
+    }
+
+    final mergedById = <String, Pagoda>{
+      for (final pagoda in bundledPagodas) pagoda.id: pagoda,
+    };
+
+    for (final remotePagoda in remotePagodas) {
+      final bundledPagoda = mergedById[remotePagoda.id];
+      mergedById[remotePagoda.id] = bundledPagoda == null
+          ? remotePagoda
+          : _mergePagoda(remotePagoda, bundledPagoda);
+    }
+
+    if (remotePagodas.length < bundledPagodas.length) {
+      Logger.info(
+        'Firestore pagoda catalog is incomplete '
+        '(${remotePagodas.length}/${bundledPagodas.length}); '
+        'filling missing entries from bundled data',
+      );
+    }
+
+    return mergedById.values.toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  Pagoda _mergePagoda(Pagoda remote, Pagoda bundled) {
+    String pickRequired(String primary, String fallback) {
+      return primary.trim().isNotEmpty ? primary : fallback;
+    }
+
+    String? pickOptional(String? primary, String? fallback) {
+      if (primary != null && primary.trim().isNotEmpty) {
+        return primary;
+      }
+      return fallback;
+    }
+
+    return bundled.copyWith(
+      name: pickRequired(remote.name, bundled.name),
+      description: pickRequired(remote.description, bundled.description),
+      category: pickRequired(remote.category, bundled.category),
+      latitude: remote.latitude,
+      longitude: remote.longitude,
+      imageUrl: pickRequired(remote.imageUrl, bundled.imageUrl),
+      images: remote.images.isNotEmpty ? remote.images : bundled.images,
+      historicalInfo: pickOptional(
+        remote.historicalInfo,
+        bundled.historicalInfo,
+      ),
+      architecturalStyle: pickOptional(
+        remote.architecturalStyle,
+        bundled.architecturalStyle,
+      ),
+      yearBuilt: remote.yearBuilt ?? bundled.yearBuilt,
+      legends: pickOptional(remote.legends, bundled.legends),
+      religiousImportance: pickOptional(
+        remote.religiousImportance,
+        bundled.religiousImportance,
+      ),
+      preservationInfo: pickOptional(
+        remote.preservationInfo,
+        bundled.preservationInfo,
+      ),
+      bestTimeToVisit: pickOptional(
+        remote.bestTimeToVisit,
+        bundled.bestTimeToVisit,
+      ),
+      visitorLocation: pickOptional(
+        remote.visitorLocation,
+        bundled.visitorLocation,
+      ),
+      openingHours: pickOptional(remote.openingHours, bundled.openingHours),
+      dressCode: pickOptional(remote.dressCode, bundled.dressCode),
+      entranceFee: pickOptional(remote.entranceFee, bundled.entranceFee),
+      photographyRules: pickOptional(
+        remote.photographyRules,
+        bundled.photographyRules,
+      ),
+      height: pickOptional(remote.height, bundled.height),
+      finalWords: pickOptional(remote.finalWords, bundled.finalWords),
+      uniqueFeatures: remote.uniqueFeatures.isNotEmpty
+          ? remote.uniqueFeatures
+          : bundled.uniqueFeatures,
+    );
   }
 
   bool _needsRefresh(Pagoda current, Pagoda sample) {

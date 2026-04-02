@@ -47,12 +47,7 @@ class AppConstants {
 
   // Pagoda Categories
   static const String allCategory = 'All';
-  static const List<String> categories = [
-    allCategory,
-    'Temple',
-    'Pagoda',
-    'Stupa',
-  ];
+  static const List<String> categories = [allCategory, 'Temple', 'Pagoda'];
 
   // Assets
   static const String placeholderImage = 'assets/images/placeholder.png';
