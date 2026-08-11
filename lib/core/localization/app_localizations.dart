@@ -138,19 +138,17 @@ class AppLocalizations {
       return translated;
     }
 
-    if (_isLikelyEnglishOnly(translated)) {
+    if (_containsUnreviewedLatinContent(translated)) {
       return translateOr('common.translationPending', fallback);
     }
 
     return translated;
   }
 
-  bool _isLikelyEnglishOnly(String text) {
-    final hasMyanmar = RegExp(r'[\u1000-\u109F]').hasMatch(text);
-    if (hasMyanmar) {
-      return false;
-    }
-    return RegExp(r'[A-Za-z]{3,}').hasMatch(text);
+  bool _containsUnreviewedLatinContent(String text) {
+    // Pagoda names are localized separately. For descriptive fields, a Latin
+    // word means the Myanmar copy is mixed or not yet editorially reviewed.
+    return RegExp(r'[A-Za-z]{2,}').hasMatch(text);
   }
 
   String categoryLabel(String category) {

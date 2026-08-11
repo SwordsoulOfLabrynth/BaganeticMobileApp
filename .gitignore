@@ -33,11 +33,13 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter_sdk/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /android/build/
+/android/.kotlin/
 /coverage/
 
 # Symbolication related
@@ -50,3 +52,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local QA captures and generated presentation artifacts
+/tmp/
+/pitch_build/node_modules/
+/pitch_build/rendered/
+/deliverables/*.inspect.ndjson

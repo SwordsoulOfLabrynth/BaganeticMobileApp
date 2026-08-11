@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/firebase_service.dart';
 import '../../core/services/logger.dart';
 
@@ -13,6 +17,7 @@ class AuthProvider with ChangeNotifier {
   String? _errorDetails;
   bool _isGuest = false;
   StreamSubscription<firebase_auth.User?>? _authSub;
+  String? _localProfilePhotoPath;
 
   firebase_auth.User? get user => _user;
   bool get isLoading => _isLoading;
@@ -20,6 +25,7 @@ class AuthProvider with ChangeNotifier {
   String? get errorDetails => _errorDetails;
   bool get isGuest => _isGuest;
   bool get isAuthenticated => _user != null || _isGuest;
+  String? get localProfilePhotoPath => _localProfilePhotoPath;
 
   AuthProvider() {
     try {
@@ -27,6 +33,10 @@ class AuthProvider with ChangeNotifier {
         _user = user;
         if (user != null) {
           _isGuest = false;
+          _localProfilePhotoPath = null;
+          unawaited(_loadLocalProfilePhoto(user.uid));
+        } else {
+          _localProfilePhotoPath = null;
         }
         notifyListeners();
       });
@@ -53,6 +63,7 @@ class AuthProvider with ChangeNotifier {
       );
       _user = credential.user;
       _isGuest = false;
+      await _loadLocalProfilePhoto(_user!.uid);
       _errorKey = null;
       _errorDetails = null;
       success = true;
@@ -89,6 +100,7 @@ class AuthProvider with ChangeNotifier {
       );
       _user = credential.user;
       _isGuest = false;
+      await _loadLocalProfilePhoto(_user!.uid);
       success = true;
     } on AuthFailure catch (e) {
       _setAuthFailure(e);
@@ -112,6 +124,7 @@ class AuthProvider with ChangeNotifier {
     }
     _user = null;
     _isGuest = false;
+    _localProfilePhotoPath = null;
     notifyListeners();
   }
 
@@ -159,6 +172,80 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
     return success;
+  }
+
+  Future<bool> updateProfilePhoto(
+    Uint8List bytes, {
+    String? contentType,
+  }) async {
+    _isLoading = true;
+    _errorKey = null;
+    _errorDetails = null;
+    notifyListeners();
+
+    var success = false;
+    try {
+      await _saveLocalProfilePhoto(bytes);
+      success = true;
+
+      // A profile picture should still work on a trip with no connection.
+      // Firebase Storage is only used to keep that local picture in sync on
+      // other devices; a failed sync must not discard the selected photo.
+      try {
+        await _firebaseService.updateProfilePhoto(
+          bytes,
+          contentType: contentType,
+        );
+        _user = _firebaseService.currentUser;
+      } catch (e, st) {
+        Logger.error(
+          'Update profile photo cloud sync failed; local photo was saved',
+          e,
+          st,
+        );
+      }
+    } catch (e) {
+      _errorKey = 'profile.photoUploadFailed';
+      _errorDetails = e.toString();
+      Logger.error('Update profile photo error: $_errorKey', e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+    return success;
+  }
+
+  Future<void> _loadLocalProfilePhoto(String userId) async {
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final path = preferences.getString('profile_photo_path_$userId');
+      if (path == null || !await File(path).exists()) {
+        return;
+      }
+      if (_user?.uid == userId && _localProfilePhotoPath != path) {
+        _localProfilePhotoPath = path;
+        notifyListeners();
+      }
+    } catch (e, st) {
+      Logger.error('Could not load local profile photo', e, st);
+    }
+  }
+
+  Future<void> _saveLocalProfilePhoto(Uint8List bytes) async {
+    final user = _user ?? _firebaseService.currentUser;
+    if (user == null) {
+      throw AuthFailure('auth.failed');
+    }
+    final directory = await getApplicationDocumentsDirectory();
+    final photo = File(
+      '${directory.path}${Platform.pathSeparator}profile_${user.uid}.jpg',
+    );
+    await photo.writeAsBytes(bytes, flush: true);
+    await (await SharedPreferences.getInstance()).setString(
+      'profile_photo_path_${user.uid}',
+      photo.path,
+    );
+    _localProfilePhotoPath = photo.path;
   }
 
   void setGuestMode() {

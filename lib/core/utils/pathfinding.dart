@@ -11,17 +11,20 @@ class PathSearchResult {
   final List<Pagoda> path;
   final double distanceKm;
   final List<String> roadNodePath;
+  final bool isRoadGraphRoute;
 
   const PathSearchResult({
     required this.path,
     required this.distanceKm,
     this.roadNodePath = const [],
+    this.isRoadGraphRoute = false,
   });
 
   const PathSearchResult.empty()
     : path = const [],
       distanceKm = 0,
-      roadNodePath = const [];
+      roadNodePath = const [],
+      isRoadGraphRoute = false;
 
   bool get isEmpty => path.isEmpty;
 }
@@ -60,6 +63,14 @@ class PathfindingService {
 
     final graph = await loadGraph();
     if (graph == null) {
+      return _buildDirectFallbackResult(start, goal);
+    }
+
+    // A road route cannot be represented honestly when a pagoda is far from
+    // the nearest road node in the bundled offline graph.
+    const maxTrustedAccessGapKm = 0.5;
+    if (graph.nodes[start.id]!.accessGapKm > maxTrustedAccessGapKm ||
+        graph.nodes[goal.id]!.accessGapKm > maxTrustedAccessGapKm) {
       return _buildDirectFallbackResult(start, goal);
     }
 
@@ -112,6 +123,7 @@ class PathfindingService {
           path: path,
           distanceKm: currentG,
           roadNodePath: _roadNodePathForPagodaPath(path, graph),
+          isRoadGraphRoute: true,
         );
       }
 

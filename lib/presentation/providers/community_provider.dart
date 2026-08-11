@@ -172,8 +172,36 @@ class CommunityProvider extends ChangeNotifier {
     if (!canInteract) {
       return;
     }
-    await _dataService.toggleUpvote(postId, userId: _currentUserId);
-    await loadPosts();
+
+    final index = _allPosts.indexWhere((post) => post.id == postId);
+    CommunityPost? previousPost;
+
+    if (index != -1) {
+      previousPost = _allPosts[index];
+      final nextIsUpvoted = !previousPost.isUpvoted;
+      final nextUpvoteCount = nextIsUpvoted
+          ? previousPost.upvoteCount + 1
+          : previousPost.upvoteCount > 0
+          ? previousPost.upvoteCount - 1
+          : 0;
+      _allPosts[index] = previousPost.copyWith(
+        isUpvoted: nextIsUpvoted,
+        upvoteCount: nextUpvoteCount,
+      );
+      notifyListeners();
+    }
+
+    try {
+      await _dataService.toggleUpvote(postId, userId: _currentUserId);
+      unawaited(loadPosts());
+    } catch (e, stackTrace) {
+      if (index != -1 && previousPost != null) {
+        _allPosts[index] = previousPost;
+        notifyListeners();
+      }
+      Logger.error('Error toggling community upvote', e, stackTrace);
+      rethrow;
+    }
   }
 
   void setSearchQuery(String query) {

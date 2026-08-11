@@ -9,20 +9,22 @@ import '../../../data/models/pagoda_model.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/services/ai_chatbot_service.dart';
 import '../../../core/services/logger.dart';
-import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/responsive.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
-import '../../widgets/sign_in_required_view.dart';
 
 class ChatScreen extends StatefulWidget {
   final AIEntryContext entryContext;
+  final bool embedded;
+  final VoidCallback? onClose;
 
   const ChatScreen({
     super.key,
     this.entryContext = const AIEntryContext.global(),
+    this.embedded = false,
+    this.onClose,
   });
 
   @override
@@ -150,7 +152,8 @@ class _ChatScreenState extends State<ChatScreen> {
             category: p.category,
             summary: _buildPagodaSummary(p),
             bestTime: _compactText(p.bestTimeToVisit ?? '', maxChars: 120),
-            openingHours: _compactText(p.openingHours ?? '', maxChars: 90),
+            // Bundled opening hours are not sourced or date-maintained.
+            openingHours: '',
             location: _compactText(p.visitorLocation ?? '', maxChars: 90),
           ),
         )
@@ -330,81 +333,92 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final isSignedIn = context.select<AuthProvider, bool>(
       (auth) => auth.user != null,
     );
     final isAiConfigured = _chatbotService.isConfigured;
     final messages = _mergedMessages();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.translate('chat.title')),
-        actions: [
-          if (isSignedIn)
-            IconButton(
-              onPressed: messages.isEmpty ? null : _clearHistory,
-              icon: const Icon(Icons.delete_sweep_outlined),
-              tooltip: l10n.translate('chat.clear'),
-            ),
+    final guide = ColoredBox(
+      color: const Color(0xFFF5F2EB),
+      child: Column(
+        children: [
+          _buildGuideHeader(context, messages),
+          Expanded(child: _buildMessagesBody(context, messages)),
+          _buildComposer(context, enabled: isAiConfigured && isSignedIn),
         ],
       ),
-      body: isSignedIn
-          ? ResponsiveContent(
-              child: Column(
-                children: [
-                  Expanded(child: _buildMessagesBody(context, messages)),
-                  if (!isAiConfigured) _buildSetupNotice(context),
-                  _buildComposer(context, enabled: isAiConfigured),
-                ],
-              ),
-            )
-          : SignInRequiredView(
-              icon: Icons.support_agent_outlined,
-              message: l10n.translate('chat.signInPrompt'),
-              onSignIn: () {
-                AuthGate.openSignIn(context);
-              },
-            ),
     );
+    return widget.embedded ? guide : Scaffold(body: guide);
   }
 
-  Widget _buildSetupNotice(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.key_off_outlined, color: colorScheme.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.l10n.translate('chat.setupRequiredTitle'),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  context.l10n.translate('chat.setupRequiredBody'),
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+  Widget _buildGuideHeader(BuildContext context, List<AIChatMessage> messages) {
+    final close = widget.onClose ?? () => Navigator.of(context).maybePop();
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+        decoration: const BoxDecoration(
+          color: Color(0xFFF5F2EB),
+          border: Border(bottom: BorderSide(color: Color(0xFFE5E0D8))),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: close,
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF4A3B32)),
             ),
-          ),
-        ],
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFC8A97E)),
+                        ),
+                        child: const Icon(
+                          Icons.smart_toy_outlined,
+                          size: 18,
+                          color: Color(0xFFC8A97E),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        context.l10n.translate('chat.journeyGuide'),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: const Color(0xFF1A1C20),
+                              fontSize: 28,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    context.l10n.translate('chat.journeyGuideSubtitle'),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFF4A3B32),
+                      letterSpacing: 1.8,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: 48,
+              child: IconButton(
+                onPressed: messages.isEmpty ? null : _clearHistory,
+                icon: const Icon(Icons.delete_sweep_outlined),
+                color: const Color(0xFF4A3B32),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -415,33 +429,73 @@ class _ChatScreenState extends State<ChatScreen> {
   ) {
     final l10n = context.l10n;
     if (messages.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: Responsive.pagePadding(context),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(30, 32, 30, 24),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF9F6),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(28),
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+              border: Border.all(color: const Color(0x4DC8A97E)),
+            ),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: l10n.translate('chat.greeting'),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: const Color(0xFFC8A97E),
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(
+                    text: l10n.translate('chat.stitchEmptyPrompt'),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: const Color(0xFF1A1C20),
+                      height: 1.55,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 9),
+          Text(
+            l10n.translate('chat.localGuide'),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: const Color(0xFF8A8078),
+              letterSpacing: 1.3,
+            ),
+          ),
+          const SizedBox(height: 26),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
             children: [
-              Icon(
-                Icons.support_agent_outlined,
-                size: 52,
-                color: Theme.of(context).colorScheme.primary,
+              _GuideSuggestion(
+                label: l10n.translate('chat.suggestionSunrise'),
+                onTap: () =>
+                    _useSuggestion('Which temples are best for sunrise?'),
               ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.translate('chat.emptyTitle'),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
+              _GuideSuggestion(
+                label: l10n.translate('chat.suggestionRoads'),
+                onTap: () =>
+                    _useSuggestion('What are the current road conditions?'),
               ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.translate('chat.emptyBody'),
-                textAlign: TextAlign.center,
+              _GuideSuggestion(
+                label: l10n.translate('chat.suggestionPlan'),
+                onTap: () => _useSuggestion('Help me plan a day in Bagan.'),
               ),
             ],
           ),
-        ),
+        ],
       );
     }
 
@@ -468,19 +522,17 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildComposer(BuildContext context, {required bool enabled}) {
-    final l10n = context.l10n;
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          border: Border(
-            top: BorderSide(color: Theme.of(context).dividerColor),
-          ),
-        ),
+        padding: const EdgeInsets.fromLTRB(22, 10, 22, 16),
+        color: const Color(0xFFF5F2EB),
         child: Row(
           children: [
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Icon(Icons.mic_none_rounded, color: Color(0xFF8A8078)),
+            ),
             Expanded(
               child: TextField(
                 controller: _messageController,
@@ -491,19 +543,37 @@ class _ChatScreenState extends State<ChatScreen> {
                 onSubmitted: enabled ? (_) => _sendMessage() : null,
                 decoration: InputDecoration(
                   hintText: enabled
-                      ? l10n.translate('chat.inputHint')
-                      : l10n.translate('chat.setupRequiredTitle'),
+                      ? 'Ask your guide...'
+                      : 'Guide setup required',
+                  filled: true,
+                  fillColor: const Color(0xFFFAF9F6),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: const BorderSide(color: Color(0x66C8A97E)),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: const BorderSide(color: Color(0x33C8A97E)),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: enabled && !_isSending ? _sendMessage : null,
-              icon: Icon(
-                Icons.send,
-                color: !enabled || _isSending
-                    ? Theme.of(context).disabledColor
-                    : Theme.of(context).colorScheme.primary,
+            const SizedBox(width: 10),
+            Material(
+              color: const Color(0xFFB85D43),
+              shape: const CircleBorder(),
+              child: IconButton(
+                onPressed: enabled && !_isSending ? _sendMessage : null,
+                icon: Icon(
+                  Icons.send_rounded,
+                  color: !enabled || _isSending
+                      ? const Color(0x88FFFFFF)
+                      : Colors.white,
+                ),
               ),
             ),
           ],
@@ -511,6 +581,30 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
+  void _useSuggestion(String text) {
+    _messageController.text = text;
+    _messageController.selection = TextSelection.collapsed(offset: text.length);
+  }
+}
+
+class _GuideSuggestion extends StatelessWidget {
+  const _GuideSuggestion({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => OutlinedButton(
+    onPressed: onTap,
+    style: OutlinedButton.styleFrom(
+      foregroundColor: const Color(0xFF4A3B32),
+      side: const BorderSide(color: Color(0x66C8A97E)),
+      shape: const StadiumBorder(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    ),
+    child: Text(label),
+  );
 }
 
 class _ChatBubble extends StatelessWidget {

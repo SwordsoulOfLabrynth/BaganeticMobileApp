@@ -230,7 +230,10 @@ class CommunityDataService {
     final docs = snapshot.docs;
     Set<String> upvotedPostIds = const <String>{};
     try {
-      upvotedPostIds = await _loadUpvotedPostIds(currentUserId: currentUserId);
+      upvotedPostIds = await _loadUpvotedPostIdsForPosts(
+        postIds: docs.map((doc) => doc.id),
+        currentUserId: currentUserId,
+      );
     } catch (e, stackTrace) {
       Logger.error(
         'CommunityDataService: Failed to load remote vote state, continuing without it',
@@ -273,34 +276,48 @@ class CommunityDataService {
     return _mergePosts(localPosts: localPosts ?? const [], remotePosts: posts);
   }
 
-  Future<Set<String>> _loadUpvotedPostIds({String? currentUserId}) async {
-    final resolvedUserId = currentUserId?.trim() ?? '';
-    if (resolvedUserId.isEmpty || resolvedUserId == AppConstants.guestOwnerId) {
+  Future<Set<String>> _loadUpvotedPostIdsForPosts({
+    required Iterable<String> postIds,
+    String? currentUserId,
+  }) async {
+    final resolvedUserId = _resolveSignedInUserId(currentUserId);
+    final postsRef = _postsRef;
+    if (resolvedUserId == null || postsRef == null) {
       return const <String>{};
     }
 
-    final firestore = _firestore;
-    if (firestore == null) {
+    final ids = postIds.where((postId) => postId.isNotEmpty).toList();
+    if (ids.isEmpty) {
       return const <String>{};
     }
 
-    final snapshot = await firestore
-        .collectionGroup(AppConstants.communityPostVotes)
-        .where('userId', isEqualTo: resolvedUserId)
-        .get();
+    final snapshots = await Future.wait(
+      ids.map(
+        (postId) => postsRef
+            .doc(postId)
+            .collection(AppConstants.communityPostVotes)
+            .doc(resolvedUserId)
+            .get(),
+      ),
+    );
 
-    return snapshot.docs
-        .map((doc) => doc.data()['postId'])
-        .whereType<String>()
-        .where((postId) => postId.isNotEmpty)
-        .toSet();
+    final upvotedPostIds = <String>{};
+    for (var i = 0; i < ids.length; i++) {
+      if (snapshots[i].exists) {
+        upvotedPostIds.add(ids[i]);
+      }
+    }
+    return upvotedPostIds;
   }
 
   Future<bool> _isPostUpvotedByUser({
     required String postId,
     String? currentUserId,
   }) async {
-    final upvotedIds = await _loadUpvotedPostIds(currentUserId: currentUserId);
+    final upvotedIds = await _loadUpvotedPostIdsForPosts(
+      postIds: [postId],
+      currentUserId: currentUserId,
+    );
     return upvotedIds.contains(postId);
   }
 

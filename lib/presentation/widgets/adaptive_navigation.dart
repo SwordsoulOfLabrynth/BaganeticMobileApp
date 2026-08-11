@@ -3,6 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/utils/responsive.dart';
 
+// Heritage Journal palette constants — accessible to all nav widget classes
+const Color _navGold = Color(0xFFC19A49);        // antique gold
+const Color _navActive = Color(0xFFA34A2A);      // terracotta
+const Color _navUnselected = Color(0xFF786A5D);  // warm muted brown
+
 class AdaptiveNavigation extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onNavigate;
@@ -26,10 +31,10 @@ class AdaptiveNavigation extends StatefulWidget {
 }
 
 class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
-  static const Color _gold = Color(0xFFD4AF37);
-  static const Color _goldDark = Color(0xFFB8860B);
-  static const Color _panelBackground = Colors.white;
-  static const Color _panelBorder = Color(0xFFE9E2D3);
+  static const Color _gold = _navGold;
+  static const Color _goldDark = _navActive;
+  static const Color _panelBackground = Color(0xFFFFFBF3);
+  static const Color _panelBorder = Color(0xFFDCCCB3);
 
   @override
   Widget build(BuildContext context) {
@@ -70,20 +75,20 @@ class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
               ? NavigationRailLabelType.none
               : NavigationRailLabelType.all,
           useIndicator: true,
-          indicatorColor: const Color(0x1FD4AF37),
+          indicatorColor: const Color(0x1FAE5038),
           indicatorShape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           selectedIconTheme: const IconThemeData(color: _goldDark, size: 24),
-          unselectedIconTheme: IconThemeData(
-            color: Colors.grey.shade700,
+          unselectedIconTheme: const IconThemeData(
+            color: _navUnselected,
             size: 22,
           ),
           selectedLabelTextStyle: Theme.of(context).textTheme.labelMedium
               ?.copyWith(color: _goldDark, fontWeight: FontWeight.w700),
           unselectedLabelTextStyle: Theme.of(context).textTheme.labelMedium
               ?.copyWith(
-                color: Colors.grey.shade700,
+                color: _navUnselected,
                 fontWeight: FontWeight.w500,
               ),
           leading: Padding(
@@ -133,9 +138,9 @@ class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
         vertical: isDesktop ? 10 : 8,
       ),
       decoration: BoxDecoration(
-        color: const Color(0x12D4AF37),
+        color: const Color(0x12AE5038),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0x33D4AF37)),
+        border: Border.all(color: const Color(0x33AE5038)),
       ),
       child: isDesktop
           ? Row(
@@ -179,7 +184,7 @@ class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
       curve: Curves.easeOutCubic,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0x17D4AF37) : Colors.transparent,
+        color: isSelected ? const Color(0x17AE5038) : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(icon, color: isSelected ? _goldDark : null),
@@ -386,12 +391,12 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                               width: middleButtonSize,
                               decoration: BoxDecoration(
                                 color: isMoreItemSelected || _isMoreMenuOpen
-                                    ? const Color(0xFFD4AF37)
+                                    ? const Color(0xFFAE5038)
                                     : Colors.white,
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: isMoreItemSelected || _isMoreMenuOpen
-                                      ? const Color(0xFFD4AF37)
+                                      ? const Color(0xFFAE5038)
                                       : const Color(0x19000000),
                                   width: 1.2,
                                 ),
@@ -412,7 +417,7 @@ class _MobileBottomNavigationState extends State<_MobileBottomNavigation> {
                                     size: isCompact ? 27 : 30,
                                     color: isMoreItemSelected || _isMoreMenuOpen
                                         ? Colors.white
-                                        : Colors.grey.shade700,
+                                        : _navUnselected,
                                   ),
                                 ),
                               ),
@@ -446,8 +451,7 @@ class _BarNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = const Color(0xFFD4AF37);
-    final color = isSelected ? selectedColor : Colors.grey.shade700;
+    final color = isSelected ? _navActive : _navUnselected;
     final showLabel = label.isNotEmpty;
 
     return InkWell(
@@ -461,7 +465,7 @@ class _BarNavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0x1AD4AF37) : Colors.transparent,
+          color: isSelected ? const Color(0x1AAE5038) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
@@ -572,8 +576,7 @@ class _BubbleNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = const Color(0xFFD4AF37);
-    final iconColor = isSelected ? selectedColor : Colors.grey.shade700;
+    final iconColor = isSelected ? _navActive : _navUnselected;
 
     return InkWell(
       borderRadius: BorderRadius.circular(24),

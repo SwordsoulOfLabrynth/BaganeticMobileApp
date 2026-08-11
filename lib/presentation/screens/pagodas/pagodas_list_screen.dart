@@ -1,88 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/pagoda_provider.dart';
-import '../../../core/constants/app_constants.dart';
+
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../data/models/pagoda_model.dart';
-import '../pagoda_detail/pagoda_detail_screen.dart';
+import '../../providers/pagoda_provider.dart';
 import '../../widgets/pagoda_image_widget.dart';
-import '../../../core/localization/app_localizations.dart';
-import '../../../core/utils/responsive.dart';
+import '../pagoda_detail/pagoda_detail_screen.dart';
 
 class PagodasListScreen extends StatelessWidget {
-  const PagodasListScreen({super.key});
+  const PagodasListScreen({
+    super.key,
+    this.favoritesOnly = false,
+    this.showBackButton = false,
+  });
 
+  final bool favoritesOnly;
+  final bool showBackButton;
+
+  static const _ivory = Color(0xFFF7F2E9);
+  static const _ink = Color(0xFF100602);
+  static const _brown = Color(0xFF2B1D14);
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.translate('pagodas.title')),
-        elevation: 0,
-      ),
-      body: ResponsiveContent(
+      backgroundColor: _ivory,
+      body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
-            _buildSearchBar(context),
-            _buildCategoryFilter(context),
+            _buildHeader(context),
             Expanded(
               child: Consumer<PagodaProvider>(
                 builder: (context, provider, _) {
                   if (provider.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFA34A2A),
+                      ),
+                    );
                   }
 
-                  final pagodas = provider.pagodas;
-
+                  final pagodas = _orderedPagodas(
+                    favoritesOnly ? provider.favorites : provider.pagodas,
+                  );
                   if (pagodas.isEmpty) {
-                    return Center(child: Text(l10n.translate('pagodas.empty')));
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              favoritesOnly
+                                  ? Icons.bookmark_border_rounded
+                                  : Icons.search_off_rounded,
+                              size: 38,
+                              color: const Color(0xFF8D7A6B),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              favoritesOnly
+                                  ? context.l10n.translate('pagodas.noSaved')
+                                  : context.l10n.translate('pagodas.empty'),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: const Color(0xFF4E453F)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   }
 
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      final crossAxisCount = Responsive.crossAxisCount(
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(30, 24, 30, 116),
+                    itemCount: pagodas.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 48, color: Color(0x33C19A49)),
+                    itemBuilder: (context, index) => _JournalPagodaEntry(
+                      pagoda: pagodas[index],
+                      reversed: index.isOdd,
+                      imageAsset: _imageAssetFor(pagodas[index].id),
+                      onOpen: () => Navigator.push(
                         context,
-                        maxCount: Responsive.isLarge(context) ? 4 : 3,
-                        minCount: 1,
-                        itemWidth: 320,
-                      );
-                      final useGrid = crossAxisCount > 1;
-
-                      if (!useGrid) {
-                        return ListView.builder(
-                          padding: Responsive.pagePadding(context),
-                          itemCount: pagodas.length,
-                          itemBuilder: (context, index) {
-                            return _buildPagodaCard(
-                              context,
-                              pagodas[index],
-                              useGrid: false,
-                            );
-                          },
-                        );
-                      }
-
-                      return GridView.builder(
-                        padding: Responsive.pagePadding(context),
-                        itemCount: pagodas.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          mainAxisSpacing: Responsive.spacing(context),
-                          crossAxisSpacing: Responsive.spacing(context),
-                          childAspectRatio:
-                              Responsive.isDesktopOrLarger(context)
-                              ? 0.75
-                              : 0.82,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PagodaDetailScreen(pagoda: pagodas[index]),
                         ),
-                        itemBuilder: (context, index) {
-                          return _buildPagodaCard(
-                            context,
-                            pagodas[index],
-                            useGrid: true,
-                          );
-                        },
-                      );
-                    },
+                      ),
+                      onToggleFavorite: () =>
+                          _toggleFavorite(context, pagodas[index]),
+                    ),
                   );
                 },
               ),
@@ -93,233 +102,241 @@ class PagodasListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    final l10n = context.l10n;
+  Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: Responsive.pagePadding(context).copyWith(bottom: 12),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: l10n.translate('pagodas.searchHint'),
-          prefixIcon: const Icon(Icons.search),
-          filled: true,
-          fillColor: Colors.grey[100],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        onChanged: (value) {
-          context.read<PagodaProvider>().setSearchQuery(value);
-        },
-      ),
-    );
-  }
-
-  Widget _buildCategoryFilter(BuildContext context) {
-    final l10n = context.l10n;
-    return Consumer<PagodaProvider>(
-      builder: (context, provider, _) {
-        return SizedBox(
-          height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.pagePadding(context).left,
-            ),
-            itemCount: AppConstants.categories.length,
-            itemBuilder: (context, index) {
-              final category = AppConstants.categories[index];
-              final isSelected = provider.selectedCategory == category;
-
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(l10n.categoryLabel(category)),
-                  selected: isSelected,
-                  onSelected: (_) {
-                    provider.setCategory(category);
-                  },
-                  selectedColor: const Color(0xFFB8860B),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPagodaCard(
-    BuildContext context,
-    Pagoda pagoda, {
-    required bool useGrid,
-  }) {
-    final l10n = context.l10n;
-    final isWideLayout = Responsive.isTabletOrLarger(context);
-    final isCompact = Responsive.isCompact(context);
-
-    return Card(
-      margin: isWideLayout
-          ? EdgeInsets.zero
-          : EdgeInsets.only(bottom: Responsive.spacing(context)),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PagodaDetailScreen(pagoda: pagoda),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (useGrid)
-              Expanded(
-                flex: isWideLayout ? 3 : 2,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: PagodaImageWidget(
-                    imageUrl: pagoda.imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
-            else
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                child: SizedBox(
-                  height: 190,
-                  width: double.infinity,
-                  child: PagodaImageWidget(
-                    imageUrl: pagoda.imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            if (useGrid)
-              Expanded(
-                flex: 2,
-                child: _buildCardDetails(
-                  context,
-                  pagoda,
-                  l10n,
-                  isCompact,
-                  true,
-                ),
-              )
-            else
-              _buildCardDetails(context, pagoda, l10n, isCompact, false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardDetails(
-    BuildContext context,
-    Pagoda pagoda,
-    AppLocalizations l10n,
-    bool isCompact,
-    bool allowDescriptionExpand,
-  ) {
-    return Padding(
-      padding: Responsive.cardPadding(context).copyWith(
-        top: Responsive.smallSpacing(context),
-        bottom: Responsive.smallSpacing(context),
-      ),
+      padding: const EdgeInsets.fromLTRB(30, 24, 30, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.pagodaName(pagoda.id, pagoda.name),
-                  style: TextStyle(
-                    fontSize: Responsive.responsiveFontSize(context, 18),
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: isCompact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  pagoda.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: pagoda.isFavorite ? Colors.red : null,
-                  size: isCompact ? 20 : 24,
-                ),
-                onPressed: () async {
-                  final canContinue = await AuthGate.ensureSignedIn(
-                    context,
-                    featureName: l10n.translate('profile.favorites'),
-                  );
-                  if (!canContinue || !context.mounted) {
-                    return;
-                  }
-                  context.read<PagodaProvider>().toggleFavorite(pagoda.id);
-                },
-              ),
-            ],
-          ),
-          SizedBox(height: Responsive.smallSpacing(context)),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.smallSpacing(context),
-              vertical: Responsive.smallSpacing(context) * 0.5,
+          if (showBackButton)
+            IconButton(
+              onPressed: () => Navigator.maybePop(context),
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+              icon: const Icon(Icons.arrow_back),
             ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFB8860B).withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFB8860B), width: 1),
-            ),
-            child: Text(
-              l10n.categoryLabel(pagoda.category),
-              style: TextStyle(
-                fontSize: Responsive.responsiveFontSize(context, 11),
-                fontWeight: FontWeight.w500,
-              ),
+          if (showBackButton) const SizedBox(height: 12),
+          Text(
+            favoritesOnly
+                ? context.l10n.translate('profile.savedPagodas')
+                : context.l10n.translate('pagodas.title'),
+            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+              color: _ink,
+              fontSize: 34,
+              height: 1.08,
             ),
           ),
-          SizedBox(height: Responsive.smallSpacing(context)),
-          if (allowDescriptionExpand)
-            Expanded(
-              child: Text(
-                l10n.pagodaDescription(pagoda.id, pagoda.description),
-                maxLines: isCompact ? 2 : 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: Responsive.responsiveFontSize(context, 13),
-                ),
+          const SizedBox(height: 6),
+          Text(
+            favoritesOnly
+                ? context.l10n.translate('pagodas.savedSubtitle')
+                : context.l10n.translate('pagodas.subtitle'),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: _brown,
+              fontSize: 12,
+              letterSpacing: 2.2,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 28),
+          TextField(
+            onChanged: context.read<PagodaProvider>().setSearchQuery,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: _ink),
+            decoration: InputDecoration(
+              hintText: context.l10n.translate('pagodas.searchHint'),
+              hintStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: const Color(0xFFB7A9A1),
+                letterSpacing: 1.9,
+                fontWeight: FontWeight.w700,
               ),
-            )
-          else
-            Text(
-              l10n.pagodaDescription(pagoda.id, pagoda.description),
-              maxLines: isCompact ? 2 : 3,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: Responsive.responsiveFontSize(context, 13),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: Color(0xFF80756F),
+                size: 27,
+              ),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.66),
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+              enabledBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.zero,
+                borderSide: BorderSide(color: Color(0xFF80756F)),
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.zero,
+                borderSide: BorderSide(color: Color(0xFFA34A2A), width: 1.5),
               ),
             ),
+          ),
         ],
       ),
+    );
+  }
+
+  List<Pagoda> _orderedPagodas(List<Pagoda> source) {
+    final ordered = source.toList();
+    const priority = {'ananda': 0, 'shwesandaw': 1, 'dhammayangyi': 2};
+    ordered.sort(
+      (a, b) => (priority[a.id] ?? 99).compareTo(priority[b.id] ?? 99),
+    );
+    return ordered;
+  }
+
+  Future<void> _toggleFavorite(BuildContext context, Pagoda pagoda) async {
+    final provider = context.read<PagodaProvider>();
+    final canContinue = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('profile.favorites'),
+    );
+    if (canContinue && context.mounted) {
+      await provider.toggleFavorite(pagoda.id);
+    }
+  }
+
+  String? _imageAssetFor(String id) => switch (id) {
+    'ananda' => 'assets/images/stitch/ananda_postcard.jpg',
+    'shwesandaw' => 'assets/images/pagodas/researched/shwesandaw.jpg',
+    _ => null,
+  };
+}
+
+class _JournalPagodaEntry extends StatelessWidget {
+  const _JournalPagodaEntry({
+    required this.pagoda,
+    required this.reversed,
+    required this.imageAsset,
+    required this.onOpen,
+    required this.onToggleFavorite,
+  });
+
+  final Pagoda pagoda;
+  final bool reversed;
+  final String? imageAsset;
+  final VoidCallback onOpen;
+  final VoidCallback onToggleFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    final isRightAligned = reversed;
+    final photo = imageAsset == null
+        ? PagodaImageWidget(imageUrl: pagoda.imageUrl, fit: BoxFit.cover)
+        : Image.asset(imageAsset!, fit: BoxFit.cover);
+    final image = SizedBox(
+      width: 128,
+      height: 160,
+      child: pagoda.isFavorite
+          ? _BookmarkedPhoto(photo: photo)
+          : Padding(padding: const EdgeInsets.all(8), child: photo),
+    );
+    final title = Text(
+      context.l10n.pagodaName(pagoda.id, pagoda.name),
+      textAlign: isRightAligned ? TextAlign.right : TextAlign.left,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+        color: const Color(0xFF100602),
+        fontSize: 22,
+        height: 1.15,
+      ),
+    );
+    final favoriteButton = SizedBox(
+      width: 32,
+      height: 32,
+      child: IconButton(
+        onPressed: onToggleFavorite,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+        icon: Icon(
+          pagoda.isFavorite ? Icons.bookmark : Icons.bookmark_border,
+          color: pagoda.isFavorite
+              ? const Color(0xFFA34A2A)
+              : const Color(0xFF80756F),
+          size: 25,
+        ),
+      ),
+    );
+    final details = Expanded(
+      child: InkWell(
+        onTap: onOpen,
+        child: Column(
+          crossAxisAlignment: isRightAligned
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: isRightAligned
+                  ? [
+                      favoriteButton,
+                      const SizedBox(width: 8),
+                      Expanded(child: title),
+                    ]
+                  : [
+                      Expanded(child: title),
+                      const SizedBox(width: 8),
+                      favoriteButton,
+                    ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              context.l10n.translate(
+                'pagodas.builtMeta',
+                args: {
+                  'year':
+                      pagoda.yearBuilt?.toString() ??
+                      context.l10n.translate('pagodas.historic'),
+                },
+              ),
+              textAlign: isRightAligned ? TextAlign.right : TextAlign.left,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: const Color(0xFF4E453F),
+                fontSize: 12,
+                letterSpacing: 1.6,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              context.l10n.pagodaDescription(pagoda.id, pagoda.description),
+              textAlign: isRightAligned ? TextAlign.right : TextAlign.left,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: const Color(0xFF4E453F),
+                height: 1.55,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return Row(
+      // Titles vary between one and two lines. Starting both columns from the
+      // same edge keeps the title, bookmark, and photo visually consistent.
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: isRightAligned
+          ? [details, const SizedBox(width: 18), image]
+          : [image, const SizedBox(width: 18), details],
+    );
+  }
+}
+
+class _BookmarkedPhoto extends StatelessWidget {
+  const _BookmarkedPhoto({required this.photo});
+
+  final Widget photo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(4, 2, 4, 4),
+      padding: const EdgeInsets.fromLTRB(9, 9, 9, 19),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFCF6),
+        border: Border.all(color: const Color(0xFFC19A49), width: 0.8),
+      ),
+      child: ClipRect(child: SizedBox.expand(child: photo)),
     );
   }
 }

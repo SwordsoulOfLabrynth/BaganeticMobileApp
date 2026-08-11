@@ -41,6 +41,8 @@ dependencies:
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
   cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+  image_picker: ^1.1.2
 
   # State management
   provider: ^6.1.2
@@ -54,7 +56,10 @@ dependencies:
 
   # Local database
   sqflite: ^2.3.3
-  sqflite_common_ffi: ^2.3.3
+  # This compatible pair avoids sqlite3 3.x build hooks, which fail on Windows
+  # when the Flutter/Dart cache path contains spaces.
+  sqflite_common_ffi: 2.3.6
+  sqlite3: 2.9.0
   path: ^1.9.0
 
   # Map
@@ -119,6 +124,7 @@ flutter:
     - assets/images/pagodas/researched/
     - assets/images/pagodas/Thambula/
     - assets/images/pagodas/Thatbyinnyu Temple/
+    - assets/images/stitch/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -132,11 +138,31 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/PlayfairDisplay-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlayfairDisplay-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/PlayfairDisplay-Bold.ttf
+          weight: 700
+        # NOTE: download these from fonts.google.com/specimen/Playfair+Display
+        # and place in assets/fonts/ — only SemiBold was bundled before
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
     - family: NotoSansMyanmar
       fonts:
         - asset: assets/fonts/NotoSansMyanmar-Regular.ttf
         - asset: assets/fonts/NotoSansMyanmar-Bold.ttf
           weight: 700
-  #
-  # For details regarding fonts from package dependencies,
+
   # see https://flutter.dev/to/font-from-package

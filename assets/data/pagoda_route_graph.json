@@ -80,7 +80,7 @@
     },
     {
       "pagodaId": "gawdawpalin",
-      "name": "Gawdawpalin Temple",
+      "name": "Gadawpalin Temple",
       "lat": 21.17,
       "lng": 94.856667,
       "roadNodeId": "8530546910",
@@ -320,7 +320,7 @@
     },
     {
       "pagodaId": "ngakywenataung",
-      "name": "Ngakywe Nataung",
+      "name": "Ngakywenadaung Pagoda",
       "lat": 21.169,
       "lng": 94.859,
       "roadNodeId": "2419861533",
@@ -376,7 +376,7 @@
     },
     {
       "pagodaId": "seinnyetnyiama",
-      "name": "Sein Nyet Nyi Ama Gu Phaya",
+      "name": "Sein Nyet Ama Temple",
       "lat": 21.14151,
       "lng": 94.85896,
       "roadNodeId": "2457894648",

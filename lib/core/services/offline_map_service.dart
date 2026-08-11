@@ -45,7 +45,8 @@ class OfflineMapService {
     }
 
     if (!force && status == _statusInProgress) {
-      final isStale = lastUpdated == null ||
+      final isStale =
+          lastUpdated == null ||
           DateTime.now().difference(lastUpdated) > _staleInProgressThreshold;
       if (!isStale) {
         return;
@@ -71,7 +72,8 @@ class OfflineMapService {
         maxZoom: _maxZoom,
         options: TileLayer(
           urlTemplate: AppConstants.mapTileUrlTemplate,
-          userAgentPackageName: 'com.baganetic.app',
+          subdomains: AppConstants.mapTileSubdomains,
+          userAgentPackageName: AppConstants.mapTileUserAgent,
         ),
       );
 
@@ -120,10 +122,7 @@ class OfflineMapService {
 
   Future<void> _updateStatus(FMTCStore store, String status) {
     return store.metadata.setBulk(
-      kvs: {
-        _statusKey: status,
-        _updatedKey: DateTime.now().toIso8601String(),
-      },
+      kvs: {_statusKey: status, _updatedKey: DateTime.now().toIso8601String()},
     );
   }
 

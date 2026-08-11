@@ -4,5 +4,8 @@
       "database": "baganetic-mobile",
       "rules": "firestore.rules"
     }
-  ]
+  ],
+  "storage": {
+    "rules": "storage.rules"
+  }
 }

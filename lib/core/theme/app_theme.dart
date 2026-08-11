@@ -1,161 +1,144 @@
 import 'package:flutter/material.dart';
 
+/// The shared visual system for the warm, tactile heritage-journal design.
 class AppTheme {
-  // Colors
-  static const Color primaryColor = Color(0xFFB8860B); // Darker Gold
-  static const Color secondaryColor = Color(0xFF654321); // Darker Brown
-  static const Color accentColor = Color(0xFFCC5500); // Darker Orange
-  static const Color backgroundColor = Color(0xFFF8F8F8); // Light Gray for Scaffold
-  static const Color cardColor = Colors.white;
-  static const Color textPrimary = Color(0xFF2C3E50);
-  static const Color textSecondary = Color(0xFF7F8C8D);
-  static const Color errorColor = Color(0xFFE74C3C);
-  static const Color successColor = Color(0xFF27AE60);
+  static const Color primaryColor = Color(0xFFA34A2A);   // terracotta (spec)
+  static const Color secondaryColor = Color(0xFF2B1D14); // deep lacquer brown (spec)
+  static const Color accentColor = Color(0xFFC19A49);    // antique gold (spec)
+  static const Color backgroundColor = Color(0xFFF7F2E9); // ivory parchment (spec)
+  static const Color cardColor = Color(0xFFFFFBF3);
+  static const Color paperColor = Color(0xFFF0E4CE);
+  static const Color textPrimary = Color(0xFF30251D);
+  static const Color textSecondary = Color(0xFF786A5D);
+  static const Color borderColor = Color(0xFFDCCCB3);
+  static const Color errorColor = Color(0xFFC8463F);
+  static const Color successColor = Color(0xFF4F7B54);
+
+  static const _fallback = <String>['NotoSansMyanmar'];
 
   static TextTheme _buildTextTheme() {
-    final baseTheme = ThemeData.light().textTheme;
-    
-    return baseTheme.copyWith(
-      displayLarge: baseTheme.displayLarge?.copyWith(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: textPrimary,
+    final base = ThemeData.light().textTheme;
+    TextStyle display(double size) => TextStyle(
+      fontFamily: 'PlayfairDisplay',
+      fontFamilyFallback: _fallback,
+      fontSize: size,
+      fontWeight: FontWeight.w600,
+      height: 1.12,
+      color: textPrimary,
+    );
+    TextStyle body(
+      double size, {
+      FontWeight weight = FontWeight.w400,
+      Color? color,
+      double height = 1.45,
+    }) => TextStyle(
+      fontFamily: 'Poppins',
+      fontFamilyFallback: _fallback,
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      color: color ?? textPrimary,
+    );
+
+    return base.copyWith(
+      displayLarge: display(34),
+      displayMedium: display(30),
+      displaySmall: display(25),
+      headlineLarge: display(23),
+      headlineMedium: display(20),
+      headlineSmall: display(18),
+      titleLarge: body(16, weight: FontWeight.w700),
+      titleMedium: body(14, weight: FontWeight.w700),
+      titleSmall: body(12, weight: FontWeight.w700),
+      bodyLarge: body(16),
+      bodyMedium: body(14),
+      bodySmall: body(12, color: textSecondary, height: 1.35),
+      labelLarge: body(14, weight: FontWeight.w700).copyWith(
+        fontFeatures: const [FontFeature('smcp')],
+        letterSpacing: 1.2,
       ),
-      displayMedium: baseTheme.displayMedium?.copyWith(
-        fontSize: 28,
-        fontWeight: FontWeight.bold,
-        color: textPrimary,
+      labelMedium: body(12, weight: FontWeight.w700).copyWith(
+        fontFeatures: const [FontFeature('smcp')],
+        letterSpacing: 1.2,
       ),
-      displaySmall: baseTheme.displaySmall?.copyWith(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: textPrimary,
-      ),
-      headlineLarge: baseTheme.headlineLarge?.copyWith(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        color: textPrimary,
-      ),
-      headlineMedium: baseTheme.headlineMedium?.copyWith(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: textPrimary,
-      ),
-      headlineSmall: baseTheme.headlineSmall?.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: textPrimary,
-      ),
-      titleLarge: baseTheme.titleLarge?.copyWith(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: textPrimary,
-      ),
-      titleMedium: baseTheme.titleMedium?.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: textPrimary,
-      ),
-      titleSmall: baseTheme.titleSmall?.copyWith(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: textPrimary,
-      ),
-      bodyLarge: baseTheme.bodyLarge?.copyWith(
-        fontSize: 16,
-        color: textPrimary,
-        height: 1.5,
-      ),
-      bodyMedium: baseTheme.bodyMedium?.copyWith(
-        fontSize: 14,
-        color: textPrimary,
-        height: 1.4,
-      ),
-      bodySmall: baseTheme.bodySmall?.copyWith(
-        fontSize: 12,
-        color: textSecondary,
-        height: 1.3,
-      ),
-      labelLarge: baseTheme.labelLarge?.copyWith(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: textPrimary,
-      ),
-      labelMedium: baseTheme.labelMedium?.copyWith(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: textPrimary,
-      ),
-      labelSmall: baseTheme.labelSmall?.copyWith(
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        color: textSecondary,
+      labelSmall: body(10, weight: FontWeight.w700, color: textSecondary).copyWith(
+        fontFeatures: const [FontFeature('smcp')],
+        letterSpacing: 1.2,
       ),
     );
   }
 
-  static ThemeData get lightTheme {
-    return ThemeData(
-      primaryColor: primaryColor,
-      scaffoldBackgroundColor: backgroundColor,
-      fontFamily: 'Poppins',
-      fontFamilyFallback: const ['NotoSansMyanmar'],
-      colorScheme: ColorScheme.light(
-        primary: primaryColor,
-        secondary: secondaryColor,
-        surface: cardColor,
-        error: errorColor,
+  static ThemeData get lightTheme => ThemeData(
+    useMaterial3: true,
+    primaryColor: primaryColor,
+    scaffoldBackgroundColor: backgroundColor,
+    fontFamily: 'Poppins',
+    fontFamilyFallback: _fallback,
+    colorScheme: const ColorScheme.light(
+      primary: primaryColor,
+      onPrimary: Colors.white,
+      secondary: accentColor,
+      onSecondary: textPrimary,
+      surface: cardColor,
+      onSurface: textPrimary,
+      surfaceContainerHighest: paperColor,
+      onSurfaceVariant: textSecondary,
+      outline: borderColor,
+      error: errorColor,
+    ),
+    textTheme: _buildTextTheme(),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: backgroundColor,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      iconTheme: IconThemeData(color: textPrimary),
+      titleTextStyle: TextStyle(
+        color: textPrimary,
+        fontSize: 21,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'PlayfairDisplay',
+        fontFamilyFallback: _fallback,
       ),
-      textTheme: _buildTextTheme(),
-      appBarTheme: AppBarTheme(
+    ),
+    cardTheme: CardThemeData(
+      color: cardColor,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(3),
+        side: const BorderSide(color: borderColor),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'Poppins',
-          fontFamilyFallback: ['NotoSansMyanmar'],
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
-      cardTheme: CardThemeData(
-        color: cardColor,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: cardColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(3),
+        borderSide: const BorderSide(color: borderColor),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(3),
+        borderSide: const BorderSide(color: borderColor),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
-        ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(3),
+        borderSide: const BorderSide(color: primaryColor, width: 1.5),
       ),
-    );
-  }
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+    ),
+  );
 }

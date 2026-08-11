@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart'
     show Firebase, FirebaseException;
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 import '../../data/models/trip_model.dart';
 import '../../models/user.dart';
@@ -36,6 +39,18 @@ class FirebaseService {
       return FirestoreInstance.instanceOrNull;
     } catch (e, st) {
       Logger.error('FirebaseService: Firestore unavailable', e, st);
+      return null;
+    }
+  }
+
+  firebase_storage.FirebaseStorage? get _storageOrNull {
+    if (!isFirebaseAvailable) {
+      return null;
+    }
+    try {
+      return firebase_storage.FirebaseStorage.instance;
+    } catch (e, st) {
+      Logger.error('FirebaseService: Firebase Storage unavailable', e, st);
       return null;
     }
   }
@@ -200,6 +215,46 @@ class FirebaseService {
     } catch (e, st) {
       final failure = _handleAuthException(e);
       Logger.error('FirebaseService: Update display name failed', e, st);
+      throw failure;
+    }
+  }
+
+  Future<void> updateProfilePhoto(
+    Uint8List bytes, {
+    String? contentType,
+  }) async {
+    try {
+      final auth = _requireAuth();
+      final user = auth.currentUser;
+      final storage = _storageOrNull;
+      if (user == null || storage == null) {
+        throw AuthFailure('profile.photoUploadFailed');
+      }
+
+      final reference = storage.ref().child('users/${user.uid}/profile.jpg');
+      await reference.putData(
+        bytes,
+        firebase_storage.SettableMetadata(
+          contentType: contentType ?? 'image/jpeg',
+          cacheControl: 'public,max-age=86400',
+        ),
+      );
+      final photoUrl = await reference.getDownloadURL();
+      await user.updatePhotoURL(photoUrl);
+      await user.reload();
+
+      final firestore = _firestoreOrNull;
+      if (firestore != null) {
+        await firestore.collection('users').doc(user.uid).set({
+          'id': user.uid,
+          'email': user.email,
+          'displayName': user.displayName,
+          'photoUrl': photoUrl,
+        }, SetOptions(merge: true));
+      }
+    } catch (e, st) {
+      final failure = _handleAuthException(e);
+      Logger.error('FirebaseService: Update profile photo failed', e, st);
       throw failure;
     }
   }

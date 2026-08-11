@@ -33,6 +33,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final _descriptionController = TextEditingController();
   TripTransportMode _selectedTransportMode = TripTransportMode.walk;
   DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedStartTime = const TimeOfDay(hour: 5, minute: 30);
   List<Pagoda> _selectedPagodas = [];
   bool _isCalculatingRoute = false;
   bool _loadedExistingStops = false;
@@ -105,6 +106,16 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       setState(() {
         _selectedDate = picked;
       });
+    }
+  }
+
+  Future<void> _selectStartTime(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedStartTime,
+    );
+    if (picked != null && mounted) {
+      setState(() => _selectedStartTime = picked);
     }
   }
 
@@ -354,6 +365,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final horizontalPadding = MediaQuery.sizeOf(context).width < 400
+        ? 24.0
+        : 36.0;
     final isLoggedIn = context.select<AuthProvider, bool>(
       (auth) => auth.user != null,
     );
@@ -391,23 +405,20 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F2E9),
       appBar: AppBar(
-        title: Text(
-          l10n.translate(isEditing ? 'trip.editTitle' : 'trip.createTitle'),
+        backgroundColor: const Color(0xFFF7F2E9),
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Color(0xFF2B1D14), size: 31),
+          onPressed: () => Navigator.maybePop(context),
         ),
-        actions: [
-          IconButton(
-            onPressed: () => AIAssistantLauncher.open(
-              context,
-              entryContext: widget.existingTrip != null
-                  ? AIEntryContext.trip(widget.existingTrip!.id)
-                  : widget.initialPagoda != null
-                  ? AIEntryContext.pagoda(widget.initialPagoda!.id)
-                  : const AIEntryContext.global(),
-            ),
-            icon: const Icon(Icons.support_agent_outlined),
-            tooltip: l10n.translate('chat.fabLabel'),
+        title: Text(
+          l10n.translate(
+            isEditing ? 'trip.journalEditTitle' : 'trip.journalNewTitle',
           ),
+        ),
+        centerTitle: true,
+        actions: [
           if (_isCalculatingRoute)
             const Padding(
               padding: EdgeInsets.all(16),
@@ -425,7 +436,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               onPressed: _saveTrip,
               child: Text(
                 l10n.translate(isEditing ? 'common.update' : 'common.save'),
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: const TextStyle(
+                  color: Color(0xFFC19A49),
+                  fontSize: 16,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
         ],
@@ -434,13 +450,28 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         key: _formKey,
         child: ResponsiveContent(
           child: ListView(
-            padding: Responsive.pagePadding(context),
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              44,
+              horizontalPadding,
+              36,
+            ),
             children: [
+              _JourneyLabel(l10n.translate('trip.nameLabel')),
+              const SizedBox(height: 18),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: l10n.translate('trip.nameLabel'),
-                  prefixIcon: const Icon(Icons.title),
+                  hintText: l10n.translate('trip.nameHint'),
+                  hintStyle: const TextStyle(
+                    fontFamily: 'PlayfairDisplay',
+                    fontSize: 23,
+                    color: Color(0xFFC8BEB5),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 22,
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -449,53 +480,103 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: l10n.translate('trip.descriptionOptional'),
-                  prefixIcon: const Icon(Icons.description),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today),
-                title: Text(l10n.translate('trip.date')),
-                subtitle: Text(Helpers.formatDate(_selectedDate)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _selectDate(context),
-              ),
-              const Divider(height: 32),
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
+              const SizedBox(height: 52),
+              Row(
                 children: [
-                  Text(
-                    l10n.translate('trip.selectedPagodas'),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: _JourneyDateTime(
+                      label: l10n.translate('trip.date'),
+                      icon: Icons.calendar_today_outlined,
+                      value: Helpers.formatDate(_selectedDate),
+                      onTap: () => _selectDate(context),
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: _optimizeRoute,
-                    icon: const Icon(Icons.route),
-                    label: Text(l10n.translate('trip.optimize')),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _JourneyDateTime(
+                      label: l10n.translate('trip.startTime'),
+                      icon: Icons.access_time_rounded,
+                      value: _selectedStartTime.format(context),
+                      onTap: () => _selectStartTime(context),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 58),
+              _JourneyLabel(l10n.translate('trip.transportMode')),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TransportChip(
+                      label: l10n.translate('trip.transportMode.bike'),
+                      icon: Icons.electric_bike_outlined,
+                      selected:
+                          _selectedTransportMode == TripTransportMode.bike,
+                      onTap: () => setState(
+                        () => _selectedTransportMode = TripTransportMode.bike,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _TransportChip(
+                      label: l10n.translate('trip.transportMode.car'),
+                      icon: Icons.directions_car_outlined,
+                      selected: _selectedTransportMode == TripTransportMode.car,
+                      onTap: () => setState(
+                        () => _selectedTransportMode = TripTransportMode.car,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _TransportChip(
+                      label: l10n.translate('trip.transportMode.walk'),
+                      icon: Icons.directions_walk_rounded,
+                      selected:
+                          _selectedTransportMode == TripTransportMode.walk,
+                      onTap: () => setState(
+                        () => _selectedTransportMode = TripTransportMode.walk,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 58),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _JourneyLabel(l10n.translate('trip.stops')),
+                  TextButton.icon(
+                    onPressed: () => _showPagodaSelector(context),
+                    icon: const Icon(Icons.add, color: Color(0xFFC19A49)),
+                    label: Text(
+                      l10n.translate('trip.addStop'),
+                      style: const TextStyle(
+                        letterSpacing: 2,
+                        color: Color(0xFFC19A49),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _optimizeRoute,
+                  icon: const Icon(Icons.route, size: 18),
+                  label: Text(l10n.translate('trip.optimize')),
+                ),
+              ),
               if (_selectedPagodas.isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
                     child: Text(
                       l10n.translate('trip.noneSelected'),
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: const TextStyle(color: Color(0xFF756159)),
                     ),
                   ),
                 )
@@ -515,20 +596,34 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   children: _selectedPagodas.asMap().entries.map((entry) {
                     final index = entry.key;
                     final pagoda = entry.value;
-                    return Card(
+                    return Container(
                       key: ValueKey(pagoda.id),
-                      margin: const EdgeInsets.only(bottom: 8),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: .62),
+                        border: Border.all(color: const Color(0xFFE5D0A3)),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFFD4AF37),
-                          child: Text('${index + 1}'),
+                        leading: const Icon(
+                          Icons.drag_indicator_rounded,
+                          color: Color(0xFFD6CBC1),
                         ),
-                        title: Text(l10n.pagodaName(pagoda.id, pagoda.name)),
-                        subtitle: Text(l10n.categoryLabel(pagoda.category)),
+                        title: Text(
+                          l10n.pagodaName(pagoda.id, pagoda.name),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            height: 1.18,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF5C4B42),
+                          ),
+                        ),
                         trailing: IconButton(
                           icon: const Icon(
-                            Icons.remove_circle,
-                            color: Colors.red,
+                            Icons.close,
+                            color: Color(0xFFD6CBC1),
                           ),
                           onPressed: () {
                             setState(() {
@@ -541,10 +636,43 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   }).toList(),
                 ),
               const SizedBox(height: 16),
-              ElevatedButton.icon(
+              OutlinedButton.icon(
                 onPressed: () => _showPagodaSelector(context),
-                icon: const Icon(Icons.add),
-                label: Text(l10n.translate('trip.addPagodas')),
+                icon: const Icon(Icons.location_on_outlined),
+                label: Text(
+                  l10n.translate('trip.addFromMap'),
+                  style: const TextStyle(
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 22),
+                  side: const BorderSide(color: Color(0xFFDABF85)),
+                ),
+              ),
+              const SizedBox(height: 84),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _isCalculatingRoute ? null : _saveTrip,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFAE5038),
+                    padding: const EdgeInsets.symmetric(vertical: 23),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.translate(
+                      isEditing ? 'trip.updateJourney' : 'trip.createJourney',
+                    ),
+                    style: const TextStyle(
+                      letterSpacing: 2.3,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -641,4 +769,128 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       ),
     );
   }
+}
+
+class _JourneyLabel extends StatelessWidget {
+  const _JourneyLabel(this.label);
+  final String label;
+  @override
+  Widget build(BuildContext context) => Text(
+    label,
+    style: const TextStyle(
+      fontSize: 15,
+      letterSpacing: 2.5,
+      color: Color(0xFF786A63),
+      fontWeight: FontWeight.w800,
+    ),
+  );
+}
+
+class _JourneyDateTime extends StatelessWidget {
+  const _JourneyDateTime({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
+  final String value;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          letterSpacing: 1.5,
+          color: Color(0xFF786A63),
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 12),
+      InkWell(
+        onTap: onTap,
+        child: Container(
+          height: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFF625C58)),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: const Color(0xFFD0AA58), size: 21),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.25,
+                    color: Color(0xFF2B1D14),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+class _TransportChip extends StatelessWidget {
+  const _TransportChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(22),
+    child: Container(
+      height: 64,
+      decoration: BoxDecoration(
+        color: selected ? const Color(0xFF2B1D14) : Colors.transparent,
+        border: Border.all(
+          color: selected ? const Color(0xFF2B1D14) : const Color(0xFFE3CD99),
+        ),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: selected ? Colors.white : const Color(0xFF2B1D14),
+              size: 20,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                letterSpacing: 0.8,
+                fontWeight: FontWeight.w800,
+                color: selected ? Colors.white : const Color(0xFF2B1D14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

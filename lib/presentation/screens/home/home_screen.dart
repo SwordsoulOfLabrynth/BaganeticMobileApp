@@ -5,6 +5,7 @@ import 'home_content_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
 import '../map/map_screen.dart';
 import '../community/community_feed_screen.dart';
+import '../chat/chat_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
@@ -24,6 +25,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  bool _isChatOpen = false;
   late List<Widget> _screens;
 
   void _onNavigateToTab(int index) {
@@ -54,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const PagodasListScreen(), // 1
     MapScreen(initialPagoda: widget.initialMapPagoda), // 2
     const CommunityFeedScreen(), // 3
-    const ProfileScreen(), // 4
+    ProfileScreen(onBack: () => _onNavigateToTab(0)), // 4
   ];
 
   void _onTabSelected(int index) {
@@ -74,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    // Navigation order: Home, Pagodas, Map, Community, Profile
+    // Navigation order: Home, Pagodas, Map, Community (Profile = avatar in app bar)
     final navigationItems = [
       NavigationItem(
         icon: Icons.home,
@@ -95,11 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.forum_outlined,
         label: l10n.translate('nav.community'),
         index: 3,
-      ),
-      NavigationItem(
-        icon: Icons.person,
-        label: l10n.translate('nav.profile'),
-        index: 4,
       ),
     ];
 
@@ -140,27 +137,155 @@ class _HomeScreenState extends State<HomeScreen> {
     List<NavigationItem> navigationItems,
   ) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openChat(context),
-        icon: const Icon(Icons.support_agent_outlined),
-        label: Text(context.l10n.translate('chat.fabLabel')),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          IndexedStack(index: _currentIndex, children: _screens),
+          IgnorePointer(
+            ignoring: !_isChatOpen,
+            child: AnimatedSlide(
+              duration: const Duration(milliseconds: 380),
+              curve: Curves.easeOutCubic,
+              offset: _isChatOpen ? Offset.zero : const Offset(0, 1),
+              child: ChatScreen(embedded: true, onClose: _toggleMobileChat),
+            ),
+          ),
+        ],
       ),
-      body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: _buildMobileBottomNavigationBar(
-        context,
-        navigationItems,
+      bottomNavigationBar: _StitchBottomNavigation(
+        currentIndex: _currentIndex,
+        onNavigate: _onTabSelected,
+        onChat: _toggleMobileChat,
       ),
     );
   }
 
-  Widget _buildMobileBottomNavigationBar(
-    BuildContext context,
-    List<NavigationItem> navigationItems,
-  ) {
-    return AdaptiveNavigation(
-      currentIndex: _currentIndex,
-      onNavigate: _onTabSelected,
-      items: navigationItems,
+  void _toggleMobileChat() {
+    setState(() => _isChatOpen = !_isChatOpen);
+  }
+}
+
+class _StitchBottomNavigation extends StatelessWidget {
+  const _StitchBottomNavigation({
+    required this.currentIndex,
+    required this.onNavigate,
+    required this.onChat,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onNavigate;
+  final VoidCallback onChat;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final items = <(IconData, String, int)>[
+      (Icons.home_outlined, l10n.translate('nav.home'), 0),
+      (Icons.temple_buddhist_outlined, l10n.translate('nav.pagodas'), 1),
+      (Icons.map_outlined, l10n.translate('nav.map'), 2),
+      (Icons.forum_outlined, l10n.translate('nav.community'), 3),
+    ];
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: 76,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              color: const Color(0xFF2B1D14),
+              child: Row(
+                children: [
+                  _StitchNavItem(
+                    item: items[0],
+                    selected: currentIndex == 0,
+                    onTap: onNavigate,
+                  ),
+                  _StitchNavItem(
+                    item: items[1],
+                    selected: currentIndex == 1,
+                    onTap: onNavigate,
+                  ),
+                  const Expanded(child: SizedBox()),
+                  _StitchNavItem(
+                    item: items[2],
+                    selected: currentIndex == 2,
+                    onTap: onNavigate,
+                  ),
+                  _StitchNavItem(
+                    item: items[3],
+                    selected: currentIndex == 3,
+                    onTap: onNavigate,
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: -26,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Material(
+                  color: const Color(0xFFC19A49),
+                  shape: const CircleBorder(
+                    side: BorderSide(color: Color(0xFF2B1D14), width: 4),
+                  ),
+                  child: InkWell(
+                    onTap: onChat,
+                    customBorder: const CircleBorder(),
+                    child: const SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: Icon(
+                        Icons.smart_toy_outlined,
+                        size: 29,
+                        color: Color(0xFF2B1D14),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StitchNavItem extends StatelessWidget {
+  const _StitchNavItem({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+  final (IconData, String, int) item;
+  final bool selected;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? const Color(0xFFC19A49) : const Color(0xFFBDAEA4);
+    return Expanded(
+      child: InkWell(
+        onTap: () => onTap(item.$3),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(item.$1, color: color, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              item.$2,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.45,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

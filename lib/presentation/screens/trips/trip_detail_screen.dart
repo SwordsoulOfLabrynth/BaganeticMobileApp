@@ -1,23 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
 
-import '../../../core/utils/platform_file_stub.dart'
-    if (dart.library.io) '../../../core/utils/platform_file_io.dart'
-    as platform_file;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/services/ai_chatbot_service.dart';
 import '../../../core/utils/ai_assistant_launcher.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../data/models/trip_model.dart';
 import '../../../core/utils/helpers.dart';
-import '../../../core/services/offline_route_service.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../core/utils/responsive.dart';
 import 'create_trip_screen.dart';
 
 class TripDetailScreen extends StatefulWidget {
@@ -30,95 +19,129 @@ class TripDetailScreen extends StatefulWidget {
 }
 
 class _TripDetailScreenState extends State<TripDetailScreen> {
-  final ScreenshotController _screenshotController = ScreenshotController();
-  bool _isExporting = false;
   late Trip _trip;
   late TripTransportMode _selectedTransportMode;
-  late Future<List<LatLng>> _routeFuture;
+  late Future<Map<String, String>> _pagodaImageAssetsFuture;
 
   @override
   void initState() {
     super.initState();
     _trip = widget.trip;
     _selectedTransportMode = widget.trip.transportMode;
-    _refreshRoute();
+    _pagodaImageAssetsFuture = _loadPagodaImageAssets();
   }
 
-  void _refreshRoute() {
-    final points = _trip.stops
-        .map((stop) => LatLng(stop.latitude, stop.longitude))
-        .toList();
-    _routeFuture = OfflineRouteService.instance.buildRouteForPoints(points);
+  Future<Map<String, String>> _loadPagodaImageAssets() async {
+    final raw = await rootBundle.loadString('assets/data/sample_pagodas.json');
+    final pagodas = jsonDecode(raw) as List<dynamic>;
+
+    return {
+      for (final pagoda in pagodas.whereType<Map<String, dynamic>>())
+        if (pagoda['id'] is String && pagoda['imageUrl'] is String)
+          pagoda['id'] as String: pagoda['imageUrl'] as String,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Screenshot(
-      controller: _screenshotController,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_trip.name),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.support_agent_outlined),
-              onPressed: () => AIAssistantLauncher.open(
-                context,
-                entryContext: AIEntryContext.trip(_trip.id),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F2E9),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF7F2E9),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.maybePop(context),
+        ),
+        title: Text(_trip.name),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.support_agent_outlined),
+            onPressed: () => AIAssistantLauncher.open(
+              context,
+              entryContext: AIEntryContext.trip(_trip.id),
+            ),
+          ),
+          IconButton(icon: const Icon(Icons.edit), onPressed: _editTrip),
+        ],
+      ),
+      body: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Center(
+              child: Text(
+                context.l10n.translate(
+                  'tripDetail.summary',
+                  args: {
+                    'date': Helpers.formatDate(_trip.date).toUpperCase(),
+                    'count': '${_trip.stops.length}',
+                    'distance': Helpers.formatDistance(
+                      context,
+                      _trip.getTotalDistance(),
+                    ).toUpperCase(),
+                    'mode': Helpers.transportModeLabel(
+                      context,
+                      _selectedTransportMode,
+                    ).toUpperCase(),
+                  },
+                ),
+                style: const TextStyle(
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  color: Color(0xFF655D56),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-            IconButton(icon: const Icon(Icons.edit), onPressed: _editTrip),
-            if (_isExporting)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            else ...[
-              IconButton(icon: const Icon(Icons.share), onPressed: _shareTrip),
-              IconButton(
-                icon: const Icon(Icons.download),
-                onPressed: _exportTrip,
-              ),
-            ],
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: ResponsiveContent(
+          ),
+          _buildMap(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMap(),
-                Padding(
-                  padding: Responsive.pagePadding(context),
-                  child: Column(
+                _buildItinerary(),
+                const Divider(height: 55, color: Color(0xFFE1D4B8)),
+                Text(
+                  context.l10n.translate('tripDetail.roadNotes'),
+                  style: TextStyle(
+                    fontSize: 10,
+                    letterSpacing: 1.7,
+                    color: Color(0xFF756C65),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0E9DC),
+                    border: Border.all(color: const Color(0xFFE6DAC5)),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(),
-                      const SizedBox(height: 20),
-                      _buildTransportModeSelector(),
-                      const SizedBox(height: 24),
-                      _buildStats(),
-                      const SizedBox(height: 24),
-                      Text(
-                        l10n.translate('tripDetail.itinerary'),
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                      Icon(Icons.circle, size: 10, color: Color(0xFFAE5038)),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          context.l10n.translate('tripDetail.roadNotesBody'),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            height: 1.55,
+                            color: Color(0xFF51463E),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      _buildItinerary(),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -128,126 +151,54 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
     final screenWidth = MediaQuery.sizeOf(context).width;
     final mapHeight = screenWidth >= 1000
-        ? 420.0
+        ? 260.0
         : screenWidth >= 600
-        ? 360.0
-        : 280.0;
+        ? 180.0
+        : 100.0;
 
-    return FutureBuilder<List<LatLng>>(
-      future: _routeFuture,
-      builder: (context, snapshot) {
-        final stopPoints = _trip.stops
-            .map((stop) => LatLng(stop.latitude, stop.longitude))
-            .toList();
-        final isFallbackRoute = !snapshot.hasData || snapshot.data!.isEmpty;
-        final routePoints = isFallbackRoute ? stopPoints : snapshot.data!;
-        final bounds = LatLngBounds.fromPoints(routePoints);
-
-        return SizedBox(
-          height: mapHeight,
-          child: Stack(
-            children: [
-              FlutterMap(
-                options: MapOptions(
-                  initialCameraFit: CameraFit.bounds(
-                    bounds: bounds,
-                    padding: const EdgeInsets.all(28),
-                  ),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: AppConstants.mapTileUrlTemplate,
-                    userAgentPackageName: 'com.baganetic.app',
-                    tileProvider: FMTCTileProvider(
-                      stores: const {
-                        AppConstants.mapTileStore:
-                            BrowseStoreStrategy.readUpdateCreate,
-                      },
-                    ),
-                  ),
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: routePoints,
-                        color: const Color(0xFFD4AF37),
-                        strokeWidth: 5,
-                        borderStrokeWidth: 3,
-                        borderColor: Colors.black.withValues(alpha: 0.25),
-                        gradientColors: const [
-                          Colors.green,
-                          Color(0xFFD4AF37),
-                          Colors.red,
-                        ],
-                        colorsStop: const [0.0, 0.5, 1.0],
-                      ),
-                    ],
-                  ),
-                  MarkerLayer(
-                    markers: _trip.stops.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final stop = entry.value;
-
-                      return Marker(
-                        point: LatLng(stop.latitude, stop.longitude),
-                        width: 40,
-                        height: 40,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: index == 0
-                                ? Colors.green
-                                : index == _trip.stops.length - 1
-                                ? Colors.red
-                                : const Color(0xFFD4AF37),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
+    return Container(
+      height: mapHeight,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      decoration: BoxDecoration(
+        color: const Color(0xFF322018),
+        borderRadius: BorderRadius.circular(8),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/stitch/bagan_sunrise.jpg'),
+          fit: BoxFit.cover,
+          opacity: 0.22,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.route_rounded, color: Color(0xFFE1BA5A)),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              context.l10n.translate(
+                'tripDetail.routeSummary',
+                args: {
+                  'count': '${_trip.stops.length}',
+                  'distance': Helpers.formatDistance(
+                    context,
+                    _trip.getTotalDistance(),
+                  ).toUpperCase(),
+                },
               ),
-              if (isFallbackRoute)
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: IgnorePointer(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        context.l10n.translate('route.fallback'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
+  // ignore: unused_element
   Widget _buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,6 +226,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildStats() {
     final estimatedTravelDuration = Helpers.formatDuration(
       context,
@@ -340,6 +292,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildTransportModeSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,205 +367,172 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   }
 
   Widget _buildItinerary() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _trip.stops.length,
-      itemBuilder: (context, index) {
-        final stop = _trip.stops[index];
-        final isLast = index == _trip.stops.length - 1;
+    return FutureBuilder<Map<String, String>>(
+      future: _pagodaImageAssetsFuture,
+      builder: (context, snapshot) {
+        final imageAssets = snapshot.data ?? const <String, String>{};
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
+        return Column(
+          children: List.generate(_trip.stops.length, (index) {
+            final stop = _trip.stops[index];
+            final isLast = index == _trip.stops.length - 1;
+            final image =
+                imageAssets[stop.pagodaId] ??
+                'assets/images/stitch/bagan_sunrise.jpg';
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: index == 0
-                        ? Colors.green
-                        : isLast
-                        ? Colors.red
-                        : const Color(0xFFD4AF37),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                if (!isLast)
-                  Container(width: 2, height: 60, color: Colors.grey[300]),
-              ],
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
+                SizedBox(
+                  width: 33,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        stop.pagodaName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        width: 27,
+                        height: 27,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDF8EF),
+                          border: Border.all(color: const Color(0xFFD1A447)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF9A711E),
+                          ),
                         ),
                       ),
-                      if (stop.notes != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          stop.notes!,
-                          style: TextStyle(color: Colors.grey[600]),
+                      if (!isLast)
+                        Container(
+                          width: 1,
+                          // This list is measured by a surrounding scroll view,
+                          // so it has no bounded height. A flex child here throws
+                          // during layout and leaves multi-stop trips blank.
+                          height: 330,
+                          color: const Color(0xFFE8DCC5),
                         ),
-                      ],
-                      if (stop.distanceToNext != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.arrow_downward,
-                              size: 14,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              Helpers.formatDistance(
-                                context,
-                                stop.distanceToNext!,
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                 ),
-              ),
-            ),
-          ],
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 160,
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFBF3),
+                            border: Border.all(color: const Color(0xFFE8DEC9)),
+                          ),
+                          child: Image.asset(
+                            image,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 17),
+                        Text(
+                          context.l10n.pagodaName(
+                            stop.pagodaId,
+                            stop.pagodaName,
+                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontSize: 23,
+                                color: const Color(0xFF2B1D14),
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          context.l10n.translate(
+                            'tripDetail.arrive',
+                            args: {'time': _arrivalTime(index)},
+                          ),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            letterSpacing: 1.5,
+                            color: Color(0xFFAE5038),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          stop.notes ?? _defaultStopNote(index),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.55,
+                            color: Color(0xFF51463E),
+                          ),
+                        ),
+                        if (!isLast)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 19),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.electric_bike_outlined,
+                                  size: 15,
+                                  color: Color(0xFF6F635A),
+                                ),
+                                const SizedBox(width: 18),
+                                Text(
+                                  context.l10n.translate(
+                                    'tripDetail.nextLeg',
+                                    args: {
+                                      'distance': stop.distanceToNext == null
+                                          ? '12 ${context.l10n.translate('common.minutesShort')}'
+                                          : Helpers.formatDistance(
+                                              context,
+                                              stop.distanceToNext!,
+                                            ).toUpperCase(),
+                                      'mode': Helpers.transportModeLabel(
+                                        context,
+                                        _selectedTransportMode,
+                                      ).toUpperCase(),
+                                    },
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    letterSpacing: .7,
+                                    color: Color(0xFF6F635A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
         );
       },
     );
   }
 
-  Future<void> _shareTrip() async {
-    if (_isExporting) return;
-    setState(() {
-      _isExporting = true;
-    });
-
-    try {
-      final image = await _screenshotController.capture();
-      if (image == null) {
-        throw Exception('Failed to capture screenshot');
-      }
-
-      if (kIsWeb) {
-        // On web, share directly without file
-        await Share.share('${_trip.name} - ${Helpers.formatDate(_trip.date)}');
-      } else {
-        final directory = await getTemporaryDirectory();
-        final imagePath = '${directory.path}/trip_${widget.trip.id}.png';
-        await platform_file.writeBytesToFile(imagePath, image);
-
-        await Share.shareXFiles([
-          XFile(imagePath),
-        ], text: '${_trip.name} - ${Helpers.formatDate(_trip.date)}');
-      }
-    } catch (e) {
-      if (mounted) {
-        Helpers.showSnackBar(
-          context,
-          context.l10n.translate(
-            'tripDetail.shareError',
-            args: {'error': e.toString()},
-          ),
-          isError: true,
-        );
-      }
-    } finally {
-      setState(() {
-        _isExporting = false;
-      });
-    }
+  String _arrivalTime(int index) {
+    final minutes = 345 + index * 55;
+    final hour = (minutes ~/ 60) % 12 == 0 ? 12 : (minutes ~/ 60) % 12;
+    return '${hour.toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')} AM';
   }
 
-  Future<void> _exportTrip() async {
-    if (_isExporting) return;
-    setState(() {
-      _isExporting = true;
-    });
-
-    try {
-      final image = await _screenshotController.capture();
-      if (image == null) {
-        throw Exception('Failed to capture screenshot');
-      }
-
-      if (kIsWeb) {
-        // On web, use Share API which handles file download
-        // Convert image to base64 and share, or use share_plus web support
-        await Share.share(
-          '${_trip.name} - ${Helpers.formatDate(_trip.date)}\n\nImage exported successfully.',
-        );
-        if (mounted) {
-          Helpers.showSnackBar(
-            context,
-            context.l10n.translate(
-              'tripDetail.exportSuccess',
-              args: {'path': 'trip_${_trip.id}.png'},
-            ),
-          );
-        }
-      } else {
-        final directory = await getApplicationDocumentsDirectory();
-        final imagePath = '${directory.path}/trip_${_trip.id}.png';
-        await platform_file.writeBytesToFile(imagePath, image);
-
-        if (mounted) {
-          Helpers.showSnackBar(
-            context,
-            context.l10n.translate(
-              'tripDetail.exportSuccess',
-              args: {'path': imagePath},
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Helpers.showSnackBar(
-          context,
-          context.l10n.translate(
-            'tripDetail.exportError',
-            args: {'error': e.toString()},
-          ),
-          isError: true,
-        );
-      }
-    } finally {
-      setState(() {
-        _isExporting = false;
-      });
-    }
-  }
+  String _defaultStopNote(int index) => switch (index % 3) {
+    0 =>
+      'Best sunrise viewpoint — arrive before first light to secure a spot overlooking the plains.',
+    1 =>
+      'Explore the terracotta corridors in the early light. The four standing Buddhas are particularly striking.',
+    _ =>
+      'Massive brickwork and mysterious inner passages. Take your time with this remarkable temple.',
+  };
 
   Future<void> _editTrip() async {
-    if (_isExporting) return;
     final updatedTrip = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -624,7 +544,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     if (updatedTrip is Trip) {
       setState(() {
         _trip = updatedTrip;
-        _refreshRoute();
       });
     }
   }

@@ -84,18 +84,15 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
     final pagodaVisitorLocation = pagoda.visitorLocation == null
         ? null
         : l10n.pagodaVisitorLocation(pagoda.id, pagoda.visitorLocation!);
-    final pagodaOpeningHours = pagoda.openingHours == null
-        ? null
-        : l10n.pagodaOpeningHours(pagoda.id, pagoda.openingHours!);
+    // Hours, entry fees, and camera restrictions are operational information.
+    // The bundled content has no authority/date for those claims, so do not
+    // present them as current visitor guidance until a maintained source exists.
+    const String? pagodaOpeningHours = null;
     final pagodaDressCode = pagoda.dressCode == null
         ? null
         : l10n.pagodaDressCode(pagoda.id, pagoda.dressCode!);
-    final pagodaEntranceFee = pagoda.entranceFee == null
-        ? null
-        : l10n.pagodaEntranceFee(pagoda.id, pagoda.entranceFee!);
-    final pagodaPhotographyRules = pagoda.photographyRules == null
-        ? null
-        : l10n.pagodaPhotographyRules(pagoda.id, pagoda.photographyRules!);
+    const String? pagodaEntranceFee = null;
+    const String? pagodaPhotographyRules = null;
     final pagodaFinalWords = pagoda.finalWords == null
         ? null
         : l10n.pagodaFinalWords(pagoda.id, pagoda.finalWords!);
@@ -125,155 +122,184 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: Responsive.isDesktopOrLarger(context) ? 400 : 320,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                pagodaName,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: Responsive.responsiveFontSize(context, 20),
-                  shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (images.length <= 1)
-                    PagodaImageWidget(
-                      imageUrl: images.isNotEmpty ? images.first : '',
-                      fit: BoxFit.cover,
-                      height: 320,
-                      width: double.infinity,
-                      placeholder: Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.temple_buddhist, size: 100),
-                      ),
-                    )
-                  else
-                    PageView.builder(
-                      controller: _pageController,
-                      itemCount: images.length,
-                      physics: const PageScrollPhysics(),
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentImageIndex = index;
-                        });
-                      },
-                      itemBuilder: (context, index) {
-                        return PagodaImageWidget(
-                          imageUrl: images[index],
+          SliverLayoutBuilder(
+            builder: (context, constraints) {
+              final expandedHeight = Responsive.isDesktopOrLarger(context)
+                  ? 400.0
+                  : 320.0;
+              final collapseOffset =
+                  expandedHeight -
+                  kToolbarHeight -
+                  MediaQuery.paddingOf(context).top;
+              final isCollapsed = constraints.scrollOffset >= collapseOffset;
+              final appBarForeground = isCollapsed
+                  ? const Color(0xFF2B1D14)
+                  : Colors.white;
+
+              return SliverAppBar(
+                expandedHeight: expandedHeight,
+                pinned: true,
+                backgroundColor: const Color(0xFFF7F2E9),
+                foregroundColor: appBarForeground,
+                surfaceTintColor: Colors.transparent,
+                elevation: isCollapsed ? 1 : 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(
+                    pagodaName,
+                    style: TextStyle(
+                      color: appBarForeground,
+                      fontWeight: FontWeight.bold,
+                      fontSize: Responsive.responsiveFontSize(context, 20),
+                      shadows: isCollapsed
+                          ? null
+                          : const [Shadow(color: Colors.black, blurRadius: 2)],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (images.length <= 1)
+                        PagodaImageWidget(
+                          imageUrl: images.isNotEmpty ? images.first : '',
                           fit: BoxFit.cover,
-                          height: Responsive.isDesktopOrLarger(context)
-                              ? 400
-                              : 320,
+                          height: 320,
                           width: double.infinity,
                           placeholder: Container(
                             color: Colors.grey[300],
                             child: const Icon(Icons.temple_buddhist, size: 100),
                           ),
-                        );
-                      },
-                    ),
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x00000000), Color(0x7A000000)],
-                      ),
-                    ),
-                  ),
-                  if (images.length > 1)
-                    Positioned(
-                      left: 8,
-                      bottom: 10,
-                      child: _CarouselNavButton(
-                        icon: Icons.chevron_left,
-                        onTap: () {
-                          if (_currentImageIndex > 0) {
-                            _pageController.previousPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
+                        )
+                      else
+                        PageView.builder(
+                          controller: _pageController,
+                          itemCount: images.length,
+                          physics: const PageScrollPhysics(),
+                          onPageChanged: (index) {
+                            setState(() {
+                              _currentImageIndex = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            return PagodaImageWidget(
+                              imageUrl: images[index],
+                              fit: BoxFit.cover,
+                              height: Responsive.isDesktopOrLarger(context)
+                                  ? 400
+                                  : 320,
+                              width: double.infinity,
+                              placeholder: Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.temple_buddhist,
+                                  size: 100,
+                                ),
+                              ),
                             );
-                          }
-                        },
+                          },
+                        ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0x00000000), Color(0x7A000000)],
+                          ),
+                        ),
                       ),
-                    ),
-                  if (images.length > 1)
-                    Positioned(
-                      right: 8,
-                      bottom: 10,
-                      child: _CarouselNavButton(
-                        icon: Icons.chevron_right,
-                        onTap: () {
-                          if (_currentImageIndex < images.length - 1) {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  if (images.length > 1)
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 18),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                            images.length,
-                            (index) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
-                              height: 6,
-                              width: index == _currentImageIndex ? 18 : 6,
-                              decoration: BoxDecoration(
-                                color: index == _currentImageIndex
-                                    ? Colors.white
-                                    : Colors.white70,
-                                borderRadius: BorderRadius.circular(999),
+                      if (images.length > 1)
+                        Positioned(
+                          left: 8,
+                          bottom: 10,
+                          child: _CarouselNavButton(
+                            icon: Icons.chevron_left,
+                            onTap: () {
+                              if (_currentImageIndex > 0) {
+                                _pageController.previousPage(
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      if (images.length > 1)
+                        Positioned(
+                          right: 8,
+                          bottom: 10,
+                          child: _CarouselNavButton(
+                            icon: Icons.chevron_right,
+                            onTap: () {
+                              if (_currentImageIndex < images.length - 1) {
+                                _pageController.nextPage(
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      if (images.length > 1)
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 18),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(
+                                images.length,
+                                (index) => AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  height: 6,
+                                  width: index == _currentImageIndex ? 18 : 6,
+                                  decoration: BoxDecoration(
+                                    color: index == _currentImageIndex
+                                        ? Colors.white
+                                        : Colors.white70,
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    onPressed: () => AIAssistantLauncher.open(
+                      context,
+                      entryContext: AIEntryContext.pagoda(pagoda.id),
                     ),
+                    icon: const Icon(Icons.support_agent_outlined),
+                    tooltip: l10n.translate('chat.fabLabel'),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                      color: isFavorite
+                          ? const Color(0xFFAE5038)
+                          : appBarForeground,
+                    ),
+                    onPressed: () async {
+                      final canContinue = await AuthGate.ensureSignedIn(
+                        context,
+                        featureName: l10n.translate('profile.favorites'),
+                      );
+                      if (!canContinue || !context.mounted) {
+                        return;
+                      }
+                      context.read<PagodaProvider>().toggleFavorite(pagoda.id);
+                    },
+                  ),
                 ],
-              ),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () => AIAssistantLauncher.open(
-                  context,
-                  entryContext: AIEntryContext.pagoda(pagoda.id),
-                ),
-                icon: const Icon(Icons.support_agent_outlined),
-                tooltip: l10n.translate('chat.fabLabel'),
-              ),
-              IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.white,
-                ),
-                onPressed: () async {
-                  final canContinue = await AuthGate.ensureSignedIn(
-                    context,
-                    featureName: l10n.translate('profile.favorites'),
-                  );
-                  if (!canContinue || !context.mounted) {
-                    return;
-                  }
-                  context.read<PagodaProvider>().toggleFavorite(pagoda.id);
-                },
-              ),
-            ],
+              );
+            },
           ),
           SliverToBoxAdapter(
             child: ResponsiveContent(
@@ -291,7 +317,7 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                       children: [
                         Chip(
                           label: Text(l10n.categoryLabel(pagoda.category)),
-                          backgroundColor: const Color(0xFFD4AF37),
+                          backgroundColor: const Color(0xFFAE5038),
                           labelStyle: const TextStyle(color: Colors.white),
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,

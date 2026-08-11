@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
@@ -95,8 +94,19 @@ class _MapScreenState extends State<MapScreen>
       }
     }
     if (_mode == mode) return;
+    final selectedTrip = _selectedTrip;
+    final shouldClearSelectedPagoda =
+        mode == MapTripMode.path ||
+        (mode == MapTripMode.trips &&
+            selectedTrip != null &&
+            !selectedTrip.stops.any(
+              (stop) => stop.pagodaId == _selectedPagoda?.id,
+            ));
     setState(() {
       _mode = mode;
+      if (shouldClearSelectedPagoda) {
+        _selectedPagoda = null;
+      }
     });
     if (_mode == MapTripMode.trips && _selectedTrip != null) {
       _loadTripRoute(_selectedTrip!);
@@ -153,8 +163,14 @@ class _MapScreenState extends State<MapScreen>
 
   void _selectTrip(Trip trip) {
     if (_selectedTrip?.id == trip.id) return;
+    final containsSelectedPagoda = trip.stops.any(
+      (stop) => stop.pagodaId == _selectedPagoda?.id,
+    );
     setState(() {
       _selectedTrip = trip;
+      if (!containsSelectedPagoda) {
+        _selectedPagoda = null;
+      }
     });
     _loadTripRoute(trip);
   }
@@ -177,6 +193,30 @@ class _MapScreenState extends State<MapScreen>
       LatLng(pagoda.latitude, pagoda.longitude),
       AppConstants.defaultZoom + 2,
     );
+  }
+
+  void _selectPagoda(Pagoda pagoda) {
+    setState(() {
+      _selectedPagoda = pagoda;
+    });
+    _focusPagoda(pagoda);
+  }
+
+  void _handleTripStopTap(TripStop stop, List<Pagoda> pagodas) {
+    final pagoda = _resolveTripStopPagoda(stop, pagodas);
+    if (pagoda == null) {
+      return;
+    }
+    _selectPagoda(pagoda);
+  }
+
+  Pagoda? _resolveTripStopPagoda(TripStop stop, List<Pagoda> pagodas) {
+    for (final pagoda in pagodas) {
+      if (pagoda.id == stop.pagodaId) {
+        return pagoda;
+      }
+    }
+    return null;
   }
 
   void _setPathStart(Pagoda? pagoda) {
@@ -318,7 +358,7 @@ class _MapScreenState extends State<MapScreen>
     final points = result.path
         .map((pagoda) => LatLng(pagoda.latitude, pagoda.longitude))
         .toList();
-    final route = result.roadNodePath.length >= 2
+    final route = result.isRoadGraphRoute && result.roadNodePath.length >= 2
         ? await OfflineRouteService.instance.buildRouteForRoadNodeIds(
             result.roadNodePath,
             fallbackPoints: points,
@@ -335,7 +375,7 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = result.path;
       _shortestPathDistanceKm = result.distanceKm;
       _shortestPathRoute = resolved;
-      _isPathRouteFallback = route.isEmpty;
+      _isPathRouteFallback = !result.isRoadGraphRoute || route.isEmpty;
       _isPathRouteLoading = false;
     });
     _focusRoute(resolved);
@@ -444,6 +484,7 @@ class _MapScreenState extends State<MapScreen>
         _tripRoute = [];
         _isTripRouteFallback = false;
         _isTripRouteLoading = false;
+        _selectedPagoda = null;
       });
     }
   }
@@ -470,7 +511,7 @@ class _MapScreenState extends State<MapScreen>
           final markers = switch (_mode) {
             MapTripMode.path => _buildPathMarkers(pagodas),
             MapTripMode.trips when showTrip && _selectedTrip != null =>
-              _buildTripMarkers(_selectedTrip!),
+              _buildTripMarkers(_selectedTrip!, pagodas),
             _ => _buildPagodaMarkers(pagodas),
           };
 
@@ -488,13 +529,9 @@ class _MapScreenState extends State<MapScreen>
                 children: [
                   TileLayer(
                     urlTemplate: AppConstants.mapTileUrlTemplate,
-                    userAgentPackageName: 'com.baganetic.app',
-                    tileProvider: FMTCTileProvider(
-                      stores: const {
-                        AppConstants.mapTileStore:
-                            BrowseStoreStrategy.readUpdateCreate,
-                      },
-                    ),
+                    fallbackUrl: AppConstants.mapFallbackTileUrlTemplate,
+                    subdomains: AppConstants.mapTileSubdomains,
+                    userAgentPackageName: AppConstants.mapTileUserAgent,
                   ),
                   if (showTrip && _tripRoute.isNotEmpty)
                     PolylineLayer(
@@ -542,17 +579,6 @@ class _MapScreenState extends State<MapScreen>
                 right: 16,
                 child: SafeArea(child: _buildModeToggle(context)),
               ),
-              if (_mode == MapTripMode.browse && _selectedPagoda != null)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: SafeArea(
-                    top: false,
-                    minimum: const EdgeInsets.only(bottom: 8),
-                    child: _buildPagodaInfo(_selectedPagoda!),
-                  ),
-                ),
               if ((showTrip && _isTripRouteFallback) ||
                   (_mode == MapTripMode.path && _isPathRouteFallback))
                 Positioned(
@@ -585,51 +611,64 @@ class _MapScreenState extends State<MapScreen>
                 Positioned.fill(
                   child: _buildTripPanel(tripProvider, isLoggedIn: isLoggedIn),
                 ),
+              if (_selectedPagoda != null &&
+                  (_mode == MapTripMode.browse ||
+                      (_mode == MapTripMode.trips && _selectedTrip != null)))
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    top: false,
+                    minimum: EdgeInsets.only(
+                      bottom: _mode == MapTripMode.trips ? 108 : 8,
+                    ),
+                    child: _buildPagodaInfo(_selectedPagoda!),
+                  ),
+                ),
             ],
           );
         },
       ),
-      floatingActionButton: _buildFloatingActionButtons(isLoggedIn: isLoggedIn),
+      // Path and trip sheets own their primary actions. Keeping the map FABs
+      // in Browse mode prevents them from covering forms and panel buttons.
+      floatingActionButton: _mode == MapTripMode.browse
+          ? _buildFloatingActionButtons(isLoggedIn: isLoggedIn)
+          : null,
     );
   }
 
   Widget _buildModeToggle(BuildContext context) {
     final theme = Theme.of(context);
-    final isSelected = MapTripMode.values.map((mode) => _mode == mode).toList();
     final l10n = context.l10n;
-    final availableWidth = MediaQuery.sizeOf(context).width - 32;
-    final tabMinWidth = (availableWidth / MapTripMode.values.length)
-        .clamp(88, 150)
-        .toDouble();
-    final isCompact = Responsive.isCompact(context);
 
     return Material(
       elevation: 3,
       borderRadius: BorderRadius.circular(18),
       color: Colors.white.withValues(alpha: 0.95),
-      child: ToggleButtons(
-        borderRadius: BorderRadius.circular(18),
-        selectedColor: Colors.white,
-        color: theme.colorScheme.primary,
-        fillColor: theme.colorScheme.primary,
-        borderColor: Colors.transparent,
-        selectedBorderColor: Colors.transparent,
-        constraints: BoxConstraints(
-          minHeight: isCompact ? 36 : 40,
-          minWidth: tabMinWidth,
-        ),
-        isSelected: isSelected,
-        onPressed: (index) => _setMode(MapTripMode.values[index]),
+      child: Row(
         children: [
-          _ModeChip(
+          _ModeToggleItem(
+            selected: _mode == MapTripMode.browse,
             label: l10n.translate('map.mode.browse'),
             icon: Icons.map_outlined,
+            activeColor: theme.colorScheme.primary,
+            onTap: () => _setMode(MapTripMode.browse),
           ),
-          _ModeChip(
+          _ModeToggleItem(
+            selected: _mode == MapTripMode.path,
             label: l10n.translate('map.mode.path'),
             icon: Icons.alt_route,
+            activeColor: theme.colorScheme.primary,
+            onTap: () => _setMode(MapTripMode.path),
           ),
-          _ModeChip(label: l10n.translate('map.planTrip'), icon: Icons.route),
+          _ModeToggleItem(
+            selected: _mode == MapTripMode.trips,
+            label: l10n.translate('map.planTrip'),
+            icon: Icons.route,
+            activeColor: theme.colorScheme.primary,
+            onTap: () => _setMode(MapTripMode.trips),
+          ),
         ],
       ),
     );
@@ -652,9 +691,9 @@ class _MapScreenState extends State<MapScreen>
     final pathDistance = hasPath ? _shortestPathDistanceKm : 0.0;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.34,
-      minChildSize: 0.16,
-      maxChildSize: 0.66,
+      initialChildSize: 0.52,
+      minChildSize: 0.24,
+      maxChildSize: 0.76,
       builder: (context, scrollController) => Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -880,6 +919,7 @@ class _MapScreenState extends State<MapScreen>
   }) {
     return DropdownButtonFormField<String>(
       initialValue: value?.id,
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: accentColor, fontWeight: FontWeight.w600),
@@ -895,12 +935,20 @@ class _MapScreenState extends State<MapScreen>
       items: [
         DropdownMenuItem<String>(
           value: null,
-          child: Text(context.l10n.translate('map.pathChoosePagoda')),
+          child: Text(
+            context.l10n.translate('map.pathChoosePagoda'),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         ...pagodas.map(
           (pagoda) => DropdownMenuItem<String>(
             value: pagoda.id,
-            child: Text(context.l10n.pagodaName(pagoda.id, pagoda.name)),
+            child: Text(
+              context.l10n.pagodaName(pagoda.id, pagoda.name),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ],
@@ -1297,6 +1345,7 @@ class _MapScreenState extends State<MapScreen>
                       _tripRoute = [];
                       _isTripRouteFallback = false;
                       _isTripRouteLoading = false;
+                      _selectedPagoda = null;
                     });
                   },
                 ),
@@ -1376,11 +1425,7 @@ class _MapScreenState extends State<MapScreen>
         width: 40,
         height: 40,
         child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedPagoda = pagoda;
-            });
-          },
+          onTap: () => _selectPagoda(pagoda),
           child: _MapMarker(
             isSelected: _selectedPagoda?.id == pagoda.id,
             pulse: _pulseController,
@@ -1418,10 +1463,11 @@ class _MapScreenState extends State<MapScreen>
     }).toList();
   }
 
-  List<Marker> _buildTripMarkers(Trip trip) {
+  List<Marker> _buildTripMarkers(Trip trip, List<Pagoda> pagodas) {
     return trip.stops.asMap().entries.map((entry) {
       final index = entry.key;
       final stop = entry.value;
+      final pagoda = _resolveTripStopPagoda(stop, pagodas);
       final color = index == 0
           ? Colors.green
           : index == trip.stops.length - 1
@@ -1430,22 +1476,17 @@ class _MapScreenState extends State<MapScreen>
 
       return Marker(
         point: LatLng(stop.latitude, stop.longitude),
-        width: 40,
-        height: 40,
-        child: Container(
-          decoration: BoxDecoration(
+        width: 44,
+        height: 44,
+        child: GestureDetector(
+          onTap: pagoda == null
+              ? null
+              : () => _handleTripStopTap(stop, pagodas),
+          child: _TripMapMarker(
+            label: '${index + 1}',
             color: color,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              '${index + 1}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            isSelected: _selectedPagoda?.id == stop.pagodaId,
+            pulse: _pulseController,
           ),
         ),
       );
@@ -1551,7 +1592,9 @@ class _MapScreenState extends State<MapScreen>
           ),
           SizedBox(height: Responsive.smallSpacing(context)),
         ],
-        if (_selectedPagoda != null && _mode == MapTripMode.browse) ...[
+        if (_selectedPagoda != null &&
+            (_mode == MapTripMode.browse ||
+                (_mode == MapTripMode.trips && _selectedTrip != null))) ...[
           FloatingActionButton.small(
             heroTag: 'selected-pagoda',
             onPressed: () {
@@ -1583,28 +1626,57 @@ class _MapScreenState extends State<MapScreen>
   }
 }
 
-class _ModeChip extends StatelessWidget {
+class _ModeToggleItem extends StatelessWidget {
   final String label;
   final IconData icon;
+  final bool selected;
+  final Color activeColor;
+  final VoidCallback onTap;
 
-  const _ModeChip({required this.label, required this.icon});
+  const _ModeToggleItem({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.activeColor,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: Responsive.responsiveFontSize(context, 14),
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: Responsive.isCompact(context) ? 36 : 40,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: selected ? activeColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 17,
+                  color: selected ? Colors.white : activeColor,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? Colors.white : activeColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: Responsive.responsiveFontSize(context, 14),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1731,6 +1803,77 @@ class _MapMarker extends StatelessWidget {
                 color: Color(0xFFD4AF37),
                 shape: BoxShape.circle,
               ),
+            ),
+          ),
+        ),
+        marker,
+      ],
+    );
+  }
+}
+
+class _TripMapMarker extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool isSelected;
+  final Animation<double> pulse;
+
+  const _TripMapMarker({
+    required this.label,
+    required this.color,
+    required this.isSelected,
+    required this.pulse,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final marker = Container(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected ? const Color(0xFF5C3A17) : Colors.white,
+          width: isSelected ? 3 : 2,
+        ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+
+    if (!isSelected) {
+      return marker;
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        ScaleTransition(
+          scale: Tween<double>(
+            begin: 0.82,
+            end: 1.38,
+          ).animate(CurvedAnimation(parent: pulse, curve: Curves.easeOut)),
+          child: FadeTransition(
+            opacity: Tween<double>(begin: 0.42, end: 0.0).animate(pulse),
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
           ),
         ),

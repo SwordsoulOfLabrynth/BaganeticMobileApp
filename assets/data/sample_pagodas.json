@@ -237,7 +237,7 @@
       "assets/images/pagodas/Htilominlo Temple/8f2f27db2e013baa142a74a15f67eac0.jpg",
       "assets/images/pagodas/Htilominlo Temple/bd1e3ba807c0ce68a65a7d1243778136.jpg"
     ],
-    "historicalInfo": "Htilominlo Temple was constructed in 1211 AD under the reign of King Htilominlo (Nadaungmya), a monarch celebrated for his devotion to Theravāda Buddhism. The king dedicated the temple to commemorate his rise to the throne and to gain spiritual merit.\n\nCompleted over a relatively short period, the temple showcases the expertise of Bagan’s artisans in both structural construction and decorative stucco work.",
+    "historicalInfo": "Construction of Htilominlo Temple began in 1211 during the reign of King Htilominlo (Nadaungmya) and was completed in 1218. The temple commemorates his accession and is a major late-Bagan monument noted for brickwork, stucco decoration, and murals.",
     "architecturalStyle": "Htilominlo is a five‑story brick temple standing approximately 46 meters high, designed as a hollow structure for circumambulation and meditation.\n\nBrick Construction: Finely crafted bricks demonstrate remarkable precision and durability.\n\nCentral Stupa and Terraces: A soaring central tower is encircled by receding terraces with small corner stupas.\n\nStucco and Interior: Intricate plaster moldings adorn arches and niches; hollow chambers contain Buddha images across levels, enabling meditation throughout.",
     "yearBuilt": 1211,
     "legends": "Local tradition holds that King Htilominlo, inspired by a sacred dream, built the temple as an act of merit and devotion. Its serene design emphasizes harmony, balance, and enlightenment, reflecting the spiritual guidance of the Buddha.",
@@ -341,9 +341,9 @@
     "images": [
       "assets/images/pagodas/BuPaya/Bupaya-Pagoda-and-Irrawaddy-in-the-back.jpg"
     ],
-    "historicalInfo": "Tradition credits King Pyusawhti as founder; stylistic studies point to the 9th–11th century. The original brick pagoda collapsed in the 1975 earthquake and was rebuilt (1976–1978) with modern materials, recreating its iconic form.\n\nThough the present structure differs from the original, Bupaya continues to serve as a spiritual landmark and symbol of Bagan's riverside heritage.",
+    "historicalInfo": "Bupaya's original construction date is uncertain. Tradition attributes it to King Pyusawhti, while modern studies and guides propose different early dates. The original brick pagoda collapsed in the 1975 earthquake and was rebuilt between 1976 and 1978; the present structure therefore differs from the historic monument.",
     "architecturalStyle": "Bupaya is famed for its bulbous, gourd-shaped dome set atop diminishing terraces—visually striking against the river horizon.\n\nOriginal: brick construction; Rebuild: hollow reinforced concrete with gilded finish.\n\nRiverside site amplifies its glow at sunrise and sunset—an enduring beacon for boats and pilgrims.\n\nCompact scale and clean lines emphasize symbolic form over elaborate ornament.",
-    "yearBuilt": 850,
+    "yearBuilt": null,
     "legends": "Local lore says young Pyusawhti defeated five great menaces—including rampant gourd-like plants along the riverbanks. Ascending the throne, he built Bupaya in a gourd shape—signifying triumph over adversity and good fortune.",
     "religiousImportance": "While not famed for major relics, Bupaya's legend and tranquil setting make it a meaningful place for reflection.\n\nIt symbolizes victory over obstacles and the quiet resilience of the Buddhist faith along the Ayeyarwady.",
     "preservationInfo": "Destroyed in 1975 and reconstructed by 1978, Bupaya's modern materials differ from its original brick. The restoration preserves its iconic silhouette and spiritual function for future generations.",
@@ -439,8 +439,8 @@
   },
   {
     "id": "gawdawpalin",
-    "name": "Gawdawpalin Temple",
-    "description": "Gawdawpalin Temple is one of Bagan’s most impressive monuments and the second tallest temple in the region. Its name, “Gawdawpalin” (Great Royal Palace), reflects its royal patronage and majestic stature—an enduring symbol of devotion and architectural mastery.",
+    "name": "Gadawpalin Temple",
+    "description": "Gadawpalin Temple is one of Bagan’s most impressive monuments and the second tallest temple in the region. Its name, “Gadawpalin” (Great Royal Palace), reflects its royal patronage and majestic stature—an enduring symbol of devotion and architectural mastery.",
     "category": "Temple",
     "latitude": 21.17,
     "longitude": 94.856667,
@@ -454,12 +454,12 @@
     ],
     "historicalInfo": "Construction began in 1203 under King Narapatisithu and was completed in 1227 by his son, King Htilominlo. Built to honor Theravāda Buddhism and royal legacy, its refined design influenced many later temples.\n\nIts architectural splendor became a model for subsequent constructions, cementing its status as a pinnacle of Bagan’s temple‑building tradition.",
     "architecturalStyle": "Twin‑Tiered Gu‑Style: A hollow, two‑story design for worship, meditation, and ritual practice—three lower and four upper terraces crowned by a sikhara and hti.\n\n32 Portals: Generous openings provide light and ventilation, enriching the serene interior.\n\nStucco Reliefs: Walls adorned with intricate Jataka scenes and Buddhist motifs.\n\nVaulted Chambers and Pointed Arches: Structural elegance paired with spiritual ambiance.",
-    "yearBuilt": 1200,
-    "legends": "Local tradition regards Gawdawpalin as a sanctuary for both worship and learning—where royal patronage met monastic practice, and where devotion was paired with study and meditation.",
+    "yearBuilt": 1203,
+    "legends": "Local tradition regards Gadawpalin as a sanctuary for both worship and learning—where royal patronage met monastic practice, and where devotion was paired with study and meditation.",
     "religiousImportance": "A living center of worship, meditation, and scholarship—its murals and images guide pilgrims through devotion and reflection.\n\nThe temple’s plan embodies Bagan’s synthesis of spiritual practice and intellectual pursuit.",
-    "preservationInfo": "Severely damaged in the 1975 earthquake (including tower collapse), Gawdawpalin underwent major restoration. The central tower was reconstructed in the early 1990s with modern stabilization, preserving its original grandeur and safety.",
+    "preservationInfo": "Severely damaged in the 1975 earthquake (including tower collapse), Gadawpalin underwent major restoration. The central tower was reconstructed in the early 1990s with modern stabilization, preserving its original grandeur and safety.",
     "bestTimeToVisit": "November–February is most comfortable. Early mornings and late afternoons offer gentle light for photography and quiet exploration.",
-    "finalWords": "Gawdawpalin unites grandeur and serenity—an architectural masterpiece and spiritual refuge. Whether for prayer, meditation, or admiration, it continues to inspire awe across the plains of Bagan.",
+    "finalWords": "Gadawpalin unites grandeur and serenity—an architectural masterpiece and spiritual refuge. Whether for prayer, meditation, or admiration, it continues to inspire awe across the plains of Bagan.",
     "visitorLocation": "Old Bagan, Myanmar",
     "openingHours": "5:00 AM – 9:00 PM",
     "dressCode": "Modest clothing covering shoulders and knees; remove shoes before entering.",
@@ -821,7 +821,7 @@
   },
   {
     "id": "seinnyetnyiama",
-    "name": "Sein Nyet Nyi Ama Gu Phaya",
+    "name": "Sein Nyet Ama Temple",
     "description": "Sein Nyet NyiAma Gu Phaya is one of Bagan’s most charming temples, located in the Minnanthu area. Known as the “Elder Sister Temple,” it pairs with Sein Nyet Nyima (Younger Sister) nearby. While Nyima is a solid stupa, NyiAma is a gu‑style (hollow) temple designed for worship and meditation. Together they harmonize stupa and temple architecture—symbol and sanctuary—reflecting the spiritual depth of Bagan.",
     "category": "Pagoda",
     "latitude": 21.14151,
@@ -1094,9 +1094,9 @@
     "images": [
       "assets/images/pagodas/researched/mingalazedi.jpg"
     ],
-    "historicalInfo": "The pagoda was completed in the late 13th century during the reign of King Narathihapate. Because it belongs to the final flourishing of monumental construction in Bagan, Mingalazedi is often seen as a closing statement of Pagan craftsmanship before the kingdom's political decline.",
+    "historicalInfo": "Construction of Mingalazedi began in 1274 during the reign of King Narathihapate and was completed in the 1280s. It is one of the final major monuments of the Bagan period and retains a celebrated series of glazed terracotta Jataka plaques.",
     "architecturalStyle": "Mingalazedi follows the mature Burmese stupa form with a solid bell-shaped body above carefully proportioned square terraces. Rows of glazed plaques, molded ornament, and a harmonious vertical rise give the monument its refined late-Bagan character.",
-    "yearBuilt": 1277,
+    "yearBuilt": 1274,
     "legends": "Its name is often interpreted as an auspicious or blessed stupa, reflecting the merit and hope invested in its construction. Later generations remembered it as a monument that preserved the dignity of the kingdom even in uncertain times.",
     "religiousImportance": "As a stupa, Mingalazedi embodies devotion through relic veneration, offerings, and circumambulation. It remains a place where visitors can appreciate how royal faith and public worship came together in Bagan's sacred landscape.",
     "preservationInfo": "The monument has required repeated maintenance after centuries of weathering and seismic activity. Conservation has focused on preserving its terraces, surface decoration, and structural stability.",
@@ -1182,9 +1182,9 @@
     "images": [
       "assets/images/pagodas/researched/nanpaya.jpg"
     ],
-    "historicalInfo": "Nanpaya is usually dated to the 11th century and is traditionally connected with King Manuha, the Mon ruler brought to Bagan after Anawrahta's conquest of Thaton. Whether it served as a palace chapel, a residence-related shrine, or a dedicated temple, it preserves an important strand of Mon artistic influence in Bagan.",
+    "historicalInfo": "Nanpaya is generally associated with the early Bagan period and Mon artistic influence, but its exact date and original purpose remain debated. Traditional accounts connect it with King Manuha; its sandstone carvings make it one of Bagan's distinctive monuments.",
     "architecturalStyle": "Unlike the more common brick monuments of Bagan, Nanpaya is notable for its sandstone carving and compact rectangular plan. Interior pillars, window frames, and carved ornament demonstrate a more intimate and sculptural design language.",
-    "yearBuilt": 1060,
+    "yearBuilt": null,
     "legends": "Popular tradition links Nanpaya with the captive King Manuha and the memory of a displaced royal court. That association has given the temple a quieter, more personal historical identity than many of Bagan's grand imperial monuments.",
     "religiousImportance": "Nanpaya reflects the fusion of political history and sacred architecture. It gives visitors insight into how worship, identity, and royal memory were preserved in Bagan through smaller but highly expressive monuments.",
     "preservationInfo": "The stone fabric of Nanpaya has survived for centuries, though erosion and environmental wear remain ongoing concerns. Conservation efforts aim to protect its carvings and ensure safe access.",
@@ -2620,8 +2620,8 @@
   },
   {
     "id": "ngakywenataung",
-    "name": "Ngakywe Nataung",
-    "description": "Ngakywe Nataung, usually listed as Ngakywenadaung Pagoda, is one of Bagan's distinctive early bulbous stupas in the Old Bagan core. It is particularly valued for its unusual Pyu-related form and for traces of green-glazed tiles.",
+    "name": "Ngakywenadaung Pagoda",
+    "description": "Ngakywenadaung Pagoda is one of Bagan's distinctive early bulbous stupas in the Old Bagan core. It is particularly valued for its unusual Pyu-related form and for traces of green-glazed tiles.",
     "category": "Pagoda",
     "latitude": 21.169,
     "longitude": 94.859,
@@ -2629,7 +2629,7 @@
     "images": [
       "assets/images/pagodas/researched/ngakywenataung.jpg"
     ],
-    "historicalInfo": "Ngakywenadaung is traditionally attributed to King Taungthugyi and dated to the 10th century, though some modern descriptions place it in the early 12th century. It stands west of Thatbyinnyu and near Nathlaung Kyaung, in one of the oldest sacred areas of Pagan.",
+    "historicalInfo": "Ngakywenadaung Pagoda is traditionally regarded as an early Bagan monument, but its construction date is not securely established. It stands in Old Bagan near Thatbyinnyu, Pahto Thamya, and Nathlaung Kyaung.",
     "architecturalStyle": "The pagoda has a cylindrical, bulbous body on a circular basement, a form often linked to older Pyu precedents and Sri Ksetra-era types. Its glazed exterior once made it one of Bagan's most visually distinctive small stupas.",
     "yearBuilt": 1000,
     "legends": "The name is often explained as meaning 'the earring of Ngakywe,' giving the monument one of the more memorable folk etymologies in the Bagan corpus.",
@@ -2641,7 +2641,7 @@
     "dressCode": "Visitors should wear respectful clothing and remove footwear in sacred areas.",
     "entranceFee": "Included in the Bagan Archaeological Zone pass.",
     "photographyRules": "Photography is usually allowed, but fragile surfaces should not be touched.",
-    "finalWords": "Ngakywe Nataung is a small monument with outsized historical value, especially for understanding the earliest architectural roots of Bagan's stupa tradition.",
+    "finalWords": "Ngakywenadaung Pagoda is a small monument with outsized historical value, especially for understanding the earliest architectural roots of Bagan's stupa tradition.",
     "uniqueFeatures": [
       {
         "title": "Bulbous Pyu-Type Form",

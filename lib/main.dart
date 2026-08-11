@@ -232,7 +232,7 @@ class _StartupScreen extends StatelessWidget {
                     child: const Icon(
                       Icons.temple_buddhist_rounded,
                       size: 64,
-                      color: Color(0xFFB8860B),
+                      color: Color(0xFFAE5038),
                     ),
                   ),
                   const SizedBox(height: 28),

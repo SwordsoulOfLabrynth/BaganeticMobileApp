@@ -39,7 +39,11 @@ class AppConstants {
   static const double defaultZoom = 13.0;
   static const String mapTileStore = 'baganetic_map_store';
   static const String mapTileUrlTemplate =
+      'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+  static const String mapFallbackTileUrlTemplate =
       'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  static const List<String> mapTileSubdomains = ['a', 'b', 'c'];
+  static const String mapTileUserAgent = 'com.baganetic.baganetic_mobile';
 
   // Offline routing graph
   static const String offlineGraphUrl = '';

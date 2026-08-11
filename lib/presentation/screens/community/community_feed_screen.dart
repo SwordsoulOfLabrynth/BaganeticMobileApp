@@ -4,14 +4,17 @@ import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/helpers.dart';
-import '../../../core/utils/responsive.dart';
 import '../../../data/models/community_post_model.dart';
 import '../../providers/community_provider.dart';
 import 'community_post_detail_screen.dart';
 import 'create_community_post_screen.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
-  const CommunityFeedScreen({super.key});
+  const CommunityFeedScreen({super.key, this.authorUserId, this.title});
+
+  /// Restricts the feed to a single author's posts when supplied.
+  final String? authorUserId;
+  final String? title;
 
   @override
   State<CommunityFeedScreen> createState() => _CommunityFeedScreenState();
@@ -20,6 +23,7 @@ class CommunityFeedScreen extends StatefulWidget {
 class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   static const double _actionStackClearance = 84;
   late final TextEditingController _searchController;
+  bool _showSearch = false;
 
   @override
   void initState() {
@@ -63,131 +67,203 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.translate('community.title'))),
+      appBar: AppBar(
+        toolbarHeight: 78,
+        titleSpacing: 24,
+        title: _CommunityHeading(
+          title: widget.title ?? l10n.translate('community.title'),
+          subtitle: l10n.translateOr(
+            'community.subtitle',
+            'Tips & questions from travelers',
+          ),
+        ),
+        actions: [
+          IconButton(
+            tooltip: l10n.translate('community.searchHint'),
+            onPressed: () => setState(() => _showSearch = !_showSearch),
+            icon: Icon(_showSearch ? Icons.close : Icons.search_rounded),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Consumer<CommunityProvider>(
         builder: (context, provider, _) {
-          final posts = provider.posts;
+          final isPersonalFeed = widget.authorUserId != null;
+          final posts = isPersonalFeed
+              ? provider.allPosts
+                    .where((post) => post.authorUserId == widget.authorUserId)
+                    .toList(growable: false)
+              : provider.posts;
           return RefreshIndicator(
             onRefresh: provider.loadPosts,
-            child: ResponsiveContent(
-              child: ListView(
-                padding: Responsive.pagePadding(context).copyWith(bottom: 148),
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    onChanged: provider.setSearchQuery,
-                    decoration: InputDecoration(
-                      hintText: l10n.translate('community.searchHint'),
-                      prefixIcon: const Icon(Icons.search),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 148),
+              children: [
+                if (!isPersonalFeed) ...[
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 180),
+                    child: _showSearch
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: provider.setSearchQuery,
+                              decoration: InputDecoration(
+                                hintText: l10n.translate(
+                                  'community.searchHint',
+                                ),
+                                prefixIcon: const Icon(Icons.search),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  _TypeTabs(
+                    selectedType: provider.selectedType,
+                    onSelected: provider.setSelectedType,
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 34,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: provider.availableTags
+                          .where((tag) => tag != 'all')
+                          .map((tag) {
+                            final label = l10n.translateOr(
+                              'community.tag.$tag',
+                              tag,
+                            );
+                            final selected = provider.selectedTag == tag;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                label: Text(label.toUpperCase()),
+                                selected: selected,
+                                onSelected: (_) => provider.setSelectedTag(
+                                  selected ? 'all' : tag,
+                                ),
+                                showCheckmark: false,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            );
+                          })
+                          .toList(growable: false),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      ChoiceChip(
-                        label: Text(l10n.translate('community.filter.all')),
-                        selected: provider.selectedType == 'all',
-                        onSelected: (_) => provider.setSelectedType('all'),
-                      ),
-                      ChoiceChip(
-                        label: Text(l10n.translate('community.type.tip')),
-                        selected:
-                            provider.selectedType == CommunityPost.typeTip,
-                        onSelected: (_) =>
-                            provider.setSelectedType(CommunityPost.typeTip),
-                      ),
-                      ChoiceChip(
-                        label: Text(l10n.translate('community.type.question')),
-                        selected:
-                            provider.selectedType == CommunityPost.typeQuestion,
-                        onSelected: (_) => provider.setSelectedType(
-                          CommunityPost.typeQuestion,
-                        ),
-                      ),
-                      DropdownButton<CommunityFeedSort>(
-                        value: provider.sort,
-                        borderRadius: BorderRadius.circular(12),
-                        onChanged: (value) {
-                          if (value != null) {
-                            provider.setSort(value);
-                          }
-                        },
-                        items: [
-                          DropdownMenuItem(
-                            value: CommunityFeedSort.latest,
-                            child: Text(
-                              l10n.translate('community.sort.latest'),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: CommunityFeedSort.helpful,
-                            child: Text(
-                              l10n.translate('community.sort.helpful'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: provider.availableTags
-                        .map((tag) {
-                          final label = tag == 'all'
-                              ? l10n.translate('community.filter.allTags')
-                              : l10n.translateOr('community.tag.$tag', tag);
-                          return FilterChip(
-                            label: Text(label),
-                            selected: provider.selectedTag == tag,
-                            onSelected: (_) => provider.setSelectedTag(tag),
-                          );
-                        })
-                        .toList(growable: false),
                   ),
                   const SizedBox(height: 20),
-                  if (provider.isLoading && provider.allPosts.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 48),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  else if (posts.isEmpty)
-                    _EmptyFeed(onCreatePost: () => _openComposer(context))
-                  else
-                    ...posts.map(
-                      (post) => _CommunityPostCard(
-                        post: post,
-                        onOpen: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CommunityPostDetailScreen(postId: post.id),
-                            ),
-                          );
-                        },
-                        onToggleUpvote: () => _toggleUpvote(context, post),
-                      ),
+                ] else
+                  const SizedBox(height: 4),
+                if (provider.isLoading && provider.allPosts.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 48),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (posts.isEmpty)
+                  _EmptyFeed(onCreatePost: () => _openComposer(context))
+                else
+                  ...posts.map(
+                    (post) => _CommunityPostCard(
+                      post: post,
+                      onOpen: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                CommunityPostDetailScreen(postId: post.id),
+                          ),
+                        );
+                      },
+                      onToggleUpvote: () => _toggleUpvote(context, post),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           );
         },
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: _actionStackClearance),
-        child: FloatingActionButton.small(
+        child: FloatingActionButton(
           heroTag: 'community-write-post',
           tooltip: l10n.translate('community.write'),
           onPressed: () => _openComposer(context),
-          child: const Icon(Icons.edit_outlined),
+          child: const Icon(Icons.add_rounded),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+}
+
+class _CommunityHeading extends StatelessWidget {
+  const _CommunityHeading({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: const Color(0xFF2B1D14),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 10,
+            letterSpacing: 1.7,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF81746B),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeTabs extends StatelessWidget {
+  const _TypeTabs({required this.selectedType, required this.onSelected});
+
+  final String selectedType;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final entries = [
+      ('all', l10n.translate('community.filter.all')),
+      (CommunityPost.typeTip, l10n.translate('community.type.tip')),
+      (CommunityPost.typeQuestion, l10n.translate('community.type.question')),
+    ];
+    return Wrap(
+      spacing: 10,
+      children: entries
+          .map((entry) {
+            final selected = selectedType == entry.$1;
+            return ChoiceChip(
+              label: Text(entry.$2.toUpperCase()),
+              selected: selected,
+              onSelected: (_) => onSelected(entry.$1),
+              showCheckmark: false,
+              visualDensity: VisualDensity.compact,
+              selectedColor: const Color(0xFF2B1D14),
+              labelStyle: TextStyle(
+                color: selected ? Colors.white : const Color(0xFF46372E),
+                fontSize: 11,
+                letterSpacing: 1.25,
+                fontWeight: FontWeight.w700,
+              ),
+            );
+          })
+          .toList(growable: false),
     );
   }
 }
@@ -253,65 +329,31 @@ class _CommunityPostCard extends StatelessWidget {
     final isQuestion = post.type == CommunityPost.typeQuestion;
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      // inherit theme card shape (elevation: 0, radius: 3, hairline border)
       child: InkWell(
         onTap: onOpen,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(3),
         child: Padding(
-          padding: Responsive.cardPadding(context),
+          padding: const EdgeInsets.fromLTRB(24, 22, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isQuestion
-                          ? const Color(0xFF0F766E).withValues(alpha: 0.12)
-                          : const Color(0xFFB8860B).withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      l10n.translate(
-                        isQuestion
-                            ? 'community.type.question'
-                            : 'community.type.tip',
-                      ),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: isQuestion
-                            ? const Color(0xFF0F766E)
-                            : const Color(0xFF8B4513),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${post.authorName} • ${Helpers.formatDate(post.createdAt)}',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
+              _PostTypeLabel(isQuestion: isQuestion),
+              const SizedBox(height: 16),
               Text(
                 post.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: const Color(0xFF2B1D14),
+                  fontWeight: FontWeight.w700,
+                  height: 1.14,
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
               Text(
                 post.body,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey[800], height: 1.45),
+                style: const TextStyle(color: Color(0xFF4E453F), height: 1.45),
               ),
               if (post.tags.isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -330,9 +372,23 @@ class _CommunityPostCard extends StatelessWidget {
                       .toList(growable: false),
                 ),
               ],
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
+              const Divider(color: Color(0xFFE5D9C7)),
               Row(
                 children: [
+                  Expanded(
+                    child: Text(
+                      '${post.authorName.toUpperCase()}  •  ${Helpers.formatDate(post.createdAt).toUpperCase()}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF64584F),
+                        fontSize: 10,
+                        letterSpacing: 1.15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                   InkWell(
                     borderRadius: BorderRadius.circular(999),
                     onTap: onToggleUpvote,
@@ -345,12 +401,12 @@ class _CommunityPostCard extends StatelessWidget {
                         children: [
                           Icon(
                             post.isUpvoted
-                                ? Icons.thumb_up
-                                : Icons.thumb_up_outlined,
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_up_outlined,
                             size: 18,
                             color: post.isUpvoted
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.grey[700],
+                                ? const Color(0xFFA34A2A)
+                                : const Color(0xFF786A5D),
                           ),
                           const SizedBox(width: 6),
                           Text('${post.upvoteCount}'),
@@ -362,19 +418,49 @@ class _CommunityPostCard extends StatelessWidget {
                   Icon(
                     Icons.mode_comment_outlined,
                     size: 18,
-                    color: Colors.grey[700],
+                    color: const Color(0xFF786A5D),
                   ),
                   const SizedBox(width: 6),
                   Text('${post.commentCount}'),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: onOpen,
-                    child: Text(l10n.translate('community.openDiscussion')),
-                  ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PostTypeLabel extends StatelessWidget {
+  const _PostTypeLabel({required this.isQuestion});
+
+  final bool isQuestion;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final color = isQuestion
+        ? const Color(0xFFA34A2A)
+        : const Color(0xFFB2842E);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isQuestion ? Colors.transparent : color.withValues(alpha: .1),
+        border: Border.all(color: color.withValues(alpha: .75)),
+        borderRadius: BorderRadius.circular(2),
+      ),
+      child: Text(
+        l10n
+            .translate(
+              isQuestion ? 'community.type.question' : 'community.type.tip',
+            )
+            .toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          letterSpacing: 1.05,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

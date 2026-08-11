@@ -93,14 +93,56 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleForgotPassword() async {
     final l10n = context.l10n;
-    final email = _emailController.text.trim();
-    if (email.isEmpty || !_emailPattern.hasMatch(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.translate('auth.resetPasswordHint')),
-          backgroundColor: Colors.red,
+    final formKey = GlobalKey<FormState>();
+    final email = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        scrollable: true,
+        title: Text(l10n.translate('auth.resetPasswordTitle')),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.translate('auth.resetPasswordBody')),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.translate('auth.email'),
+                  prefixIcon: const Icon(Icons.email_outlined),
+                ),
+                validator: (value) {
+                  if (!_emailPattern.hasMatch((value ?? '').trim())) {
+                    return l10n.translate('auth.resetPasswordHint');
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
         ),
-      );
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.translate('common.cancel')),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(dialogContext).pop(_emailController.text.trim());
+              }
+            },
+            child: Text(l10n.translate('auth.sendResetLink')),
+          ),
+        ],
+      ),
+    );
+
+    if (email == null || email.isEmpty || !mounted) {
       return;
     }
 
@@ -169,54 +211,86 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final isCompact = Responsive.isCompact(context);
+    final heroHeight =
+        MediaQuery.sizeOf(context).height * (isCompact ? .40 : .44);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFF8F1E2), Color(0xFFF3E7CC), Color(0xFFE9D7B3)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -90,
-              right: -40,
-              child: _buildGlow(
-                200,
-                const Color(0xFFFFFFFF).withValues(alpha: 0.22),
-              ),
-            ),
-            Positioned(
-              bottom: -70,
-              left: -30,
-              child: _buildGlow(
-                170,
-                const Color(0xFFD4AF37).withValues(alpha: 0.14),
-              ),
-            ),
-            SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: Responsive.pagePadding(context),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 520),
+      backgroundColor: const Color(0xFFF7F2E9),
+      body: Column(
+        children: [
+          SizedBox(
+            height: heroHeight,
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  'assets/images/stitch/bagan_sunrise.jpg',
+                  fit: BoxFit.cover,
+                ),
+                // Flat matte scrim — spec prohibits gradients
+                const DecoratedBox(
+                  decoration: BoxDecoration(color: Color(0x44000000)),
+                ),
+                SafeArea(
+                  child: Center(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildHeaderPanel(theme, isCompact),
-                        SizedBox(height: isCompact ? 16 : 20),
-                        _buildFormCard(context, l10n, theme, isCompact),
+                        const Icon(
+                          Icons.temple_buddhist_outlined,
+                          size: 54,
+                          color: Color(0xFFC19A49),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Baganetic',
+                          style: theme.textTheme.displayMedium?.copyWith(
+                            color: Colors.white,
+                            fontSize: 45,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.translate('app.tagline'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            letterSpacing: 3,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            height: 1.55,
+                          ),
+                        ),
                       ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F2E9),
+                // Flat top edge — spec calls for no pill/rounded transition here
+              ),
+              child: SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(28, 42, 28, 30),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: _buildFormCard(context, l10n, theme, isCompact),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -230,18 +304,17 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.watch<AuthProvider>();
 
     return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: Colors.transparent,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       child: Padding(
-        padding: EdgeInsets.all(isCompact ? 20 : 24),
+        padding: EdgeInsets.zero,
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildModeSelector(l10n, theme, auth.isLoading),
-              const SizedBox(height: 20),
               _buildAuthIntro(l10n, theme, auth),
               const SizedBox(height: 18),
               _buildNameField(l10n),
@@ -299,7 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF3F0),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(3),
                     border: Border.all(color: const Color(0xFFF0B7AC)),
                   ),
                   child: Row(
@@ -476,7 +549,7 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(3),
                 border: Border.all(
                   color: theme.colorScheme.primary.withValues(alpha: 0.12),
                 ),
@@ -643,7 +716,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
             child: auth.isLoading
@@ -708,7 +781,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
           ),
@@ -748,7 +821,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case _PasswordStrength.weak:
         return const Color(0xFFD64545);
       case _PasswordStrength.good:
-        return const Color(0xFFD4AF37);
+        return const Color(0xFFAE5038);
       case _PasswordStrength.strong:
         return const Color(0xFF2E8B57);
     }
@@ -767,6 +840,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // ignore: unused_element
   Widget _buildHeaderPanel(ThemeData theme, bool isCompact) {
     final iconSize = isCompact ? 72.0 : 84.0;
 
@@ -803,6 +877,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildModeSelector(
     AppLocalizations l10n,
     ThemeData theme,
@@ -818,7 +893,7 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: selected ? theme.colorScheme.primary : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(3),
             ),
             child: Text(
               label,
@@ -870,6 +945,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildGlow(double size, Color color) {
     return IgnorePointer(
       child: Container(
