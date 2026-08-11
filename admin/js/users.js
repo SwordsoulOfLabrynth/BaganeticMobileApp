@@ -285,9 +285,9 @@ async function deleteUser(userId) {
   }
 
   const displayName = user.displayName || user.name || user.email || userId;
-  if (!confirm(
+  if (!(await confirmPermanentDeletion(
     `Delete ${displayName}? This removes the synced user profile, trips, AI chat history, and community activity from Firestore. The Firebase Auth sign-in account itself will remain.`,
-  )) {
+  ))) {
     return;
   }
 

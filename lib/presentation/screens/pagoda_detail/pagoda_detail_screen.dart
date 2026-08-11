@@ -55,10 +55,15 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
     );
     final isFavorite = livePagoda.isFavorite;
     final images = _buildImageList(pagoda);
-    final pagodaName = l10n.pagodaName(pagoda.id, pagoda.name);
+    final pagodaName = l10n.pagodaName(
+      pagoda.id,
+      pagoda.name,
+      remoteMyanmar: pagoda.nameMyanmar,
+    );
     final pagodaDescription = l10n.pagodaDescription(
       pagoda.id,
       pagoda.description,
+      remoteMyanmar: pagoda.descriptionMyanmar,
     );
     final pagodaHistory = pagoda.historicalInfo == null
         ? null
@@ -315,13 +320,6 @@ class _PagodaDetailScreenState extends State<PagodaDetailScreen> {
                       spacing: Responsive.smallSpacing(context),
                       runSpacing: Responsive.smallSpacing(context),
                       children: [
-                        Chip(
-                          label: Text(l10n.categoryLabel(pagoda.category)),
-                          backgroundColor: const Color(0xFFAE5038),
-                          labelStyle: const TextStyle(color: Colors.white),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                        ),
                         Chip(
                           label: Text(
                             '${pagoda.latitude.toStringAsFixed(4)}, ${pagoda.longitude.toStringAsFixed(4)}',
@@ -608,14 +606,6 @@ Widget _buildDesktopStats(BuildContext context, Pagoda pagoda) {
     children: [
       Expanded(
         child: _StatTile(
-          label: l10n.translate('pagoda.detail.category'),
-          value: l10n.categoryLabel(pagoda.category),
-          icon: Icons.category,
-        ),
-      ),
-      SizedBox(width: Responsive.spacing(context)),
-      Expanded(
-        child: _StatTile(
           label: l10n.translate('pagoda.detail.year'),
           value:
               pagoda.yearBuilt?.toString() ?? l10n.translate('common.unknown'),
@@ -644,14 +634,6 @@ Widget _buildMobileStats(BuildContext context, Pagoda pagoda) {
         children: [
           Expanded(
             child: _StatTile(
-              label: l10n.translate('pagoda.detail.category'),
-              value: l10n.categoryLabel(pagoda.category),
-              icon: Icons.category,
-            ),
-          ),
-          SizedBox(width: Responsive.smallSpacing(context)),
-          Expanded(
-            child: _StatTile(
               label: l10n.translate('pagoda.detail.year'),
               value:
                   pagoda.yearBuilt?.toString() ??
@@ -659,11 +641,7 @@ Widget _buildMobileStats(BuildContext context, Pagoda pagoda) {
               icon: Icons.event,
             ),
           ),
-        ],
-      ),
-      SizedBox(height: Responsive.smallSpacing(context)),
-      Row(
-        children: [
+          SizedBox(width: Responsive.smallSpacing(context)),
           Expanded(
             child: _StatTile(
               label: l10n.translate('pagoda.detail.age'),

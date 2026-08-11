@@ -42,7 +42,9 @@ class PagodaFeature {
 class Pagoda {
   final String id;
   final String name;
+  final String? nameMyanmar;
   final String description;
+  final String? descriptionMyanmar;
   final String category;
   final double latitude;
   final double longitude;
@@ -70,7 +72,9 @@ class Pagoda {
   Pagoda({
     required this.id,
     required this.name,
+    this.nameMyanmar,
     required this.description,
+    this.descriptionMyanmar,
     required this.category,
     required this.latitude,
     required this.longitude,
@@ -118,7 +122,9 @@ class Pagoda {
     return Pagoda(
       id: json['id'] as String,
       name: json['name'] as String,
+      nameMyanmar: json['nameMyanmar'] as String?,
       description: json['description'] as String,
+      descriptionMyanmar: json['descriptionMyanmar'] as String?,
       category: _normalizePagodaCategory(json['category'] as String?),
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
@@ -148,7 +154,9 @@ class Pagoda {
     return {
       'id': id,
       'name': name,
+      'nameMyanmar': nameMyanmar,
       'description': description,
+      'descriptionMyanmar': descriptionMyanmar,
       'category': category,
       'latitude': latitude,
       'longitude': longitude,
@@ -179,7 +187,9 @@ class Pagoda {
   Pagoda copyWith({
     String? id,
     String? name,
+    String? nameMyanmar,
     String? description,
+    String? descriptionMyanmar,
     String? category,
     double? latitude,
     double? longitude,
@@ -206,7 +216,9 @@ class Pagoda {
     return Pagoda(
       id: id ?? this.id,
       name: name ?? this.name,
+      nameMyanmar: nameMyanmar ?? this.nameMyanmar,
       description: description ?? this.description,
+      descriptionMyanmar: descriptionMyanmar ?? this.descriptionMyanmar,
       category: category ?? this.category,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,

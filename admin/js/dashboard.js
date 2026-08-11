@@ -10,8 +10,10 @@ async function loadDashboard() {
 
   const metrics = getDashboardMetrics();
   document.getElementById('stat-pagodas').textContent = metrics.totalPagodas;
-  document.getElementById('stat-temples').textContent = metrics.totalTemples;
-  document.getElementById('stat-pagoda-type').textContent = metrics.totalPagodaType;
+  document.getElementById('stat-myanmar-ready').textContent = metrics.totalMyanmarReady;
+  document.getElementById('stat-archived').textContent = metrics.totalArchivedPagodas;
+  document.getElementById('stat-card-myanmar-ready').hidden = metrics.totalMyanmarReady === 0;
+  document.getElementById('stat-card-archived').hidden = metrics.totalArchivedPagodas === 0;
   document.getElementById('stat-users').textContent = metrics.totalUsers;
   document.getElementById('stat-trips').textContent = metrics.totalTrips;
   document.getElementById('stat-posts').textContent = metrics.totalPosts;
@@ -19,7 +21,12 @@ async function loadDashboard() {
   const community = getCommunitySummary();
   const dataStatus = document.getElementById('dashboard-data-status');
   if (dataStatus) {
-    dataStatus.textContent = `${community.activePosts} active posts · ${metrics.totalArchivedPagodas} archived pagodas · ${community.tipPosts} tips`;
+    const snapshotItems = [
+      community.activePosts > 0 ? `${community.activePosts} active posts` : null,
+      community.tipPosts > 0 ? `${community.tipPosts} tips` : null,
+      metrics.totalArchivedPagodas > 0 ? `${metrics.totalArchivedPagodas} archived sites` : null,
+    ].filter(Boolean);
+    dataStatus.textContent = snapshotItems.join(' · ') || 'No additional live activity yet';
   }
 
   renderDashboardWarning();

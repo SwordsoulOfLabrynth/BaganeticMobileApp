@@ -228,7 +228,11 @@ class _JournalPagodaEntry extends StatelessWidget {
           : Padding(padding: const EdgeInsets.all(8), child: photo),
     );
     final title = Text(
-      context.l10n.pagodaName(pagoda.id, pagoda.name),
+      context.l10n.pagodaName(
+        pagoda.id,
+        pagoda.name,
+        remoteMyanmar: pagoda.nameMyanmar,
+      ),
       textAlign: isRightAligned ? TextAlign.right : TextAlign.left,
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -297,7 +301,11 @@ class _JournalPagodaEntry extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Text(
-              context.l10n.pagodaDescription(pagoda.id, pagoda.description),
+              context.l10n.pagodaDescription(
+                pagoda.id,
+                pagoda.description,
+                remoteMyanmar: pagoda.descriptionMyanmar,
+              ),
               textAlign: isRightAligned ? TextAlign.right : TextAlign.left,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,

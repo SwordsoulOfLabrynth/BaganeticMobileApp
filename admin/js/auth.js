@@ -174,6 +174,23 @@ async function bootAdminAuth() {
     });
   }
 
+  document.getElementById('btn-admin-reset-password')?.addEventListener('click', async () => {
+    hideLoginError();
+    const email = document.getElementById('login-email')?.value.trim();
+    if (!email) {
+      showLoginError('Enter your admin email address first, then request a reset link.');
+      return;
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(email);
+      showToast('If this is an authorised account, a password-reset link has been sent.', 'success');
+    } catch (error) {
+      console.error('Admin password reset failed:', error);
+      showLoginError('Could not send a reset link. Check the email address and Firebase Auth settings.');
+    }
+  });
+
   document.getElementById('btn-logout')?.addEventListener('click', () => {
     auth.signOut();
     showToast('Signed out successfully.', 'info');

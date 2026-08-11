@@ -19,6 +19,17 @@ function getErrorMessage(error) {
   return error?.message || String(error);
 }
 
+function confirmPermanentDeletion(summary) {
+  return confirmAdminAction({
+    title: 'Permanently delete data?',
+    message: `${summary}\n\nThis cannot be undone from the admin console.`,
+    eyebrowText: 'Irreversible action',
+    confirmLabel: 'Delete permanently',
+    tone: 'danger',
+    requireText: true,
+  });
+}
+
 function isPermissionDeniedError(error) {
   const code = String(error?.code || '').toLowerCase();
   const message = getErrorMessage(error).toLowerCase();
@@ -223,7 +234,9 @@ function normalizePagodaRecord(pagoda) {
   return {
     id: String(pagoda?.id || '').trim(),
     name: String(pagoda?.name || '').trim(),
+    nameMyanmar: String(pagoda?.nameMyanmar || '').trim(),
     description: String(pagoda?.description || '').trim(),
+    descriptionMyanmar: String(pagoda?.descriptionMyanmar || '').trim(),
     category: normalizePagodaCategory(pagoda?.category),
     latitude: Number.isFinite(latitude) ? latitude : 0,
     longitude: Number.isFinite(longitude) ? longitude : 0,
@@ -486,8 +499,9 @@ function getDashboardMetrics() {
   const activePagodas = window.adminState.pagodas.filter(
     (pagoda) => pagoda.status !== 'archived',
   );
-  const temples = activePagodas.filter((pagoda) => pagoda.category === 'Temple').length;
-  const pagodas = activePagodas.filter((pagoda) => pagoda.category === 'Pagoda').length;
+  const myanmarReady = activePagodas.filter(
+    (pagoda) => String(pagoda.nameMyanmar || '').trim() && String(pagoda.descriptionMyanmar || '').trim(),
+  ).length;
   const activePosts = window.adminState.posts.filter(
     (post) => (post.status || 'active') === 'active',
   ).length;
@@ -495,8 +509,7 @@ function getDashboardMetrics() {
   return {
     totalPagodas: activePagodas.length,
     totalArchivedPagodas: window.adminState.pagodas.length - activePagodas.length,
-    totalTemples: temples,
-    totalPagodaType: pagodas,
+    totalMyanmarReady: myanmarReady,
     totalUsers: window.adminState.users.length,
     totalTrips: window.adminState.trips.length,
     totalPosts: window.adminState.posts.length,
@@ -515,14 +528,11 @@ function getPagodaCategorySummary() {
       description: 'Pagodas currently visible in the mobile app',
     },
     {
-      label: 'Temple',
-      count: activePagodas.filter((pagoda) => pagoda.category === 'Temple').length,
-      description: 'Active temple entries',
-    },
-    {
-      label: 'Pagoda',
-      count: activePagodas.filter((pagoda) => pagoda.category === 'Pagoda').length,
-      description: 'Active pagoda entries',
+      label: 'Live Myanmar copy',
+      count: activePagodas.filter(
+        (pagoda) => String(pagoda.nameMyanmar || '').trim() && String(pagoda.descriptionMyanmar || '').trim(),
+      ).length,
+      description: 'Sites with admin-managed Myanmar title and summary',
     },
     {
       label: 'Archived',
@@ -637,3 +647,4 @@ window.getAdminRecordPath = getAdminRecordPath;
 window.listAdminDocuments = listAdminDocuments;
 window.deleteAdminDocumentPath = deleteAdminDocumentPath;
 window.patchAdminDocumentPath = patchAdminDocumentPath;
+window.confirmPermanentDeletion = confirmPermanentDeletion;

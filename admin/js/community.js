@@ -101,8 +101,6 @@ function renderCommunityTable() {
     const statusBadge = post.status === 'active'
       ? '<span class="badge badge-green">Active</span>'
       : '<span class="badge badge-red">Hidden</span>';
-    const toggleLabel = post.status === 'active' ? 'Hide' : 'Restore';
-
     return `
       <tr>
         <td>
@@ -116,9 +114,7 @@ function renderCommunityTable() {
         <td class="cell-nowrap cell-muted">${formatDate(post.createdAt)}</td>
         <td>
           <div class="action-row">
-            <button class="btn-warning" type="button" onclick='viewPost(${serializeForInlineHandler(post.id)})'>View</button>
-            <button class="btn-secondary" type="button" onclick='togglePostStatus(${serializeForInlineHandler(post.id)}, ${serializeForInlineHandler(post.status || 'active')})'>${toggleLabel}</button>
-            <button class="btn-danger" type="button" onclick='deletePost(${serializeForInlineHandler(post.id)})'>Delete</button>
+            <button class="btn-warning" type="button" onclick='viewPost(${serializeForInlineHandler(post.id)})'>Manage</button>
           </div>
         </td>
       </tr>
@@ -152,7 +148,8 @@ function viewPost(postId) {
   if (!selectedPost) return;
 
   const body = document.getElementById('post-detail-body');
-  if (!body) return;
+  const actions = document.getElementById('post-detail-actions');
+  if (!body || !actions) return;
 
   const tags = Array.isArray(selectedPost.tags) ? selectedPost.tags : [];
   body.innerHTML = `
@@ -178,6 +175,12 @@ function viewPost(postId) {
         </div>
       </div>
     ` : ''}
+  `;
+
+  const toggleLabel = selectedPost.status === 'active' ? 'Hide post' : 'Restore post';
+  actions.innerHTML = `
+    <button class="btn-secondary" type="button" onclick='togglePostStatus(${serializeForInlineHandler(selectedPost.id)}, ${serializeForInlineHandler(selectedPost.status || 'active')})'>${toggleLabel}</button>
+    <button class="btn-danger" type="button" onclick='deletePost(${serializeForInlineHandler(selectedPost.id)})'>Delete post</button>
   `;
 
   openModal('modal-post-detail');
@@ -251,6 +254,7 @@ async function togglePostStatus(postId, currentStatus) {
         }),
     });
     showToast(`Post ${newStatus === 'active' ? 'restored' : 'hidden'} successfully.`, 'success');
+    closeModal('modal-post-detail');
     await refreshAdminData();
   } catch (error) {
     console.error('Failed to update post status:', error);
@@ -259,9 +263,10 @@ async function togglePostStatus(postId, currentStatus) {
 }
 
 async function deletePost(postId) {
-  if (!confirm('Delete this community post permanently? Related comments and votes will also be removed.')) return;
+  if (!(await confirmPermanentDeletion('Delete this community post permanently? Related comments and votes will also be removed.'))) return;
   try {
     await deleteCommunityPostCascade(postId);
+    closeModal('modal-post-detail');
   } catch (error) {
     console.error('Failed to delete post:', error);
     showToast('Failed to delete post.', 'error');

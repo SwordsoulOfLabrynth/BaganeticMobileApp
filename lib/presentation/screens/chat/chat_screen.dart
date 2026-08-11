@@ -258,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final description = _compactText(pagoda.description, maxChars: 210);
     final history = _compactText(pagoda.historicalInfo ?? '', maxChars: 160);
     if (description.isEmpty && history.isEmpty) {
-      return '${pagoda.name} (${pagoda.category})';
+      return pagoda.name;
     }
     return [
       description,
@@ -287,6 +287,13 @@ class _ChatScreenState extends State<ChatScreen> {
         .replaceFirst(RegExp(r'^Bad state:\s*'), '')
         .replaceFirst(RegExp(r'^Exception:\s*'), '')
         .trim();
+
+    final normalized = cleaned.toLowerCase();
+    if (normalized.contains('authorization failed') ||
+        normalized.contains('api authentication failed') ||
+        normalized.contains('access was denied')) {
+      return 'The AI service key was rejected. Replace NVIDIA_API_KEY with an active NVIDIA key, then rebuild the app.';
+    }
 
     if (cleaned.isNotEmpty) {
       return cleaned;
@@ -529,10 +536,6 @@ class _ChatScreenState extends State<ChatScreen> {
         color: const Color(0xFFF5F2EB),
         child: Row(
           children: [
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: Icon(Icons.mic_none_rounded, color: Color(0xFF8A8078)),
-            ),
             Expanded(
               child: TextField(
                 controller: _messageController,

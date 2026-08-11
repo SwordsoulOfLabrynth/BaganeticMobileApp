@@ -360,6 +360,7 @@ class _PopularPagodaTile extends StatelessWidget {
     final title = context.l10n.pagodaName(
       card.pagodaId,
       pagoda?.name ?? card.title,
+      remoteMyanmar: pagoda?.nameMyanmar,
     );
     final year = card.year.replaceAll(' AD', '');
     return SizedBox(

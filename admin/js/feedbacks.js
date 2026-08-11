@@ -139,7 +139,7 @@ function changeFeedbacksPage(page) {
 }
 
 async function deleteFeedback(id) {
-  if (!confirm('Delete this feedback permanently?')) return;
+  if (!(await confirmPermanentDeletion('Delete this feedback permanently?'))) return;
   try {
     await db.collection(window.adminCollections.feedbacks).doc(id).delete();
     showToast('Feedback deleted.', 'success');

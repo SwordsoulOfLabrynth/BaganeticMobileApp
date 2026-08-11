@@ -22,6 +22,8 @@ DEFAULT_PORT = 4173
 UPLOAD_ENDPOINT = "/admin/upload-pagoda-images"
 PAGODA_ASSETS_DIR = ROOT / "assets" / "images" / "pagodas"
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 
 def sanitize_path_segment(value: str, fallback: str) -> str:
@@ -34,6 +36,16 @@ def sanitize_file_stem(value: str) -> str:
     cleaned = re.sub(r"[^A-Za-z0-9._ -]+", "-", value or "").strip(" .-_")
     cleaned = re.sub(r"\s+", "-", cleaned)
     return cleaned.lower() or "image"
+
+
+def has_expected_image_signature(extension: str, payload: bytes) -> bool:
+    if extension in {".jpg", ".jpeg"}:
+        return payload.startswith(b"\xff\xd8\xff")
+    if extension == ".png":
+        return payload.startswith(b"\x89PNG\r\n\x1a\n")
+    if extension == ".webp":
+        return payload.startswith(b"RIFF") and payload[8:12] == b"WEBP"
+    return False
 
 
 def parse_multipart_form_data(content_type: str, body: bytes) -> tuple[dict[str, str], list[dict[str, object]]]:
@@ -99,6 +111,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         content_length = int(self.headers.get("Content-Length", "0") or "0")
+        if content_length <= 0:
+            self.send_json(400, {"error": "No upload data was provided."})
+            return
+        if content_length > MAX_UPLOAD_BYTES:
+            self.send_json(413, {"error": "Uploads are limited to 12 MB in total."})
+            return
         body = self.rfile.read(content_length)
 
         try:
@@ -135,10 +153,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         f"Unsupported file type for {original_name}. Use JPG, JPEG, PNG, or WEBP."
                     )
 
+                file_data = bytes(item.get("data", b""))
+                if not file_data:
+                    raise ValueError(f"{original_name} is empty.")
+                if len(file_data) > MAX_IMAGE_BYTES:
+                    raise ValueError(f"{original_name} is larger than the 8 MB per-image limit.")
+                if not has_expected_image_signature(extension, file_data):
+                    raise ValueError(f"{original_name} does not match its declared image format.")
+
                 safe_stem = sanitize_file_stem(Path(original_name).stem)
                 file_name = f"{role}-{timestamp}-{index}-{safe_stem}{extension}"
                 destination = target_dir / file_name
-                destination.write_bytes(bytes(item.get("data", b"")))
+                destination.write_bytes(file_data)
 
                 saved_files.append(
                     {

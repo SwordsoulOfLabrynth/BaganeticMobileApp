@@ -61,11 +61,23 @@ class AppLocalizations {
     return fallback;
   }
 
-  String pagodaName(String id, String fallback) {
+  String pagodaName(String id, String fallback, {String? remoteMyanmar}) {
+    if (locale.languageCode == 'my' &&
+        remoteMyanmar?.trim().isNotEmpty == true) {
+      return remoteMyanmar!.trim();
+    }
     return translateOr('pagoda.$id.name', fallback);
   }
 
-  String pagodaDescription(String id, String fallback) {
+  String pagodaDescription(
+    String id,
+    String fallback, {
+    String? remoteMyanmar,
+  }) {
+    if (locale.languageCode == 'my' &&
+        remoteMyanmar?.trim().isNotEmpty == true) {
+      return remoteMyanmar!.trim();
+    }
     return _translatePagodaField('pagoda.$id.description', fallback);
   }
 

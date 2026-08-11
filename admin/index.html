@@ -38,6 +38,7 @@
         <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
       </div>
       <button type="submit" id="login-btn" class="btn-primary">Sign In</button>
+      <button type="button" id="btn-admin-reset-password" class="btn-link">Send a password-reset link</button>
     </form>
     <div id="login-error" class="login-error"></div>
   </div>
@@ -116,22 +117,22 @@
             <div class="stat-label">Active Pagodas</div>
           </button>
 
-          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('pagodas')">
+          <button class="stat-card stat-card-button" id="stat-card-myanmar-ready" type="button" onclick="navigateTo('pagodas')" hidden>
             <div class="stat-card-header">
-              <div class="stat-icon">🛕</div>
-              <span class="stat-trend neutral">Type</span>
+              <div class="stat-icon">စာ</div>
+              <span class="stat-trend neutral">Language</span>
             </div>
-            <div class="stat-value" id="stat-temples">—</div>
-            <div class="stat-label">Temples</div>
+            <div class="stat-value" id="stat-myanmar-ready">—</div>
+            <div class="stat-label">Live Myanmar Copy</div>
           </button>
 
-          <button class="stat-card stat-card-button" type="button" onclick="navigateTo('pagodas')">
+          <button class="stat-card stat-card-button" id="stat-card-archived" type="button" onclick="navigateTo('pagodas')" hidden>
             <div class="stat-card-header">
-              <div class="stat-icon">✨</div>
-              <span class="stat-trend neutral">Type</span>
+              <div class="stat-icon">🗃️</div>
+              <span class="stat-trend neutral">Catalog</span>
             </div>
-            <div class="stat-value" id="stat-pagoda-type">—</div>
-            <div class="stat-label">Pagodas</div>
+            <div class="stat-value" id="stat-archived">—</div>
+            <div class="stat-label">Archived Sites</div>
           </button>
 
           <button class="stat-card stat-card-button" type="button" onclick="navigateTo('users')">
@@ -174,7 +175,7 @@
             <div class="insight-header">
               <div>
                 <div class="section-title">Pagoda Catalog</div>
-                <div class="section-subtitle">Only Temple and Pagoda categories are kept</div>
+                <div class="section-subtitle">One shared heritage-site catalog for the mobile app</div>
               </div>
               <button class="btn-secondary" type="button" onclick="navigateTo('pagodas')">Open Pagodas</button>
             </div>
@@ -276,12 +277,9 @@
           </div>
         </div>
 
-        <input type="file" id="pagoda-json-file-input" accept=".json,application/json" hidden />
+        <div class="content-health-card" id="pagoda-health-card" aria-live="polite"></div>
 
-        <div class="filter-bar">
-          <button class="filter-chip" data-filter="Temple">Temple</button>
-          <button class="filter-chip" data-filter="Pagoda">Pagoda</button>
-        </div>
+        <input type="file" id="pagoda-json-file-input" accept=".json,application/json" hidden />
 
         <div class="table-card">
           <div class="table-toolbar table-toolbar-split">
@@ -298,6 +296,16 @@
                   <option value="all">All</option>
                 </select>
               </label>
+              <label class="toolbar-field">
+                <span>Content</span>
+                <select id="pagodas-quality-filter">
+                  <option value="all">All entries</option>
+                  <option value="ready">Ready to publish</option>
+                  <option value="missing-myanmar">Needs Myanmar copy</option>
+                  <option value="missing-history">Needs history</option>
+                  <option value="missing-gallery">Needs gallery</option>
+                </select>
+              </label>
               <button class="btn-success" type="button" id="btn-new-pagoda">New Pagoda</button>
             </div>
           </div>
@@ -305,15 +313,14 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Pagoda</th>
-                  <th>Category</th>
+                  <th>Heritage Site</th>
                   <th>Status</th>
                   <th>Updated</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="pagodas-table-body">
-                <tr><td colspan="5"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+                <tr><td colspan="4"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -460,9 +467,31 @@
     </div>
     <div class="modal-body" id="post-detail-body"></div>
     <div class="modal-footer">
+      <div class="modal-footer-actions post-detail-actions" id="post-detail-actions"></div>
       <button class="btn-secondary" onclick="closeModal('modal-post-detail')">Close</button>
     </div>
   </div>
+</div>
+
+<div class="modal-overlay confirmation-overlay" id="modal-confirmation" data-confirmation-dialog="true" aria-hidden="true">
+  <section class="modal confirmation-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-message">
+    <div class="confirmation-body">
+      <div class="confirmation-icon" id="confirmation-icon" aria-hidden="true">!</div>
+      <div class="confirmation-copy">
+        <p class="confirmation-eyebrow" id="confirmation-eyebrow">Confirm action</p>
+        <h3 id="confirmation-title">Are you sure?</h3>
+        <p id="confirmation-message"></p>
+      </div>
+    </div>
+    <div class="confirmation-token" id="confirmation-token-wrap" hidden>
+      <label for="confirmation-token-input">Type <strong>DELETE</strong> to continue</label>
+      <input id="confirmation-token-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DELETE">
+    </div>
+    <div class="modal-footer confirmation-footer">
+      <button class="btn-secondary" type="button" id="confirmation-cancel">Cancel</button>
+      <button class="btn-danger" type="button" id="confirmation-submit">Delete permanently</button>
+    </div>
+  </section>
 </div>
 
 <div class="modal-overlay" id="modal-pagoda-editor">
@@ -488,13 +517,6 @@
               <input type="text" id="pagoda-form-name" placeholder="Ananda Temple" />
             </div>
             <div class="form-field">
-              <label for="pagoda-form-category">Category</label>
-              <select id="pagoda-form-category">
-                <option value="Pagoda">Pagoda</option>
-                <option value="Temple">Temple</option>
-              </select>
-            </div>
-            <div class="form-field">
               <label for="pagoda-form-year-built">Year Built</label>
               <input type="number" id="pagoda-form-year-built" placeholder="1105" />
             </div>
@@ -517,9 +539,24 @@
           </div>
         </div>
 
+        <div class="form-section translation-section">
+          <div class="form-section-title">Myanmar Content</div>
+          <div class="field-helper-text">This copy is used by the mobile app in Myanmar mode. Enter reviewed Burmese text; it overrides the bundled fallback translation for this pagoda.</div>
+          <div class="form-grid form-grid-two">
+            <div class="form-field">
+              <label for="pagoda-form-name-myanmar">Name (Myanmar)</label>
+              <input type="text" id="pagoda-form-name-myanmar" placeholder="အာနန္ဒာဘုရား" />
+            </div>
+            <div class="form-field">
+              <label for="pagoda-form-description-myanmar">Description (Myanmar)</label>
+              <textarea id="pagoda-form-description-myanmar" rows="4" placeholder="မြန်မာဘာသာဖြင့် စစ်ဆေးအတည်ပြုထားသော အကျဉ်းချုပ်"></textarea>
+            </div>
+          </div>
+        </div>
+
         <div class="form-section">
           <div class="form-section-title">Images</div>
-          <div class="field-helper-text">Enter the pagoda name or ID first, then choose JPG, PNG, or WEBP files. Uploaded images will appear below.</div>
+          <div class="field-helper-text">Enter the pagoda name or ID first, then choose JPG, PNG, or WEBP files (up to 8 MB each). These are local source assets, so rebuild the Flutter app before a new image reaches installed devices.</div>
           <input type="hidden" id="pagoda-form-image-url" />
           <div class="form-grid form-grid-two">
             <div class="form-field">
@@ -644,6 +681,7 @@
 
 <script src="js/firebase-config.js"></script>
 <script src="js/pagoda-data.js"></script>
+<script src="js/confirmation.js"></script>
 <script src="js/data-store.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/dashboard.js"></script>

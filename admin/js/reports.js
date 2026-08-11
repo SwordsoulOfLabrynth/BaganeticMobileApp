@@ -196,7 +196,7 @@ async function resolveReport(id) {
 }
 
 async function deleteReport(id) {
-  if (!confirm('Delete this road report permanently?')) return;
+  if (!(await confirmPermanentDeletion('Delete this road report permanently?'))) return;
   try {
     await db.collection(window.adminCollections.roadReports).doc(id).delete();
     showToast('Report deleted.', 'success');

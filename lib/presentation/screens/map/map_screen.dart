@@ -679,8 +679,10 @@ class _MapScreenState extends State<MapScreen>
     final sortedPagodas = [...pagodas]
       ..sort(
         (a, b) => l10n
-            .pagodaName(a.id, a.name)
-            .compareTo(l10n.pagodaName(b.id, b.name)),
+            .pagodaName(a.id, a.name, remoteMyanmar: a.nameMyanmar)
+            .compareTo(
+              l10n.pagodaName(b.id, b.name, remoteMyanmar: b.nameMyanmar),
+            ),
       );
     final hasSelection = _pathStartPagoda != null || _pathEndPagoda != null;
     final canFind =
@@ -945,7 +947,11 @@ class _MapScreenState extends State<MapScreen>
           (pagoda) => DropdownMenuItem<String>(
             value: pagoda.id,
             child: Text(
-              context.l10n.pagodaName(pagoda.id, pagoda.name),
+              context.l10n.pagodaName(
+                pagoda.id,
+                pagoda.name,
+                remoteMyanmar: pagoda.nameMyanmar,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1045,7 +1051,11 @@ class _MapScreenState extends State<MapScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.l10n.pagodaName(pagoda.id, pagoda.name),
+                      context.l10n.pagodaName(
+                        pagoda.id,
+                        pagoda.name,
+                        remoteMyanmar: pagoda.nameMyanmar,
+                      ),
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
@@ -1521,7 +1531,11 @@ class _MapScreenState extends State<MapScreen>
                   children: [
                     Expanded(
                       child: Text(
-                        context.l10n.pagodaName(pagoda.id, pagoda.name),
+                        context.l10n.pagodaName(
+                          pagoda.id,
+                          pagoda.name,
+                          remoteMyanmar: pagoda.nameMyanmar,
+                        ),
                         style: TextStyle(
                           fontSize: Responsive.responsiveFontSize(context, 20),
                           fontWeight: FontWeight.bold,
@@ -1540,7 +1554,11 @@ class _MapScreenState extends State<MapScreen>
                 ),
                 SizedBox(height: Responsive.smallSpacing(context)),
                 Text(
-                  context.l10n.pagodaDescription(pagoda.id, pagoda.description),
+                  context.l10n.pagodaDescription(
+                    pagoda.id,
+                    pagoda.description,
+                    remoteMyanmar: pagoda.descriptionMyanmar,
+                  ),
                   maxLines: Responsive.isDesktopOrLarger(context) ? 3 : 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

@@ -610,7 +610,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                           color: Color(0xFFD6CBC1),
                         ),
                         title: Text(
-                          l10n.pagodaName(pagoda.id, pagoda.name),
+                          l10n.pagodaName(
+                            pagoda.id,
+                            pagoda.name,
+                            remoteMyanmar: pagoda.nameMyanmar,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -756,8 +760,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                           setState(() {});
                         }
                       },
-                      title: Text(l10n.pagodaName(pagoda.id, pagoda.name)),
-                      subtitle: Text(l10n.categoryLabel(pagoda.category)),
+                      title: Text(
+                        l10n.pagodaName(
+                          pagoda.id,
+                          pagoda.name,
+                          remoteMyanmar: pagoda.nameMyanmar,
+                        ),
+                      ),
                       secondary: const Icon(Icons.temple_buddhist),
                     );
                   },

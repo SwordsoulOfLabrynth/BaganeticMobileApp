@@ -128,6 +128,9 @@ const adminBootstrapPromise = (async () => {
     signInWithEmailAndPassword(email, password) {
       return authApi.signInWithEmailAndPassword(authInstance, email, password);
     },
+    sendPasswordResetEmail(email) {
+      return authApi.sendPasswordResetEmail(authInstance, email);
+    },
     getIdToken(forceRefresh = false) {
       if (!authInstance.currentUser) {
         throw new Error('No authenticated admin user is available.');

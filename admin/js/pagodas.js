@@ -5,12 +5,13 @@ let allPagodas = [];
 let filteredPagodas = [];
 let pagodasPage = 1;
 const PAGODAS_PAGE_SIZE = 12;
-let pagodaCategory = 'all';
 let pagodaStatus = 'active';
+let pagodaQuality = 'all';
 let pagodasBound = false;
 let currentPagodaEditId = null;
 let pendingPagodaUploads = 0;
 const PAGODA_ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const PAGODA_MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const PAGODA_UPLOAD_TIMEOUT_MS = 45000;
 
 function initPagodas() {
@@ -18,6 +19,10 @@ function initPagodas() {
     document.getElementById('pagodas-search')?.addEventListener('input', filterPagodas);
     document.getElementById('pagodas-status-filter')?.addEventListener('change', (event) => {
       pagodaStatus = event.target.value;
+      filterPagodas();
+    });
+    document.getElementById('pagodas-quality-filter')?.addEventListener('change', (event) => {
+      pagodaQuality = event.target.value;
       filterPagodas();
     });
     document.getElementById('btn-new-pagoda')?.addEventListener('click', () => openCreatePagodaModal());
@@ -29,24 +34,6 @@ function initPagodas() {
     document.getElementById('pagoda-form')?.addEventListener('submit', submitPagodaForm);
     document.getElementById('pagoda-form-primary-image-file')?.addEventListener('change', handlePrimaryImageFileChange);
     document.getElementById('pagoda-form-gallery-image-files')?.addEventListener('change', handleGalleryImageFilesChange);
-
-    document.querySelectorAll('#page-pagodas .filter-chip').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        if (chip.classList.contains('active')) {
-          chip.classList.remove('active');
-          pagodaCategory = 'all';
-          filterPagodas();
-          return;
-        }
-
-        document.querySelectorAll('#page-pagodas .filter-chip').forEach((item) => {
-          item.classList.remove('active');
-        });
-        chip.classList.add('active');
-        pagodaCategory = chip.dataset.filter;
-        filterPagodas();
-      });
-    });
 
     pagodasBound = true;
   }
@@ -70,27 +57,37 @@ async function loadPagodas() {
     statusFilter.value = pagodaStatus;
   }
 
+  const qualityFilter = document.getElementById('pagodas-quality-filter');
+  if (qualityFilter) {
+    qualityFilter.value = pagodaQuality;
+  }
+
+  renderPagodaContentHealth(allPagodas);
   filterPagodas();
 }
 
 function filterPagodas() {
   const query = (document.getElementById('pagodas-search')?.value || '').toLowerCase();
   filteredPagodas = allPagodas.filter((pagoda) => {
-    const matchesCategory =
-      pagodaCategory === 'all' ||
-      (pagoda.category || '').toLowerCase() === pagodaCategory.toLowerCase();
     const matchesStatus =
       pagodaStatus === 'all' ||
       (pagodaStatus === 'archived'
         ? pagoda.status === 'archived'
         : pagoda.status !== 'archived');
+    const issues = getPagodaContentIssues(pagoda);
+    const matchesQuality =
+      pagodaQuality === 'all' ||
+      (pagodaQuality === 'ready' && issues.length === 0) ||
+      (pagodaQuality === 'missing-myanmar' && issues.includes('Myanmar copy')) ||
+      (pagodaQuality === 'missing-history' && issues.includes('History')) ||
+      (pagodaQuality === 'missing-gallery' && issues.includes('Gallery'));
     const matchesSearch =
       !query ||
       pagoda.name?.toLowerCase().includes(query) ||
       pagoda.description?.toLowerCase().includes(query) ||
       pagoda.id?.toLowerCase().includes(query);
 
-    return matchesCategory && matchesStatus && matchesSearch;
+    return matchesStatus && matchesQuality && matchesSearch;
   });
 
   pagodasPage = 1;
@@ -116,7 +113,7 @@ function renderPagodasTable() {
   if (!filteredPagodas.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5">
+        <td colspan="4">
           <div class="empty-state">
             <div class="empty-icon">🏛️</div>
             <p>No pagodas match the current search or filter.</p>
@@ -136,8 +133,8 @@ function renderPagodasTable() {
         <td>
           <div class="table-primary">${escapeHtml(pagoda.name || pagoda.id)}</div>
           <div class="cell-muted">${escapeHtml(pagoda.id || '—')}</div>
+          ${renderPagodaContentReadiness(pagoda)}
         </td>
-        <td>${renderPagodaCategoryBadge(pagoda.category)}</td>
         <td>${renderPagodaStatusBadge(pagoda.status)}</td>
         <td class="cell-nowrap cell-muted">${formatDate(pagoda.updatedAt || pagoda.createdAt)}</td>
         <td>
@@ -151,9 +148,46 @@ function renderPagodasTable() {
   }).join('');
 }
 
-function renderPagodaCategoryBadge(category) {
-  if (category === 'Temple') return '<span class="badge badge-purple">Temple</span>';
-  return '<span class="badge badge-gold">Pagoda</span>';
+function getPagodaContentIssues(pagoda) {
+  const issues = [];
+  if (!String(pagoda?.nameMyanmar || '').trim() || !String(pagoda?.descriptionMyanmar || '').trim()) {
+    issues.push('Myanmar copy');
+  }
+  if (!String(pagoda?.historicalInfo || '').trim()) issues.push('History');
+  if (!Array.isArray(pagoda?.images) || pagoda.images.length === 0) issues.push('Gallery');
+  return issues;
+}
+
+function renderPagodaContentReadiness(pagoda) {
+  const issues = getPagodaContentIssues(pagoda);
+  if (!issues.length) {
+    return '<span class="content-readiness">Content ready</span>';
+  }
+  return `<span class="content-readiness needs-review">Needs: ${escapeHtml(issues.join(', '))}</span>`;
+}
+
+function renderPagodaContentHealth(pagodas) {
+  const card = document.getElementById('pagoda-health-card');
+  if (!card) return;
+
+  const active = pagodas.filter((pagoda) => pagoda.status !== 'archived');
+  const missingMyanmar = active.filter((pagoda) => getPagodaContentIssues(pagoda).includes('Myanmar copy')).length;
+  const missingHistory = active.filter((pagoda) => getPagodaContentIssues(pagoda).includes('History')).length;
+  const missingGallery = active.filter((pagoda) => getPagodaContentIssues(pagoda).includes('Gallery')).length;
+  const ready = active.filter((pagoda) => getPagodaContentIssues(pagoda).length === 0).length;
+
+  card.innerHTML = `
+    <div>
+      <div class="content-health-title">Content readiness</div>
+      <div class="content-health-copy">Review live catalog overrides before publishing. When these Myanmar fields are blank, the app continues using its bundled reviewed translation.</div>
+    </div>
+    <div class="content-health-stats">
+      <span class="content-health-stat"><strong>${ready}</strong> ready</span>
+      <span class="content-health-stat"><strong>${missingMyanmar}</strong> need Myanmar</span>
+      <span class="content-health-stat"><strong>${missingHistory}</strong> need history</span>
+      <span class="content-health-stat"><strong>${missingGallery}</strong> need gallery</span>
+    </div>
+  `;
 }
 
 function renderPagodaStatusBadge(status) {
@@ -185,7 +219,6 @@ function changePagodasPage(page) {
 function resetPagodaForm() {
   document.getElementById('pagoda-form')?.reset();
   document.getElementById('pagoda-form-id').disabled = false;
-  document.getElementById('pagoda-form-category').value = 'Pagoda';
   currentPagodaEditId = null;
   pendingPagodaUploads = 0;
   resetPagodaUploadInputs();
@@ -234,13 +267,14 @@ function openEditPagodaModal(id) {
 function populatePagodaForm(pagoda = {}) {
   document.getElementById('pagoda-form-id').value = pagoda.id || '';
   document.getElementById('pagoda-form-name').value = pagoda.name || '';
-  document.getElementById('pagoda-form-category').value = normalizePagodaCategory(pagoda.category);
+  document.getElementById('pagoda-form-name-myanmar').value = pagoda.nameMyanmar || '';
   document.getElementById('pagoda-form-year-built').value = pagoda.yearBuilt ?? '';
   document.getElementById('pagoda-form-latitude').value = pagoda.latitude ?? '';
   document.getElementById('pagoda-form-longitude').value = pagoda.longitude ?? '';
   document.getElementById('pagoda-form-image-url').value = pagoda.imageUrl || '';
   document.getElementById('pagoda-form-height').value = pagoda.height || '';
   document.getElementById('pagoda-form-description').value = pagoda.description || '';
+  document.getElementById('pagoda-form-description-myanmar').value = pagoda.descriptionMyanmar || '';
   document.getElementById('pagoda-form-images').value = serializeStringList(normalizeStringArray(pagoda.images));
   document.getElementById('pagoda-form-historical-info').value = pagoda.historicalInfo || '';
   document.getElementById('pagoda-form-architectural-style').value = pagoda.architecturalStyle || '';
@@ -330,10 +364,15 @@ function normalizeUniqueFeaturesList(value) {
 function buildPagodaPayloadFromForm() {
   const id = String(document.getElementById('pagoda-form-id').value || '').trim();
   const name = String(document.getElementById('pagoda-form-name').value || '').trim();
-  const category = normalizePagodaCategory(
-    document.getElementById('pagoda-form-category').value,
-  );
+  const nameMyanmar = String(document.getElementById('pagoda-form-name-myanmar').value || '').trim();
+  const existingPagoda = currentPagodaEditId
+    ? allPagodas.find((pagoda) => pagoda.id === currentPagodaEditId)
+    : null;
+  // The mobile app presents one shared site list. Keep old category data only
+  // for compatibility with already-synced records; new entries use Pagoda.
+  const category = existingPagoda?.category || 'Pagoda';
   const description = String(document.getElementById('pagoda-form-description').value || '').trim();
+  const descriptionMyanmar = String(document.getElementById('pagoda-form-description-myanmar').value || '').trim();
   const imageUrl = String(document.getElementById('pagoda-form-image-url').value || '').trim();
   const latitude = Number(document.getElementById('pagoda-form-latitude').value);
   const longitude = Number(document.getElementById('pagoda-form-longitude').value);
@@ -352,6 +391,9 @@ function buildPagodaPayloadFromForm() {
   if (!description) {
     throw new Error('Description is required.');
   }
+  if ((nameMyanmar || descriptionMyanmar) && !/[\u1000-\u109f]/.test(`${nameMyanmar} ${descriptionMyanmar}`)) {
+    throw new Error('Myanmar content must contain Burmese script, or be left blank for the reviewed fallback translation.');
+  }
   if (!imageUrl) {
     throw new Error('Primary image is required.');
   }
@@ -365,8 +407,10 @@ function buildPagodaPayloadFromForm() {
   return {
     id,
     name,
+    nameMyanmar,
     category,
     description,
+    descriptionMyanmar,
     latitude,
     longitude,
     imageUrl,
@@ -453,12 +497,13 @@ function getPagodaDraftSnapshot() {
   return {
     id: getPagodaFieldValue('pagoda-form-id'),
     name: getPagodaFieldValue('pagoda-form-name'),
-    category: normalizePagodaCategory(getPagodaFieldValue('pagoda-form-category') || 'Pagoda'),
+    nameMyanmar: getPagodaFieldValue('pagoda-form-name-myanmar'),
     yearBuilt: parseOptionalJsonInteger(getPagodaFieldValue('pagoda-form-year-built')),
     latitude: parseOptionalJsonNumber(getPagodaFieldValue('pagoda-form-latitude')),
     longitude: parseOptionalJsonNumber(getPagodaFieldValue('pagoda-form-longitude')),
     height: getPagodaFieldValue('pagoda-form-height'),
     description: getPagodaFieldValue('pagoda-form-description'),
+    descriptionMyanmar: getPagodaFieldValue('pagoda-form-description-myanmar'),
     imageUrl: getPagodaFieldValue('pagoda-form-image-url'),
     images: parseLineListInput(document.getElementById('pagoda-form-images')?.value || ''),
     historicalInfo: getPagodaFieldValue('pagoda-form-historical-info'),
@@ -483,12 +528,13 @@ function buildPagodaJsonTemplate() {
   return {
     id: '',
     name: '',
-    category: 'Pagoda',
+    nameMyanmar: '',
     yearBuilt: '',
     latitude: '',
     longitude: '',
     height: '',
     description: '',
+    descriptionMyanmar: '',
     historicalInfo: '',
     architecturalStyle: '',
     legends: '',
@@ -550,12 +596,13 @@ function normalizeImportedPagoda(raw) {
   return {
     id: String(source.id || '').trim(),
     name: String(source.name || '').trim(),
-    category: normalizePagodaCategory(source.category || 'Pagoda'),
+    nameMyanmar: String(source.nameMyanmar || '').trim(),
     yearBuilt: source.yearBuilt ?? '',
     latitude: source.latitude ?? '',
     longitude: source.longitude ?? '',
     height: String(source.height || '').trim(),
     description: String(source.description || '').trim(),
+    descriptionMyanmar: String(source.descriptionMyanmar || '').trim(),
     imageUrl: String(source.imageUrl || '').trim(),
     images: normalizeStringArray(source.images),
     historicalInfo: String(source.historicalInfo || '').trim(),
@@ -618,11 +665,12 @@ function getFileExtension(fileName) {
 }
 
 function isSupportedPagodaImageFile(file) {
-  return PAGODA_ALLOWED_IMAGE_EXTENSIONS.includes(getFileExtension(file?.name || ''));
+  return PAGODA_ALLOWED_IMAGE_EXTENSIONS.includes(getFileExtension(file?.name || '')) &&
+    Number(file?.size || 0) <= PAGODA_MAX_UPLOAD_BYTES;
 }
 
 function describeSupportedPagodaFormats() {
-  return 'JPG, JPEG, PNG, or WEBP';
+  return 'JPG, JPEG, PNG, or WEBP (up to 8 MB each)';
 }
 
 function withTimeout(promise, timeoutMs, timeoutMessage) {
@@ -660,6 +708,11 @@ function mergeUniqueStrings(existingValues, nextValues) {
 async function uploadPagodaFiles(files, subfolder) {
   const fileList = Array.from(files || []).filter(Boolean);
   if (!fileList.length) return [];
+
+  const oversized = fileList.find((file) => Number(file.size || 0) > PAGODA_MAX_UPLOAD_BYTES);
+  if (oversized) {
+    throw new Error(`${oversized.name} is larger than the 8 MB upload limit.`);
+  }
 
   const formData = new FormData();
   formData.append('pagodaFolder', getPagodaUploadFolderName());
@@ -896,7 +949,15 @@ async function togglePagodaArchive(id, nextStatus) {
   if (!pagoda) return;
 
   const verb = nextStatus === 'archived' ? 'archive' : 'restore';
-  if (!confirm(`Do you want to ${verb} ${pagoda.name || id}?`)) return;
+  if (!(await confirmAdminAction({
+    title: nextStatus === 'archived' ? 'Archive this site?' : 'Restore this site?',
+    message: nextStatus === 'archived'
+      ? `${pagoda.name || id} will be hidden from the live mobile catalog.`
+      : `${pagoda.name || id} will be visible in the live mobile catalog again.`,
+    eyebrowText: nextStatus === 'archived' ? 'Catalog visibility' : 'Restore catalog entry',
+    confirmLabel: nextStatus === 'archived' ? 'Archive site' : 'Restore site',
+    tone: nextStatus === 'archived' ? 'warning' : 'success',
+  }))) return;
 
   try {
     const documentPath = buildAdminDocumentPath(window.adminCollections.pagodas, id);
