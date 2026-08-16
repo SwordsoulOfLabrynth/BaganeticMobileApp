@@ -8,7 +8,7 @@ This guide reflects the current Flutter app in this repository.
 - Android Studio or VS Code with Flutter support
 - A connected device or emulator
 - Firebase project only if you want auth, road reports, or synced AI history
-- NVIDIA API key only if you want live AI replies
+- Firebase Functions setup only if you want live AI replies
 
 Verify your toolchain:
 
@@ -26,25 +26,31 @@ flutter pub get
 
 ## 2. Optional AI Configuration
 
-The app can run without AI. To enable the assistant:
+The app can run without AI. Live AI replies use the `generateAiReply` Firebase
+Function so the NVIDIA key never enters a mobile build.
 
-1. Copy `config/dart_defines.example.env` to
-   `config/dart_defines.local.env`
-2. Set your values:
-
-```text
-NVIDIA_API_KEY=your_key_here
-NVIDIA_MODEL=meta/llama-3.1-8b-instruct
-```
-
-3. Run the app with:
+1. Install the Function dependencies:
 
 ```bash
-flutter run --dart-define-from-file=config/dart_defines.local.env
+npm --prefix functions install
 ```
 
-If `NVIDIA_API_KEY` is blank, the assistant UI can still appear, but live AI
-responses stay disabled.
+2. Set the secret interactively. Do not put it in a Dart define, source file,
+or Git repository:
+
+```bash
+firebase functions:secrets:set NVIDIA_API_KEY
+```
+
+3. Deploy the Function with the rules:
+
+```bash
+firebase deploy --only functions,firestore:rules,storage
+```
+
+The Function defaults to `asia-southeast1`. If you deploy it elsewhere, copy
+`config/dart_defines.example.env` to `config/dart_defines.local.env`, set
+`AI_FUNCTION_REGION`, and run with `--dart-define-from-file`.
 
 ## 3. Optional Firebase Configuration
 
@@ -103,21 +109,14 @@ Standard run:
 flutter run
 ```
 
-Run with local AI config:
-
-```bash
-flutter run --dart-define-from-file=config/dart_defines.local.env
-```
-
 ## 5. Validate the Setup
 
-Use static analysis as the current baseline check:
+Run the automated checks:
 
 ```bash
 flutter analyze
+flutter test
 ```
-
-No automated test suite is currently checked into this repository.
 
 ## 6. Current Project Structure
 
@@ -163,9 +162,10 @@ database in Firebase Console and publish rules that match the current app scope.
 
 ### AI assistant does not respond
 
-- Confirm `NVIDIA_API_KEY` is set
-- Relaunch the app after changing dart-defines
-- Make sure you are signed in before using synced AI history
+- Make sure you are signed in
+- Run `firebase functions:list` and confirm `generateAiReply` is deployed
+- Confirm the `NVIDIA_API_KEY` Functions secret was set in the same Firebase project
+- Confirm the app and Function use the same `AI_FUNCTION_REGION`
 
 ### Asset or generated file issues
 
@@ -180,6 +180,10 @@ The first tile download needs internet access. Cached areas continue to work
 offline after download.
 
 ## 9. Build Commands
+
+Before a release build, create a keystore and copy
+`android/key.properties.example` to `android/key.properties`. Keep both the
+keystore and real properties file out of Git.
 
 Android APK:
 

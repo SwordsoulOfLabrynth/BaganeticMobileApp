@@ -60,19 +60,13 @@ class MigrationToV6 implements DatabaseMigration {
     for (final entry in coordMap.entries) {
       await db.update(
         AppConstants.tablePagodas,
-        {
-          'latitude': entry.value[0],
-          'longitude': entry.value[1],
-        },
+        {'latitude': entry.value[0], 'longitude': entry.value[1]},
         where: 'id = ?',
         whereArgs: [entry.key],
       );
       await db.update(
         AppConstants.tableTripStops,
-        {
-          'latitude': entry.value[0],
-          'longitude': entry.value[1],
-        },
+        {'latitude': entry.value[0], 'longitude': entry.value[1]},
         where: 'pagodaId = ?',
         whereArgs: [entry.key],
       );

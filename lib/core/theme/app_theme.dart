@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 
 /// The shared visual system for the warm, tactile heritage-journal design.
 class AppTheme {
-  static const Color primaryColor = Color(0xFFA34A2A);   // terracotta (spec)
-  static const Color secondaryColor = Color(0xFF2B1D14); // deep lacquer brown (spec)
-  static const Color accentColor = Color(0xFFC19A49);    // antique gold (spec)
-  static const Color backgroundColor = Color(0xFFF7F2E9); // ivory parchment (spec)
+  static const Color primaryColor = Color(0xFFA34A2A); // terracotta (spec)
+  static const Color secondaryColor = Color(
+    0xFF2B1D14,
+  ); // deep lacquer brown (spec)
+  static const Color accentColor = Color(0xFFC19A49); // antique gold (spec)
+  static const Color backgroundColor = Color(
+    0xFFF7F2E9,
+  ); // ivory parchment (spec)
   static const Color cardColor = Color(0xFFFFFBF3);
   static const Color paperColor = Color(0xFFF0E4CE);
   static const Color textPrimary = Color(0xFF30251D);
@@ -53,18 +57,19 @@ class AppTheme {
       bodyLarge: body(16),
       bodyMedium: body(14),
       bodySmall: body(12, color: textSecondary, height: 1.35),
-      labelLarge: body(14, weight: FontWeight.w700).copyWith(
-        fontFeatures: const [FontFeature('smcp')],
-        letterSpacing: 1.2,
-      ),
-      labelMedium: body(12, weight: FontWeight.w700).copyWith(
-        fontFeatures: const [FontFeature('smcp')],
-        letterSpacing: 1.2,
-      ),
-      labelSmall: body(10, weight: FontWeight.w700, color: textSecondary).copyWith(
-        fontFeatures: const [FontFeature('smcp')],
-        letterSpacing: 1.2,
-      ),
+      labelLarge: body(
+        14,
+        weight: FontWeight.w700,
+      ).copyWith(fontFeatures: const [FontFeature('smcp')], letterSpacing: 1.2),
+      labelMedium: body(
+        12,
+        weight: FontWeight.w700,
+      ).copyWith(fontFeatures: const [FontFeature('smcp')], letterSpacing: 1.2),
+      labelSmall: body(
+        10,
+        weight: FontWeight.w700,
+        color: textSecondary,
+      ).copyWith(fontFeatures: const [FontFeature('smcp')], letterSpacing: 1.2),
     );
   }
 

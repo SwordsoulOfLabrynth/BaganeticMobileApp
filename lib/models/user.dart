@@ -21,7 +21,9 @@ class User {
       email: json['email'],
       displayName: json['displayName'],
       photoUrl: json['photoUrl'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
     );
   }
 

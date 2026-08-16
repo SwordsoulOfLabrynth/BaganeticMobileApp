@@ -13,14 +13,17 @@ class MigrationToV4 implements DatabaseMigration {
   Future<void> migrate(Database db) async {
     Logger.info('Database upgrade: Fixing image paths...');
 
-    final List<Map<String, dynamic>> pagodas =
-        await db.query(AppConstants.tablePagodas);
+    final List<Map<String, dynamic>> pagodas = await db.query(
+      AppConstants.tablePagodas,
+    );
 
     var fixedCount = 0;
     for (final pagoda in pagodas) {
       final String? oldPath = pagoda['imageUrl'] as String?;
       if (oldPath != null && oldPath.isNotEmpty) {
-        final String normalizedPath = ImagePathUtils.normalizeImagePath(oldPath);
+        final String normalizedPath = ImagePathUtils.normalizeImagePath(
+          oldPath,
+        );
         if (normalizedPath != oldPath) {
           await db.update(
             AppConstants.tablePagodas,
@@ -29,7 +32,8 @@ class MigrationToV4 implements DatabaseMigration {
             whereArgs: [pagoda['id']],
           );
           Logger.info(
-              'Fixed image path for ${pagoda['name']}: $oldPath -> $normalizedPath');
+            'Fixed image path for ${pagoda['name']}: $oldPath -> $normalizedPath',
+          );
           fixedCount++;
         }
       }

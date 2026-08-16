@@ -29,6 +29,11 @@ migrate_working_dir/
 # Local Flutter dart-define secrets
 /config/dart_defines.local.env
 
+# Android release signing material
+/android/key.properties
+/android/*.jks
+/android/*.keystore
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id

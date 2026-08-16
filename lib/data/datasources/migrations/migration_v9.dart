@@ -86,7 +86,8 @@ class MigrationToV9 implements DatabaseMigration {
     });
   }
 
-  Future<void> _rebuildFromLegacy(Database db, {
+  Future<void> _rebuildFromLegacy(
+    Database db, {
     required String legacyTable,
   }) async {
     await db.transaction((txn) async {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
@@ -17,15 +18,8 @@ class CommunityProvider extends ChangeNotifier {
   }) : _dataService = dataService ?? CommunityDataService(),
        _firebaseService = firebaseService ?? FirebaseService() {
     _currentUserId = _resolveUserId(_firebaseService.currentUser?.uid);
-    _authSub = _firebaseService.authStateChanges.listen((user) async {
-      final nextUserId = _resolveUserId(user?.uid);
-      if (nextUserId == _currentUserId) {
-        return;
-      }
-      _currentUserId = nextUserId;
-      await loadPosts();
-    });
-    loadPosts();
+    _authSub = _firebaseService.authStateChanges.listen(_handleAuthChange);
+    unawaited(loadPosts());
   }
 
   static const List<String> suggestedTags = [
@@ -49,7 +43,7 @@ class CommunityProvider extends ChangeNotifier {
   String _selectedTag = 'all';
   CommunityFeedSort _sort = CommunityFeedSort.latest;
   String _currentUserId = AppConstants.guestOwnerId;
-  StreamSubscription<dynamic>? _authSub;
+  StreamSubscription<firebase_auth.User?>? _authSub;
 
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
@@ -205,27 +199,49 @@ class CommunityProvider extends ChangeNotifier {
   }
 
   void setSearchQuery(String query) {
+    if (_searchQuery == query) {
+      return;
+    }
     _searchQuery = query;
     notifyListeners();
   }
 
   void setSelectedType(String value) {
+    if (_selectedType == value) {
+      return;
+    }
     _selectedType = value;
     notifyListeners();
   }
 
   void setSelectedTag(String value) {
+    if (_selectedTag == value) {
+      return;
+    }
     _selectedTag = value;
     notifyListeners();
   }
 
   void setSort(CommunityFeedSort value) {
+    if (_sort == value) {
+      return;
+    }
     _sort = value;
     notifyListeners();
   }
 
   String _resolveUserId(String? uid) {
     return uid?.isNotEmpty == true ? uid! : AppConstants.guestOwnerId;
+  }
+
+  Future<void> _handleAuthChange(firebase_auth.User? user) async {
+    final nextUserId = _resolveUserId(user?.uid);
+    if (nextUserId == _currentUserId) {
+      return;
+    }
+
+    _currentUserId = nextUserId;
+    await loadPosts();
   }
 
   @override

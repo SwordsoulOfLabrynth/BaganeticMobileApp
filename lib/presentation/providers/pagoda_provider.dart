@@ -15,25 +15,18 @@ class PagodaUIProvider with ChangeNotifier {
   PagodaUIProvider({
     PagodaDataService? dataService,
     PagodaSearchService? searchService,
+    FirebaseService? firebaseService,
   }) : _dataService = dataService ?? PagodaDataService(),
-       _searchService = searchService ?? PagodaSearchService() {
+       _searchService = searchService ?? PagodaSearchService(),
+       _firebaseService = firebaseService ?? FirebaseService() {
     _currentOwnerId = _resolveOwnerId(_firebaseService.currentUser);
-    _authSub = _firebaseService.authStateChanges.listen((user) async {
-      final nextOwnerId = _resolveOwnerId(user);
-      if (nextOwnerId == _currentOwnerId) {
-        return;
-      }
-      _currentOwnerId = nextOwnerId;
-      await loadPagodas();
-      await loadFavorites();
-    });
-    loadPagodas();
-    loadFavorites();
+    _authSub = _firebaseService.authStateChanges.listen(_handleAuthChange);
+    unawaited(_refreshOwnerData());
   }
 
   final PagodaDataService _dataService;
   final PagodaSearchService _searchService;
-  final FirebaseService _firebaseService = FirebaseService();
+  final FirebaseService _firebaseService;
 
   List<Pagoda> _pagodas = [];
   List<Pagoda> _favorites = [];
@@ -49,7 +42,7 @@ class PagodaUIProvider with ChangeNotifier {
     searchQuery: _searchQuery,
   );
   List<Pagoda> get allPagodas => List.unmodifiable(_pagodas);
-  List<Pagoda> get favorites => _favorites;
+  List<Pagoda> get favorites => List.unmodifiable(_favorites);
   String get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;
   bool get canManageFavorites => _currentOwnerId != AppConstants.guestOwnerId;
@@ -57,6 +50,23 @@ class PagodaUIProvider with ChangeNotifier {
 
   String _resolveOwnerId(firebase_auth.User? user) {
     return user?.uid ?? AppConstants.guestOwnerId;
+  }
+
+  Future<void> _handleAuthChange(firebase_auth.User? user) async {
+    final nextOwnerId = _resolveOwnerId(user);
+    if (nextOwnerId == _currentOwnerId) {
+      return;
+    }
+
+    _currentOwnerId = nextOwnerId;
+    await _refreshOwnerData();
+  }
+
+  Future<void> _refreshOwnerData() async {
+    // Favorites depend on the pagoda catalog being available, so keep this
+    // sequence ordered instead of launching both loads concurrently.
+    await loadPagodas();
+    await loadFavorites();
   }
 
   Future<void> loadPagodas() async {
@@ -134,14 +144,7 @@ class PagodaUIProvider with ChangeNotifier {
     final nextPagoda = previousPagoda.copyWith(
       isFavorite: !previousPagoda.isFavorite,
     );
-    _pagodas[index] = nextPagoda;
-
-    if (nextPagoda.isFavorite) {
-      _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
-      _favorites.insert(0, nextPagoda);
-    } else {
-      _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
-    }
+    _applyFavoriteChange(nextPagoda);
     notifyListeners();
 
     try {
@@ -152,24 +155,24 @@ class PagodaUIProvider with ChangeNotifier {
         ),
       );
     } catch (e, stackTrace) {
-      _pagodas[index] = previousPagoda;
-      if (previousPagoda.isFavorite) {
-        _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
-        _favorites.insert(0, previousPagoda);
-      } else {
-        _favorites.removeWhere((pagoda) => pagoda.id == pagodaId);
-      }
+      _applyFavoriteChange(previousPagoda);
       notifyListeners();
       Logger.error('Error toggling favorite', e, stackTrace);
     }
   }
 
   void setCategory(String category) {
+    if (_selectedCategory == category) {
+      return;
+    }
     _selectedCategory = category;
     notifyListeners();
   }
 
   void setSearchQuery(String query) {
+    if (_searchQuery == query) {
+      return;
+    }
     _searchQuery = query;
     notifyListeners();
   }
@@ -207,6 +210,18 @@ class PagodaUIProvider with ChangeNotifier {
         .toList(growable: false);
   }
 
+  void _applyFavoriteChange(Pagoda pagoda) {
+    final index = _pagodas.indexWhere((item) => item.id == pagoda.id);
+    if (index != -1) {
+      _pagodas[index] = pagoda;
+    }
+
+    _favorites.removeWhere((item) => item.id == pagoda.id);
+    if (pagoda.isFavorite) {
+      _favorites.insert(0, pagoda);
+    }
+  }
+
   @override
   void dispose() {
     _authSub?.cancel();
@@ -215,5 +230,9 @@ class PagodaUIProvider with ChangeNotifier {
 }
 
 class PagodaProvider extends PagodaUIProvider {
-  PagodaProvider({super.dataService, super.searchService});
+  PagodaProvider({
+    super.dataService,
+    super.searchService,
+    super.firebaseService,
+  });
 }

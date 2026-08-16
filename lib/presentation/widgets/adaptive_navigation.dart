@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/responsive.dart';
 
 // Heritage Journal palette constants — accessible to all nav widget classes
-const Color _navGold = Color(0xFFC19A49);        // antique gold
-const Color _navActive = Color(0xFFA34A2A);      // terracotta
-const Color _navUnselected = Color(0xFF786A5D);  // warm muted brown
+const Color _navGold = Color(0xFFC19A49); // antique gold
+const Color _navActive = Color(0xFFA34A2A); // terracotta
+const Color _navUnselected = Color(0xFF786A5D); // warm muted brown
 
 class AdaptiveNavigation extends StatefulWidget {
   final int currentIndex;
@@ -87,10 +87,7 @@ class _AdaptiveNavigationState extends State<AdaptiveNavigation> {
           selectedLabelTextStyle: Theme.of(context).textTheme.labelMedium
               ?.copyWith(color: _goldDark, fontWeight: FontWeight.w700),
           unselectedLabelTextStyle: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(
-                color: _navUnselected,
-                fontWeight: FontWeight.w500,
-              ),
+              ?.copyWith(color: _navUnselected, fontWeight: FontWeight.w500),
           leading: Padding(
             padding: EdgeInsets.fromLTRB(isDesktop ? 14 : 10, 14, 10, 12),
             child: _buildWideLeading(isDesktop: isDesktop),

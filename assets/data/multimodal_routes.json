@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "ferryConnections": [
+    {
+      "id": "bupaya-tantkyi",
+      "pagodaId": "tantkyitaung",
+      "originTerminal": {
+        "name": "Bu Paya Jetty",
+        "nameMyanmar": "ဗူးဘုရား လှေဆိပ်",
+        "latitude": 21.1762808,
+        "longitude": 94.8571698
+      },
+      "destinationTerminal": {
+        "name": "Tant Kyi motor jetty",
+        "nameMyanmar": "တန့်ကြည့် မော်တော်ဆိပ်",
+        "latitude": 21.1555755,
+        "longitude": 94.8050232
+      },
+      "ferryRouteGeometry": [
+        {"latitude": 21.1762808, "longitude": 94.8571698},
+        {"latitude": 21.1742480, "longitude": 94.8522300},
+        {"latitude": 21.1688340, "longitude": 94.8446970},
+        {"latitude": 21.1645630, "longitude": 94.8387530},
+        {"latitude": 21.1605520, "longitude": 94.8317760},
+        {"latitude": 21.1579670, "longitude": 94.8176950},
+        {"latitude": 21.1567260, "longitude": 94.8111260},
+        {"latitude": 21.1555755, "longitude": 94.8050232}
+      ],
+      "availabilityNote": "Ferry availability varies; confirm the crossing locally before leaving.",
+      "availabilityNoteMyanmar": "ဖယ်ရီ/လှေအခြေအနေ ပြောင်းလဲနိုင်သောကြောင့် မထွက်ခွာမီ ဒေသတွင် အတည်ပြုပါ။"
+    }
+  ]
+}

@@ -13,19 +13,18 @@ class Responsive {
 
   static bool isCompact(BuildContext context) =>
       deviceSizeOf(context) == DeviceSize.compact;
-  
+
   static bool isMedium(BuildContext context) =>
       deviceSizeOf(context) == DeviceSize.medium;
-  
+
   static bool isExpanded(BuildContext context) =>
       deviceSizeOf(context) == DeviceSize.expanded;
-  
+
   static bool isLarge(BuildContext context) =>
       deviceSizeOf(context) == DeviceSize.large;
 
-  static bool isTabletOrLarger(BuildContext context) =>
-      !isCompact(context);
-  
+  static bool isTabletOrLarger(BuildContext context) => !isCompact(context);
+
   static bool isDesktopOrLarger(BuildContext context) =>
       isExpanded(context) || isLarge(context);
 
@@ -103,7 +102,8 @@ class Responsive {
     }
   }
 
-  static int crossAxisCount(BuildContext context, {
+  static int crossAxisCount(
+    BuildContext context, {
     int maxCount = 4,
     int minCount = 1,
     double itemWidth = 300,

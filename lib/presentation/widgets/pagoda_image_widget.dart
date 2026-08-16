@@ -10,7 +10,7 @@ class PagodaImageWidget extends StatelessWidget {
   final double? height;
   final BoxFit fit;
   final Widget? placeholder;
-  
+
   const PagodaImageWidget({
     super.key,
     required this.imageUrl,
@@ -19,17 +19,18 @@ class PagodaImageWidget extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.placeholder,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     // Normalize the image path
     final String normalizedPath = ImagePathUtils.normalizeImagePath(imageUrl);
-    
+
     // If path is empty or invalid, show placeholder
-    if (normalizedPath.isEmpty || !ImagePathUtils.isValidAssetPath(normalizedPath)) {
+    if (normalizedPath.isEmpty ||
+        !ImagePathUtils.isValidAssetPath(normalizedPath)) {
       return _buildPlaceholder(context);
     }
-    
+
     return Image.asset(
       normalizedPath,
       width: width,
@@ -41,10 +42,11 @@ class PagodaImageWidget extends StatelessWidget {
           error,
           stackTrace,
         );
-        
+
         // Try alternative path variations
         final String altPath = _tryAlternativePath(normalizedPath);
-        if (altPath != normalizedPath && ImagePathUtils.isValidAssetPath(altPath)) {
+        if (altPath != normalizedPath &&
+            ImagePathUtils.isValidAssetPath(altPath)) {
           return Image.asset(
             altPath,
             width: width,
@@ -55,21 +57,17 @@ class PagodaImageWidget extends StatelessWidget {
             },
           );
         }
-        
+
         return _buildPlaceholder(context);
       },
     );
   }
-  
+
   Widget _buildPlaceholder(BuildContext context) {
     if (placeholder != null) {
-      return SizedBox(
-        width: width,
-        height: height,
-        child: placeholder,
-      );
+      return SizedBox(width: width, height: height, child: placeholder);
     }
-    
+
     return Container(
       width: width,
       height: height,
@@ -87,17 +85,17 @@ class PagodaImageWidget extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Try alternative path variations if the original fails
   String _tryAlternativePath(String path) {
     // Remove "pagodas/pagodas/" if present
     String altPath = path.replaceAll('pagodas/pagodas/', 'pagodas/');
-    
+
     // If path doesn't start with assets/, try adding it
     if (!altPath.startsWith('assets/')) {
       altPath = 'assets/$altPath';
     }
-    
+
     return ImagePathUtils.normalizeImagePath(altPath);
   }
 }

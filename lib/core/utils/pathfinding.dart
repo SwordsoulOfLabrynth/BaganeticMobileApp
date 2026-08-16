@@ -12,19 +12,29 @@ class PathSearchResult {
   final double distanceKm;
   final List<String> roadNodePath;
   final bool isRoadGraphRoute;
+  final bool requiresRiverCrossing;
 
   const PathSearchResult({
     required this.path,
     required this.distanceKm,
     this.roadNodePath = const [],
     this.isRoadGraphRoute = false,
+    this.requiresRiverCrossing = false,
   });
 
   const PathSearchResult.empty()
     : path = const [],
       distanceKm = 0,
       roadNodePath = const [],
-      isRoadGraphRoute = false;
+      isRoadGraphRoute = false,
+      requiresRiverCrossing = false;
+
+  const PathSearchResult.riverCrossing()
+    : path = const [],
+      distanceKm = 0,
+      roadNodePath = const [],
+      isRoadGraphRoute = false,
+      requiresRiverCrossing = true;
 
   bool get isEmpty => path.isEmpty;
 }
@@ -66,22 +76,26 @@ class PathfindingService {
       return _buildDirectFallbackResult(start, goal);
     }
 
+    final startNode = graph.nodes[start.id];
+    final goalNode = graph.nodes[goal.id];
+    if (startNode == null || goalNode == null) {
+      return _buildDirectFallbackResult(start, goal);
+    }
+    if (startNode.requiresRiverCrossing || goalNode.requiresRiverCrossing) {
+      return const PathSearchResult.riverCrossing();
+    }
+
     // A road route cannot be represented honestly when a pagoda is far from
     // the nearest road node in the bundled offline graph.
     const maxTrustedAccessGapKm = 0.5;
-    if (graph.nodes[start.id]!.accessGapKm > maxTrustedAccessGapKm ||
-        graph.nodes[goal.id]!.accessGapKm > maxTrustedAccessGapKm) {
+    if (startNode.accessGapKm > maxTrustedAccessGapKm ||
+        goalNode.accessGapKm > maxTrustedAccessGapKm) {
       return _buildDirectFallbackResult(start, goal);
     }
 
     final pagodasById = <String, Pagoda>{
       for (final pagoda in allPagodas) pagoda.id: pagoda,
     };
-
-    if (!graph.nodes.containsKey(start.id) ||
-        !graph.nodes.containsKey(goal.id)) {
-      return _buildDirectFallbackResult(start, goal);
-    }
 
     final gScores = <String, double>{start.id: 0};
     final previous = <String, String?>{};
@@ -168,6 +182,29 @@ class PathfindingService {
       totalDistance += distance(path[i], path[i + 1]);
     }
     return totalDistance;
+  }
+
+  static bool requiresRiverCrossingBetween(
+    String startId,
+    String goalId,
+    PagodaRouteGraphData? graph,
+  ) {
+    if (startId == goalId || graph == null) {
+      return false;
+    }
+    return (graph.nodes[startId]?.requiresRiverCrossing ?? false) ||
+        (graph.nodes[goalId]?.requiresRiverCrossing ?? false);
+  }
+
+  static bool routeRequiresRiverCrossing(
+    Iterable<String> pagodaIds,
+    PagodaRouteGraphData? graph,
+  ) {
+    final ids = pagodaIds.where((id) => id.isNotEmpty).toSet();
+    if (ids.length < 2 || graph == null) {
+      return false;
+    }
+    return ids.any((id) => graph.nodes[id]?.requiresRiverCrossing ?? false);
   }
 
   static List<Pagoda> optimizeRouteOrder(
@@ -426,6 +463,7 @@ class PagodaRouteGraphNode {
   final double lat;
   final double lng;
   final double accessGapKm;
+  final bool requiresRiverCrossing;
 
   const PagodaRouteGraphNode({
     required this.pagodaId,
@@ -433,6 +471,7 @@ class PagodaRouteGraphNode {
     required this.lat,
     required this.lng,
     required this.accessGapKm,
+    this.requiresRiverCrossing = false,
   });
 
   factory PagodaRouteGraphNode.fromJson(Map<String, dynamic> json) {
@@ -442,6 +481,7 @@ class PagodaRouteGraphNode {
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       accessGapKm: (json['accessGapKm'] as num).toDouble(),
+      requiresRiverCrossing: json['requiresRiverCrossing'] as bool? ?? false,
     );
   }
 }

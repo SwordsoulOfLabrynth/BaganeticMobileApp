@@ -9,37 +9,41 @@ import '../../core/services/firebase_service.dart';
 import '../../core/services/logger.dart';
 
 class TripProvider with ChangeNotifier {
-  final DatabaseService _db = DatabaseService();
-  final FirebaseService _firebaseService = FirebaseService();
+  TripProvider({
+    DatabaseService? databaseService,
+    FirebaseService? firebaseService,
+  }) : _db = databaseService ?? DatabaseService(),
+       _firebaseService = firebaseService ?? FirebaseService() {
+    _currentOwnerId = _resolveOwnerId(_firebaseService.currentUser);
+    _authSub = _firebaseService.authStateChanges.listen(_handleAuthChange);
+    unawaited(loadTrips());
+  }
+
+  final DatabaseService _db;
+  final FirebaseService _firebaseService;
 
   List<Trip> _trips = [];
   bool _isLoading = false;
   String _currentOwnerId = AppConstants.guestOwnerId;
   StreamSubscription<firebase_auth.User?>? _authSub;
 
-  List<Trip> get trips => _trips;
+  List<Trip> get trips => List.unmodifiable(_trips);
   bool get isLoading => _isLoading;
   String get currentOwnerId => _currentOwnerId;
   bool get canManageTrips => _currentOwnerId != AppConstants.guestOwnerId;
 
-  TripProvider() {
-    _currentOwnerId = _resolveOwnerId(_firebaseService.currentUser);
-    _authSub = _firebaseService.authStateChanges.listen((user) async {
-      final nextOwnerId = _resolveOwnerId(user);
-      if (nextOwnerId == _currentOwnerId) {
-        return;
-      }
-      _currentOwnerId = nextOwnerId;
-      if (canManageTrips) {
-        await _adoptLegacyLocalTrips();
-      }
-      await loadTrips();
-    });
-    loadTrips();
-  }
-
   String _resolveOwnerId(firebase_auth.User? user) {
     return user?.uid ?? AppConstants.guestOwnerId;
+  }
+
+  Future<void> _handleAuthChange(firebase_auth.User? user) async {
+    final nextOwnerId = _resolveOwnerId(user);
+    if (nextOwnerId == _currentOwnerId) {
+      return;
+    }
+
+    _currentOwnerId = nextOwnerId;
+    await loadTrips();
   }
 
   Future<void> loadTrips() async {

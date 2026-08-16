@@ -289,10 +289,14 @@ class _ChatScreenState extends State<ChatScreen> {
         .trim();
 
     final normalized = cleaned.toLowerCase();
-    if (normalized.contains('authorization failed') ||
-        normalized.contains('api authentication failed') ||
-        normalized.contains('access was denied')) {
-      return 'The AI service key was rejected. Replace NVIDIA_API_KEY with an active NVIDIA key, then rebuild the app.';
+    if (normalized.contains('unauthenticated')) {
+      return 'Please sign in before using the AI assistant.';
+    }
+    if (normalized.contains('not-found')) {
+      return 'The AI service has not been deployed yet. Please try again later.';
+    }
+    if (normalized.contains('internal') || normalized.contains('unavailable')) {
+      return 'The AI service is temporarily unavailable. Please try again later.';
     }
 
     if (cleaned.isNotEmpty) {

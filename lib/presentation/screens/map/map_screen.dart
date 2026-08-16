@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/multimodal_route_service.dart';
 import '../../../core/services/offline_route_service.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/helpers.dart';
@@ -44,11 +45,15 @@ class _MapScreenState extends State<MapScreen>
   List<LatLng> _tripRoute = [];
   bool _isTripRouteLoading = false;
   bool _isTripRouteFallback = false;
+  List<MultimodalRouteSegment> _tripRouteSegments = [];
+  bool _tripRouteUsesFerry = false;
   Pagoda? _pathStartPagoda;
   Pagoda? _pathEndPagoda;
   List<Pagoda> _shortestPathPagodas = [];
   double _shortestPathDistanceKm = 0;
   List<LatLng> _shortestPathRoute = [];
+  List<MultimodalRouteSegment> _shortestPathRouteSegments = [];
+  bool _shortestPathUsesFerry = false;
   bool _isPathRouteLoading = false;
   bool _isPathRouteFallback = false;
   bool _hasAttemptedPathSearch = false;
@@ -124,6 +129,8 @@ class _MapScreenState extends State<MapScreen>
       setState(() {
         _tripRoute = [];
         _isTripRouteFallback = false;
+        _tripRouteSegments = [];
+        _tripRouteUsesFerry = false;
         _isTripRouteLoading = false;
       });
       return;
@@ -132,8 +139,41 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _tripRoute = points;
       _isTripRouteFallback = false;
+      _tripRouteSegments = [];
+      _tripRouteUsesFerry = false;
       _isTripRouteLoading = true;
     });
+
+    final usesFerry = await MultimodalRouteService.instance.routeUsesFerry(
+      trip.stops.map((stop) => stop.pagodaId),
+    );
+    if (!mounted || _selectedTrip?.id != trip.id) {
+      return;
+    }
+    if (usesFerry) {
+      final plan = await MultimodalRouteService.instance.buildTripPlan(
+        trip.stops
+            .map(
+              (stop) => RouteEndpoint(
+                pagodaId: stop.pagodaId,
+                location: LatLng(stop.latitude, stop.longitude),
+              ),
+            )
+            .toList(growable: false),
+      );
+      if (!mounted || _selectedTrip?.id != trip.id) {
+        return;
+      }
+      setState(() {
+        _tripRoute = plan.points;
+        _isTripRouteFallback = plan.usesFallback;
+        _tripRouteSegments = plan.segments;
+        _tripRouteUsesFerry = plan.hasFerry;
+        _isTripRouteLoading = false;
+      });
+      _focusRoute(plan.points);
+      return;
+    }
 
     final route = await OfflineRouteService.instance.buildRouteForPoints(
       points,
@@ -144,6 +184,8 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _tripRoute = resolved;
       _isTripRouteFallback = route.isEmpty;
+      _tripRouteSegments = [];
+      _tripRouteUsesFerry = false;
       _isTripRouteLoading = false;
     });
     _focusRoute(resolved);
@@ -159,6 +201,82 @@ class _MapScreenState extends State<MapScreen>
     _mapController.fitCamera(
       CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(48)),
     );
+  }
+
+  List<Polyline> _buildSegmentPolylines(
+    List<MultimodalRouteSegment> segments, {
+    Color roadColor = const Color(0xFFD4AF37),
+  }) {
+    return segments
+        .where((segment) => segment.points.length >= 2)
+        .map((segment) {
+          final isFerry = segment.mode == RouteSegmentMode.ferry;
+          return Polyline(
+            points: segment.points,
+            color: isFerry ? const Color(0xFF2196C4) : roadColor,
+            // A ferry is a transfer between terminals, not a road or a
+            // tracked boat navigation line. Keep it visually distinct from
+            // the road route so it cannot be mistaken for turn-by-turn data.
+            strokeWidth: isFerry ? 5 : 5,
+            borderStrokeWidth: 3,
+            borderColor: isFerry
+                ? const Color(0xFF0F4C65).withValues(alpha: 0.7)
+                : Colors.black.withValues(alpha: 0.25),
+            pattern: isFerry
+                ? StrokePattern.dashed(
+                    segments: [14.0, 10.0],
+                    patternFit: PatternFit.appendDot,
+                  )
+                : const StrokePattern.solid(),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<Marker> _buildFerryMarkers(List<MultimodalRouteSegment> segments) {
+    final seenTerminals = <String>{};
+    final markers = <Marker>[];
+
+    for (final segment in segments.where(
+      (segment) =>
+          segment.mode == RouteSegmentMode.ferry && segment.points.length >= 2,
+    )) {
+      for (final terminal in [segment.points.first, segment.points.last]) {
+        final key = '${terminal.latitude},${terminal.longitude}';
+        if (!seenTerminals.add(key)) continue;
+
+        markers.add(
+          Marker(
+            point: terminal,
+            width: 32,
+            height: 32,
+            child: Tooltip(
+              message: context.l10n.translate('route.ferryTerminal'),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF166B91),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.22),
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.directions_boat_filled_rounded,
+                  color: Colors.white,
+                  size: 17,
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return markers;
   }
 
   void _selectTrip(Trip trip) {
@@ -182,6 +300,8 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
+      _shortestPathRouteSegments = [];
+      _shortestPathUsesFerry = false;
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
@@ -234,6 +354,8 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
+      _shortestPathRouteSegments = [];
+      _shortestPathUsesFerry = false;
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
@@ -259,6 +381,8 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
+      _shortestPathRouteSegments = [];
+      _shortestPathUsesFerry = false;
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
@@ -291,6 +415,8 @@ class _MapScreenState extends State<MapScreen>
         _shortestPathPagodas = [];
         _shortestPathDistanceKm = 0;
         _shortestPathRoute = [];
+        _shortestPathRouteSegments = [];
+        _shortestPathUsesFerry = false;
         _isPathRouteLoading = false;
         _isPathRouteFallback = false;
         _hasAttemptedPathSearch = false;
@@ -313,6 +439,8 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
+      _shortestPathRouteSegments = [];
+      _shortestPathUsesFerry = false;
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
@@ -333,10 +461,51 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
+      _shortestPathRouteSegments = [];
+      _shortestPathUsesFerry = false;
       _hasAttemptedPathSearch = true;
     });
 
     final result = await PathfindingService.findPath(start, end, allPagodas);
+    if (result.requiresRiverCrossing) {
+      final plan = await MultimodalRouteService.instance.buildPlan(
+        RouteEndpoint(
+          pagodaId: start.id,
+          location: LatLng(start.latitude, start.longitude),
+        ),
+        RouteEndpoint(
+          pagodaId: end.id,
+          location: LatLng(end.latitude, end.longitude),
+        ),
+      );
+      if (!mounted ||
+          _pathStartPagoda?.id != start.id ||
+          _pathEndPagoda?.id != end.id) {
+        return;
+      }
+      if (!plan.hasFerry || plan.points.length < 2) {
+        setState(() {
+          _isPathRouteLoading = false;
+        });
+        Helpers.showSnackBar(
+          context,
+          context.l10n.translate('trip.noRouteFound'),
+          isError: true,
+        );
+        return;
+      }
+      setState(() {
+        _shortestPathPagodas = [start, end];
+        _shortestPathDistanceKm = plan.distanceKm;
+        _shortestPathRoute = plan.points;
+        _shortestPathRouteSegments = plan.segments;
+        _shortestPathUsesFerry = true;
+        _isPathRouteFallback = plan.usesFallback;
+        _isPathRouteLoading = false;
+      });
+      _focusRoute(plan.points);
+      return;
+    }
     if (result.isEmpty) {
       if (!mounted ||
           _pathStartPagoda?.id != start.id ||
@@ -349,7 +518,11 @@ class _MapScreenState extends State<MapScreen>
       });
       Helpers.showSnackBar(
         context,
-        context.l10n.translate('trip.noRouteFound'),
+        context.l10n.translate(
+          result.requiresRiverCrossing
+              ? 'route.riverCrossingRequired'
+              : 'trip.noRouteFound',
+        ),
         isError: true,
       );
       return;
@@ -375,6 +548,8 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathPagodas = result.path;
       _shortestPathDistanceKm = result.distanceKm;
       _shortestPathRoute = resolved;
+      _shortestPathRouteSegments = [];
+      _shortestPathUsesFerry = false;
       _isPathRouteFallback = !result.isRoadGraphRoute || route.isEmpty;
       _isPathRouteLoading = false;
     });
@@ -483,6 +658,8 @@ class _MapScreenState extends State<MapScreen>
         _selectedTrip = null;
         _tripRoute = [];
         _isTripRouteFallback = false;
+        _tripRouteSegments = [];
+        _tripRouteUsesFerry = false;
         _isTripRouteLoading = false;
         _selectedPagoda = null;
       });
@@ -508,12 +685,18 @@ class _MapScreenState extends State<MapScreen>
           final showTrip = _mode == MapTripMode.trips && _selectedTrip != null;
           final showPath =
               _mode == MapTripMode.path && _shortestPathRoute.isNotEmpty;
-          final markers = switch (_mode) {
+          final baseMarkers = switch (_mode) {
             MapTripMode.path => _buildPathMarkers(pagodas),
             MapTripMode.trips when showTrip && _selectedTrip != null =>
               _buildTripMarkers(_selectedTrip!, pagodas),
             _ => _buildPagodaMarkers(pagodas),
           };
+          final markers = [
+            ...baseMarkers,
+            ..._buildFerryMarkers(
+              showTrip ? _tripRouteSegments : _shortestPathRouteSegments,
+            ),
+          ];
 
           return Stack(
             children: [
@@ -533,7 +716,9 @@ class _MapScreenState extends State<MapScreen>
                     subdomains: AppConstants.mapTileSubdomains,
                     userAgentPackageName: AppConstants.mapTileUserAgent,
                   ),
-                  if (showTrip && _tripRoute.isNotEmpty)
+                  if (showTrip &&
+                      _tripRoute.isNotEmpty &&
+                      _tripRouteSegments.isEmpty)
                     PolylineLayer(
                       polylines: [
                         Polyline(
@@ -551,7 +736,11 @@ class _MapScreenState extends State<MapScreen>
                         ),
                       ],
                     ),
-                  if (showPath)
+                  if (showTrip && _tripRouteSegments.isNotEmpty)
+                    PolylineLayer(
+                      polylines: _buildSegmentPolylines(_tripRouteSegments),
+                    ),
+                  if (showPath && _shortestPathRouteSegments.isEmpty)
                     PolylineLayer(
                       polylines: [
                         Polyline(
@@ -562,6 +751,13 @@ class _MapScreenState extends State<MapScreen>
                           borderColor: Colors.black.withValues(alpha: 0.15),
                         ),
                       ],
+                    ),
+                  if (showPath && _shortestPathRouteSegments.isNotEmpty)
+                    PolylineLayer(
+                      polylines: _buildSegmentPolylines(
+                        _shortestPathRouteSegments,
+                        roadColor: const Color(0xFFFF7F11),
+                      ),
                     ),
                   MarkerLayer(markers: markers),
                 ],
@@ -600,6 +796,32 @@ class _MapScreenState extends State<MapScreen>
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if ((showTrip && _tripRouteUsesFerry) ||
+                  (_mode == MapTripMode.path && _shortestPathUsesFerry))
+                Positioned(
+                  top: 72,
+                  left: 16,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF166B91).withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        l10n.translate('route.ferryRoute'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -879,6 +1101,14 @@ class _MapScreenState extends State<MapScreen>
                 ),
               ),
               const SizedBox(height: 14),
+              if (_shortestPathUsesFerry) ...[
+                _buildPathMessageCard(
+                  icon: Icons.directions_boat_filled_rounded,
+                  message: l10n.translate('route.ferryAvailability'),
+                  iconColor: const Color(0xFF166B91),
+                ),
+                const SizedBox(height: 14),
+              ],
               Text(
                 l10n.translate('map.pathRouteList'),
                 style: const TextStyle(
@@ -1354,6 +1584,8 @@ class _MapScreenState extends State<MapScreen>
                       _selectedTrip = null;
                       _tripRoute = [];
                       _isTripRouteFallback = false;
+                      _tripRouteSegments = [];
+                      _tripRouteUsesFerry = false;
                       _isTripRouteLoading = false;
                       _selectedPagoda = null;
                     });
@@ -1364,6 +1596,11 @@ class _MapScreenState extends State<MapScreen>
             Text(
               Helpers.formatDate(trip.date),
               style: TextStyle(color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              context.l10n.translate('map.tripSavedOrder'),
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -1386,6 +1623,11 @@ class _MapScreenState extends State<MapScreen>
                   '${Helpers.transportModeLabel(context, trip.transportMode)}: '
                   '${Helpers.formatDuration(context, trip.getEstimatedTravelDuration())}',
                 ),
+                if (_tripRouteUsesFerry)
+                  _buildTripStat(
+                    Icons.directions_boat_filled_rounded,
+                    context.l10n.translate('route.ferrySegment'),
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1565,6 +1807,45 @@ class _MapScreenState extends State<MapScreen>
                     color: Colors.grey[600],
                     fontSize: Responsive.responsiveFontSize(context, 14),
                   ),
+                ),
+                FutureBuilder<PagodaRouteGraphData?>(
+                  future: PathfindingService.loadGraph(),
+                  builder: (context, snapshot) {
+                    final requiresRiverCrossing =
+                        snapshot
+                            .data
+                            ?.nodes[pagoda.id]
+                            ?.requiresRiverCrossing ??
+                        false;
+                    if (!requiresRiverCrossing) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.directions_boat_outlined,
+                            size: 18,
+                            color: Color(0xFFA34A2A),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              context.l10n.translate(
+                                'route.riverCrossingLocation',
+                              ),
+                              style: const TextStyle(
+                                color: Color(0xFF786A5D),
+                                fontSize: 12,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: Responsive.spacing(context)),
                 SizedBox(

@@ -4,7 +4,7 @@ class ImagePathUtils {
   /// and ensuring correct asset path format
   static String normalizeImagePath(String path) {
     if (path.isEmpty) return path;
-    
+
     // Normalize separators early so prefix checks are reliable.
     String normalized = path.replaceAll('\\', '/');
 
@@ -22,18 +22,18 @@ class ImagePathUtils {
         normalized = 'assets/images/$normalized';
       }
     }
-    
+
     // Remove any duplicate slashes
     normalized = normalized.replaceAll(RegExp(r'/+'), '/');
-    
+
     return normalized;
   }
-  
+
   /// Gets a placeholder image path if the provided path is invalid
   static String getPlaceholderPath() {
     return 'assets/images/placeholder.png';
   }
-  
+
   /// Checks if a path appears to be a valid asset path
   static bool isValidAssetPath(String path) {
     if (path.isEmpty) return false;

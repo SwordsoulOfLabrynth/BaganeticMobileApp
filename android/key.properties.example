@@ -1,0 +1,6 @@
+# Copy to android/key.properties. Do not commit the real file or keystore.
+# storeFile is relative to the android directory.
+storeFile=../keystore/baganetic-upload.jks
+storePassword=replace-with-keystore-password
+keyAlias=baganetic
+keyPassword=replace-with-key-password

@@ -468,7 +468,8 @@
       "lat": 21.15527,
       "lng": 94.78786,
       "roadNodeId": "8531661436",
-      "accessGapKm": 6.827667
+      "accessGapKm": 6.827667,
+      "requiresRiverCrossing": true
     },
     {
       "pagodaId": "tawethpaya",

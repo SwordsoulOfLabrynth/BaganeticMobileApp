@@ -15,6 +15,7 @@ import '../../../core/utils/pathfinding.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../core/services/offline_route_service.dart';
+import '../../../core/services/multimodal_route_service.dart';
 import '../../widgets/sign_in_required_view.dart';
 
 class CreateTripScreen extends StatefulWidget {
@@ -139,6 +140,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       final tripProvider = context.read<TripProvider>();
       final ownerUserId = tripProvider.currentOwnerId;
       final graph = await OfflineRouteService.instance.loadGraph();
+      final routeGraph = await PathfindingService.loadGraph();
       // Create trip stops
       final List<TripStop> stops = [];
       for (int i = 0; i < _selectedPagodas.length; i++) {
@@ -147,11 +149,18 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
         if (i < _selectedPagodas.length - 1) {
           final nextPagoda = _selectedPagodas[i + 1];
-          distanceToNext = _graphAwareDistanceBetween(
-            pagoda,
-            nextPagoda,
-            graph,
+          final requiresFerry = PathfindingService.requiresRiverCrossingBetween(
+            pagoda.id,
+            nextPagoda.id,
+            routeGraph,
           );
+          if (!requiresFerry) {
+            distanceToNext = _graphAwareDistanceBetween(
+              pagoda,
+              nextPagoda,
+              graph,
+            );
+          }
         }
 
         stops.add(
@@ -231,8 +240,28 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     try {
       final provider = context.read<PagodaProvider>();
       final allPagodas = provider.allPagodas;
+      final routeGraph = await PathfindingService.loadGraph();
+      final usesFerry =
+          PathfindingService.routeRequiresRiverCrossing(
+            _selectedPagodas.map((pagoda) => pagoda.id),
+            routeGraph,
+          ) ||
+          await MultimodalRouteService.instance.routeUsesFerry(
+            _selectedPagodas.map((pagoda) => pagoda.id),
+          );
+      if (!mounted) return;
 
       if (_selectedPagodas.length == 2) {
+        if (usesFerry) {
+          // With two fixed stops there is no order to optimize. The map still
+          // builds the road-ferry-road plan when the trip is viewed.
+          Helpers.showSnackBar(
+            context,
+            context.l10n.translate('trip.routeAlreadyOptimal'),
+          );
+          return;
+        }
+
         // Use A* for 2 pagodas
         final result = await PathfindingService.findPath(
           _selectedPagodas[0],
@@ -265,14 +294,21 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         } else {
           Helpers.showSnackBar(
             context,
-            context.l10n.translate('trip.noRouteFound'),
+            context.l10n.translate(
+              result.requiresRiverCrossing
+                  ? 'trip.riverCrossingRequired'
+                  : 'trip.noRouteFound',
+            ),
             isError: true,
           );
         }
       } else {
-        final graph = await OfflineRouteService.instance.loadGraph();
+        final distanceCalculator = usesFerry
+            ? await _buildFerryAwareDistanceCalculator(_selectedPagodas)
+            : _buildDistanceCalculator(
+                await OfflineRouteService.instance.loadGraph(),
+              );
         if (!mounted) return;
-        final distanceCalculator = _buildDistanceCalculator(graph);
 
         // Nearest neighbor + 2-opt improvement for multiple pagodas
         final optimized = PathfindingService.optimizeRouteOrder(
@@ -335,6 +371,67 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
       cache[key] = distance;
       return distance;
+    };
+  }
+
+  /// Pre-computes every pair using the same road-ferry-road plan shown on the
+  /// map. This lets the normal nearest-neighbour + 2-opt optimizer place a
+  /// ferry stop sensibly instead of refusing to optimize the whole journey.
+  Future<PathDistanceCalculator> _buildFerryAwareDistanceCalculator(
+    List<Pagoda> pagodas,
+  ) async {
+    final distances = <String, double>{};
+    final graph = await OfflineRouteService.instance.loadGraph();
+
+    String keyFor(Pagoda a, Pagoda b) =>
+        a.id.compareTo(b.id) <= 0 ? '${a.id}|${b.id}' : '${b.id}|${a.id}';
+
+    for (var index = 0; index < pagodas.length; index++) {
+      for (
+        var otherIndex = index + 1;
+        otherIndex < pagodas.length;
+        otherIndex++
+      ) {
+        final from = pagodas[index];
+        final to = pagodas[otherIndex];
+        final hasFerry = await MultimodalRouteService.instance.routeUsesFerry([
+          from.id,
+          to.id,
+        ]);
+        if (!hasFerry) {
+          distances[keyFor(from, to)] = _graphAwareDistanceBetween(
+            from,
+            to,
+            graph,
+          );
+          continue;
+        }
+
+        final plan = await MultimodalRouteService.instance.buildPlan(
+          RouteEndpoint(
+            pagodaId: from.id,
+            location: LatLng(from.latitude, from.longitude),
+          ),
+          RouteEndpoint(
+            pagodaId: to.id,
+            location: LatLng(to.latitude, to.longitude),
+          ),
+        );
+        distances[keyFor(from, to)] = plan.distanceKm;
+      }
+    }
+
+    return (Pagoda a, Pagoda b) {
+      final distance = distances[keyFor(a, b)];
+      if (distance != null && distance > 0) {
+        return distance;
+      }
+      return Helpers.calculateDistance(
+        a.latitude,
+        a.longitude,
+        b.latitude,
+        b.longitude,
+      );
     };
   }
 
@@ -565,9 +662,19 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
-                  onPressed: _optimizeRoute,
-                  icon: const Icon(Icons.route, size: 18),
-                  label: Text(l10n.translate('trip.optimize')),
+                  onPressed: _isCalculatingRoute ? null : _optimizeRoute,
+                  icon: _isCalculatingRoute
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.route, size: 18),
+                  label: Text(
+                    l10n.translate(
+                      _isCalculatingRoute ? 'trip.optimizing' : 'trip.optimize',
+                    ),
+                  ),
                 ),
               ),
               if (_selectedPagodas.isEmpty)

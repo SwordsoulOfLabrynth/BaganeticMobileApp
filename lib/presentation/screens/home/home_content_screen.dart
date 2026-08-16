@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../data/models/community_post_model.dart';
@@ -251,6 +252,7 @@ class HomeContentScreen extends StatelessWidget {
                               CommunityPostDetailScreen(postId: post.id),
                         ),
                       ),
+                      onToggleUpvote: () => _toggleUpvote(context, post),
                     ),
                   ),
                 ),
@@ -259,6 +261,18 @@ class HomeContentScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _toggleUpvote(BuildContext context, CommunityPost post) async {
+    final canContinue = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('community.upvoteAction'),
+    );
+    if (!canContinue || !context.mounted) {
+      return;
+    }
+
+    await context.read<CommunityProvider>().toggleUpvote(post.id);
   }
 
   Widget _buildTrips(BuildContext context) {
@@ -418,12 +432,14 @@ class _CommunityPreview extends StatelessWidget {
     required this.post,
     required this.imageAsset,
     required this.onTap,
+    required this.onToggleUpvote,
   });
   final CommunityPost post;
   // imageAsset kept in signature for API compatibility but not rendered
   // (community posts are text-only tips/questions — no photos)
   final String imageAsset;
   final VoidCallback onTap;
+  final VoidCallback onToggleUpvote;
 
   static const _tipColor = Color(0xFFC19A49); // antique gold
   static const _questionBorder = Color(0xFFA34A2A); // terracotta
@@ -496,17 +512,36 @@ class _CommunityPreview extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(
-                  Icons.favorite_border_rounded,
-                  size: 18,
-                  color: Color(0xFFA34A2A),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  '${post.upvoteCount}',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: const Color(0xFF4E453F),
-                    fontWeight: FontWeight.w700,
+                InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: onToggleUpvote,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          post.isUpvoted
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_up_outlined,
+                          size: 18,
+                          color: post.isUpvoted
+                              ? const Color(0xFFA34A2A)
+                              : const Color(0xFF786A5D),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${post.upvoteCount}',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: const Color(0xFF4E453F),
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),

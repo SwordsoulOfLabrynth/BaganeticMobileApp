@@ -34,7 +34,7 @@ flow.
 - Flutter SDK compatible with Dart `3.10.x`
 - Android Studio or VS Code with Flutter support
 - Firebase project only if you want auth, road reports, or synced AI history
-- NVIDIA API key only if you want live AI replies
+- Firebase Functions setup only if you want live AI replies
 
 ## Quick Start
 
@@ -44,18 +44,7 @@ Install dependencies:
 flutter pub get
 ```
 
-Optional local AI config:
-
-1. Copy `config/dart_defines.example.env` to
-   `config/dart_defines.local.env`
-2. Set `NVIDIA_API_KEY`
-3. Run:
-
-```bash
-flutter run --dart-define-from-file=config/dart_defines.local.env
-```
-
-Run without AI:
+Run the app:
 
 ```bash
 flutter run
@@ -78,16 +67,9 @@ notes.
 
 ## AI Assistant
 
-The AI assistant uses direct NVIDIA API calls from Flutter. It stays disabled
-unless `NVIDIA_API_KEY` is provided at launch time.
-
-Default model:
-
-```text
-meta/llama-3.1-8b-instruct
-```
-
-You can override it with `NVIDIA_MODEL` in the same dart-define file.
+The AI assistant calls the authenticated `generateAiReply` Firebase Function.
+The NVIDIA key is stored only in Firebase Functions Secret Manager—not in the
+Flutter app or an APK. See `SETUP.md` before deploying it.
 
 ## Data and Offline Behavior
 
@@ -123,13 +105,12 @@ lib/
 
 ## Validation
 
-Current baseline validation:
+Current validation:
 
 ```bash
 flutter analyze
+flutter test
 ```
-
-No automated test suite is checked in yet.
 
 ## Build
 
