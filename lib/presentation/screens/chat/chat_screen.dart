@@ -9,6 +9,7 @@ import '../../../data/models/pagoda_model.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/services/ai_chatbot_service.dart';
 import '../../../core/services/logger.dart';
+import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/responsive.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_provider.dart';
@@ -47,6 +48,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     unawaited(_loadLocalFallbackMessages());
+    _subscribeToMessages();
+  }
+
+  void _subscribeToMessages() {
+    _messageSub?.cancel();
     _messageSub = _chatbotService.messageStream().listen(
       (messages) {
         if (!mounted) return;
@@ -61,6 +67,18 @@ class _ChatScreenState extends State<ChatScreen> {
         unawaited(_loadLocalFallbackMessages());
       },
     );
+  }
+
+  Future<void> _requestAiSignIn() async {
+    final didSignIn = await AuthGate.ensureSignedIn(
+      context,
+      featureName: context.l10n.translate('chat.journeyGuide'),
+    );
+    if (!didSignIn || !mounted) {
+      return;
+    }
+    _subscribeToMessages();
+    await _loadLocalFallbackMessages();
   }
 
   @override
@@ -114,6 +132,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage() async {
     final prompt = _messageController.text.trim();
     if (prompt.isEmpty || _isSending) {
+      return;
+    }
+    if (!AuthGate.isSignedIn(context)) {
+      unawaited(_requestAiSignIn());
       return;
     }
     if (!_chatbotService.isConfigured) {
@@ -355,7 +377,11 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           _buildGuideHeader(context, messages),
           Expanded(child: _buildMessagesBody(context, messages)),
-          _buildComposer(context, enabled: isAiConfigured && isSignedIn),
+          _buildComposer(
+            context,
+            isSignedIn: isSignedIn,
+            isAiConfigured: isAiConfigured,
+          ),
         ],
       ),
     );
@@ -532,7 +558,47 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildComposer(BuildContext context, {required bool enabled}) {
+  Widget _buildComposer(
+    BuildContext context, {
+    required bool isSignedIn,
+    required bool isAiConfigured,
+  }) {
+    final l10n = context.l10n;
+    if (!isSignedIn) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(22, 10, 22, 16),
+          color: const Color(0xFFF5F2EB),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.translate('chat.signInPrompt'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFF6E6259),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => unawaited(_requestAiSignIn()),
+                icon: const Icon(Icons.lock_outline),
+                label: Text(l10n.translate('auth.signIn')),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                  foregroundColor: const Color(0xFF8B432B),
+                  side: const BorderSide(color: Color(0xFFC8A97E)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final enabled = isAiConfigured;
     return SafeArea(
       top: false,
       child: Container(
@@ -550,8 +616,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 onSubmitted: enabled ? (_) => _sendMessage() : null,
                 decoration: InputDecoration(
                   hintText: enabled
-                      ? 'Ask your guide...'
-                      : 'Guide setup required',
+                      ? l10n.translate('chat.inputHint')
+                      : l10n.translate('chat.setupRequiredTitle'),
                   filled: true,
                   fillColor: const Color(0xFFFAF9F6),
                   contentPadding: const EdgeInsets.symmetric(
@@ -589,7 +655,11 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _useSuggestion(String text) {
+  Future<void> _useSuggestion(String text) async {
+    if (!AuthGate.isSignedIn(context)) {
+      await _requestAiSignIn();
+      return;
+    }
     _messageController.text = text;
     _messageController.selection = TextSelection.collapsed(offset: text.length);
   }

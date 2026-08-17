@@ -65,8 +65,9 @@ class PathfindingService {
   static Future<PathSearchResult> findPath(
     Pagoda start,
     Pagoda goal,
-    List<Pagoda> allPagodas,
-  ) async {
+    List<Pagoda> allPagodas, {
+    bool requireTrustedRoadAccess = true,
+  }) async {
     if (start.id == goal.id) {
       return PathSearchResult(path: [start], distanceKm: 0);
     }
@@ -85,11 +86,12 @@ class PathfindingService {
       return const PathSearchResult.riverCrossing();
     }
 
-    // A road route cannot be represented honestly when a pagoda is far from
-    // the nearest road node in the bundled offline graph.
+    // Pagodas far from the offline road graph cannot get honest turn-by-turn
+    // polylines, but we still allow graph search for pagoda waypoint lists.
     const maxTrustedAccessGapKm = 0.5;
-    if (startNode.accessGapKm > maxTrustedAccessGapKm ||
-        goalNode.accessGapKm > maxTrustedAccessGapKm) {
+    if (requireTrustedRoadAccess &&
+        (startNode.accessGapKm > maxTrustedAccessGapKm ||
+            goalNode.accessGapKm > maxTrustedAccessGapKm)) {
       return _buildDirectFallbackResult(start, goal);
     }
 
@@ -133,11 +135,17 @@ class PathfindingService {
           previous: previous,
           pagodasById: pagodasById,
         );
+        final roadNodePath = _roadNodePathForPagodaPath(path, graph);
+        final hasTrustedRoadAccess = path.every(
+          (pagoda) =>
+              (graph.nodes[pagoda.id]?.accessGapKm ?? double.infinity) <=
+              maxTrustedAccessGapKm,
+        );
         return PathSearchResult(
           path: path,
           distanceKm: currentG,
-          roadNodePath: _roadNodePathForPagodaPath(path, graph),
-          isRoadGraphRoute: true,
+          roadNodePath: roadNodePath,
+          isRoadGraphRoute: hasTrustedRoadAccess && roadNodePath.length >= 2,
         );
       }
 

@@ -7,6 +7,30 @@ String _normalizePagodaCategory(String? rawCategory) {
   return 'Pagoda';
 }
 
+bool _readBool(dynamic value, {required bool fallback}) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    return value.toLowerCase() == 'true' || value == '1';
+  }
+  return fallback;
+}
+
+int? _readNullableInt(dynamic value) {
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
+bool _legacyHomeFeaturedDefault(String id) =>
+    id == 'ananda' || id == 'shwesandaw';
+
+int _legacyHomeFeaturedOrder(String id) => switch (id) {
+  'ananda' => 1,
+  'shwesandaw' => 2,
+  _ => 0,
+};
+
 class PagodaFeature {
   final String title;
   final String description;
@@ -54,6 +78,10 @@ class Pagoda {
   final String? architecturalStyle;
   final int? yearBuilt;
   final bool isFavorite;
+  /// Whether this pagoda appears in the Popular Pagodas section on Home.
+  final bool isHomeFeatured;
+  /// Lower values appear first when multiple pagodas are featured on Home.
+  final int homeFeaturedOrder;
 
   // Enhanced fields from legacy web version
   final String? legends;
@@ -84,6 +112,8 @@ class Pagoda {
     this.architecturalStyle,
     this.yearBuilt,
     this.isFavorite = false,
+    this.isHomeFeatured = false,
+    this.homeFeaturedOrder = 0,
     // Enhanced fields
     this.legends,
     this.religiousImportance,
@@ -100,6 +130,7 @@ class Pagoda {
   });
 
   factory Pagoda.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String;
     // Normalize image paths
     final String? imageUrlRaw = json['imageUrl'] as String?;
     final String normalizedImageUrl = imageUrlRaw != null
@@ -120,7 +151,7 @@ class Pagoda {
         [];
 
     return Pagoda(
-      id: json['id'] as String,
+      id: id,
       name: json['name'] as String,
       nameMyanmar: json['nameMyanmar'] as String?,
       description: json['description'] as String,
@@ -133,7 +164,16 @@ class Pagoda {
       historicalInfo: json['historicalInfo'] as String?,
       architecturalStyle: json['architecturalStyle'] as String?,
       yearBuilt: (json['yearBuilt'] as num?)?.toInt(),
-      isFavorite: json['isFavorite'] as bool? ?? false,
+      isFavorite: _readBool(json['isFavorite'], fallback: false),
+      // Keep the original two Home cards visible for legacy catalog records
+      // until an admin explicitly saves their featured state.
+      isHomeFeatured: _readBool(
+        json['isHomeFeatured'],
+        fallback: _legacyHomeFeaturedDefault(id),
+      ),
+      homeFeaturedOrder:
+          _readNullableInt(json['homeFeaturedOrder']) ??
+          _legacyHomeFeaturedOrder(id),
       // Enhanced fields
       legends: json['legends'] as String?,
       religiousImportance: json['religiousImportance'] as String?,
@@ -166,6 +206,8 @@ class Pagoda {
       'architecturalStyle': architecturalStyle,
       'yearBuilt': yearBuilt,
       'isFavorite': isFavorite,
+      'isHomeFeatured': isHomeFeatured,
+      'homeFeaturedOrder': homeFeaturedOrder,
       // Enhanced fields
       'legends': legends,
       'religiousImportance': religiousImportance,
@@ -199,6 +241,8 @@ class Pagoda {
     String? architecturalStyle,
     int? yearBuilt,
     bool? isFavorite,
+    bool? isHomeFeatured,
+    int? homeFeaturedOrder,
     // Enhanced fields
     String? legends,
     String? religiousImportance,
@@ -228,6 +272,8 @@ class Pagoda {
       architecturalStyle: architecturalStyle ?? this.architecturalStyle,
       yearBuilt: yearBuilt ?? this.yearBuilt,
       isFavorite: isFavorite ?? this.isFavorite,
+      isHomeFeatured: isHomeFeatured ?? this.isHomeFeatured,
+      homeFeaturedOrder: homeFeaturedOrder ?? this.homeFeaturedOrder,
       // Enhanced fields
       legends: legends ?? this.legends,
       religiousImportance: religiousImportance ?? this.religiousImportance,

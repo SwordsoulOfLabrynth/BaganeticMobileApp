@@ -1,0 +1,2 @@
+# Local development only. Never commit a real value in .dev.vars.
+NVIDIA_API_KEY=replace-with-your-nvidia-key

@@ -14,6 +14,7 @@ import '../../providers/community_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
+import '../../widgets/pagoda_image_widget.dart';
 import '../community/community_post_detail_screen.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../trips/create_trip_screen.dart';
@@ -25,21 +26,12 @@ class HomeContentScreen extends StatelessWidget {
   final void Function(int) onNavigateToTab;
 
   static const _heroAsset = 'assets/images/stitch/bagan_sunrise.jpg';
-  static const _popularCards = [
-    _PopularCard(
-      'ananda',
-      'Ananda Temple',
-      'assets/images/stitch/ananda_postcard.jpg',
-      '1105 AD',
-    ),
-    _PopularCard(
-      'shwesandaw',
-      'Shwesandaw Pagoda',
-      'assets/images/stitch/shwesandaw_postcard.jpg',
-      '1057 AD',
-    ),
-  ];
-
+  // These editorial covers preserve the Home screen's travel-journal mood.
+  // Other admin-selected featured pagodas fall back to their catalog image.
+  static const _curatedHomeCovers = {
+    'ananda': 'assets/images/stitch/ananda_postcard.jpg',
+    'shwesandaw': 'assets/images/stitch/shwesandaw_postcard.jpg',
+  };
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
@@ -164,13 +156,8 @@ class HomeContentScreen extends StatelessWidget {
   Widget _buildPopularPagodas(BuildContext context) {
     return Consumer<PagodaProvider>(
       builder: (context, provider, _) {
-        final pagodas = <Pagoda>[];
-        for (final card in _popularCards) {
-          final match = provider.allPagodas.where(
-            (item) => item.id == card.pagodaId,
-          );
-          if (match.isNotEmpty) pagodas.add(match.first);
-        }
+        final pagodas = provider.homeFeaturedPagodas;
+        if (pagodas.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -188,20 +175,15 @@ class HomeContentScreen extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _popularCards.length,
+                itemCount: pagodas.length,
                 separatorBuilder: (context, index) => const SizedBox(width: 16),
                 itemBuilder: (context, index) {
-                  final card = _popularCards[index];
-                  final matches = pagodas.where(
-                    (item) => item.id == card.pagodaId,
-                  );
-                  final pagoda = matches.isEmpty ? null : matches.first;
+                  final pagoda = pagodas[index];
                   return _PopularPagodaTile(
-                    card: card,
                     pagoda: pagoda,
-                    onTap: pagoda == null
-                        ? () => onNavigateToTab(1)
-                        : () => _openPagoda(context, pagoda),
+                    coverImageUrl:
+                        _curatedHomeCovers[pagoda.id] ?? pagoda.imageUrl,
+                    onTap: () => _openPagoda(context, pagoda),
                   );
                 },
               ),
@@ -351,32 +333,24 @@ class HomeContentScreen extends StatelessWidget {
   );
 }
 
-class _PopularCard {
-  const _PopularCard(this.pagodaId, this.title, this.asset, this.year);
-  final String pagodaId;
-  final String title;
-  final String asset;
-  final String year;
-}
-
 class _PopularPagodaTile extends StatelessWidget {
   const _PopularPagodaTile({
-    required this.card,
     required this.pagoda,
+    required this.coverImageUrl,
     required this.onTap,
   });
-  final _PopularCard card;
-  final Pagoda? pagoda;
+  final Pagoda pagoda;
+  final String coverImageUrl;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final title = context.l10n.pagodaName(
-      card.pagodaId,
-      pagoda?.name ?? card.title,
-      remoteMyanmar: pagoda?.nameMyanmar,
+      pagoda.id,
+      pagoda.name,
+      remoteMyanmar: pagoda.nameMyanmar,
     );
-    final year = card.year.replaceAll(' AD', '');
+    final year = pagoda.yearBuilt?.toString() ?? '';
     return SizedBox(
       width: 232,
       child: InkWell(
@@ -398,9 +372,10 @@ class _PopularPagodaTile extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Image.asset(
-                card.asset,
+              child: PagodaImageWidget(
+                imageUrl: coverImageUrl,
                 width: double.infinity,
+                height: double.infinity,
                 fit: BoxFit.cover,
               ),
             ),
@@ -414,12 +389,16 @@ class _PopularPagodaTile extends StatelessWidget {
               ).textTheme.headlineSmall?.copyWith(fontSize: 20),
             ),
             const SizedBox(height: 2),
-            Text(
-              context.l10n.translate('home.featuredYear', args: {'year': year}),
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(letterSpacing: 0.9),
-            ),
+            if (year.isNotEmpty)
+              Text(
+                context.l10n.translate(
+                  'home.featuredYear',
+                  args: {'year': year},
+                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(letterSpacing: 0.9),
+              ),
           ],
         ),
       ),

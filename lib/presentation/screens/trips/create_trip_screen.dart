@@ -141,6 +141,50 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       final ownerUserId = tripProvider.currentOwnerId;
       final graph = await OfflineRouteService.instance.loadGraph();
       final routeGraph = await PathfindingService.loadGraph();
+      final pairDistanceCache = <String, double>{};
+
+      String pairKey(Pagoda a, Pagoda b) =>
+          a.id.compareTo(b.id) <= 0 ? '${a.id}|${b.id}' : '${b.id}|${a.id}';
+
+      for (var idx = 0; idx < _selectedPagodas.length - 1; idx++) {
+        final from = _selectedPagodas[idx];
+        final to = _selectedPagodas[idx + 1];
+        final key = pairKey(from, to);
+        if (pairDistanceCache.containsKey(key)) continue;
+        final requiresFerry =
+            PathfindingService.requiresRiverCrossingBetween(
+              from.id,
+              to.id,
+              routeGraph,
+            ) ||
+            await MultimodalRouteService.instance.routeUsesFerry([
+              from.id,
+              to.id,
+            ]);
+        if (!requiresFerry) {
+          pairDistanceCache[key] = _graphAwareDistanceBetween(from, to, graph);
+          continue;
+        }
+        final plan = await MultimodalRouteService.instance.buildPlan(
+          RouteEndpoint(
+            pagodaId: from.id,
+            location: LatLng(from.latitude, from.longitude),
+          ),
+          RouteEndpoint(
+            pagodaId: to.id,
+            location: LatLng(to.latitude, to.longitude),
+          ),
+        );
+        pairDistanceCache[key] = plan.distanceKm > 0
+            ? plan.distanceKm
+            : Helpers.calculateDistance(
+                from.latitude,
+                from.longitude,
+                to.latitude,
+                to.longitude,
+              );
+      }
+
       // Create trip stops
       final List<TripStop> stops = [];
       for (int i = 0; i < _selectedPagodas.length; i++) {
@@ -149,18 +193,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
         if (i < _selectedPagodas.length - 1) {
           final nextPagoda = _selectedPagodas[i + 1];
-          final requiresFerry = PathfindingService.requiresRiverCrossingBetween(
-            pagoda.id,
-            nextPagoda.id,
-            routeGraph,
-          );
-          if (!requiresFerry) {
-            distanceToNext = _graphAwareDistanceBetween(
-              pagoda,
-              nextPagoda,
-              graph,
-            );
-          }
+          distanceToNext = pairDistanceCache[pairKey(pagoda, nextPagoda)];
         }
 
         stops.add(
@@ -422,9 +455,14 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
 
     return (Pagoda a, Pagoda b) {
-      final distance = distances[keyFor(a, b)];
+      final key = keyFor(a, b);
+      final distance = distances[key];
       if (distance != null && distance > 0) {
         return distance;
+      }
+      final graphDistance = _graphAwareDistanceBetween(a, b, graph);
+      if (graphDistance > 0) {
+        return graphDistance;
       }
       return Helpers.calculateDistance(
         a.latitude,

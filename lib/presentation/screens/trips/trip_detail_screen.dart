@@ -484,12 +484,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                                   context.l10n.translate(
                                     'tripDetail.nextLeg',
                                     args: {
-                                      'distance': stop.distanceToNext == null
-                                          ? '12 ${context.l10n.translate('common.minutesShort')}'
-                                          : Helpers.formatDistance(
-                                              context,
-                                              stop.distanceToNext!,
-                                            ).toUpperCase(),
+                                      'distance': _formatLegDistance(index),
                                       'mode': Helpers.transportModeLabel(
                                         context,
                                         _selectedTransportMode,
@@ -531,6 +526,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     _ =>
       'Massive brickwork and mysterious inner passages. Take your time with this remarkable temple.',
   };
+
+  String _formatLegDistance(int index) {
+    final distance = _trip.getLegDistance(index);
+    return Helpers.formatDistance(context, distance).toUpperCase();
+  }
 
   Future<void> _editTrip() async {
     final updatedTrip = await Navigator.push(

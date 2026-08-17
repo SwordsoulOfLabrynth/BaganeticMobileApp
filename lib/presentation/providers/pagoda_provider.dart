@@ -42,6 +42,15 @@ class PagodaUIProvider with ChangeNotifier {
     searchQuery: _searchQuery,
   );
   List<Pagoda> get allPagodas => List.unmodifiable(_pagodas);
+  List<Pagoda> get homeFeaturedPagodas => List.unmodifiable(
+    _pagodas.where((pagoda) => pagoda.isHomeFeatured).toList()
+      ..sort((a, b) {
+        final order = a.homeFeaturedOrder.compareTo(b.homeFeaturedOrder);
+        return order != 0
+            ? order
+            : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }),
+  );
   List<Pagoda> get favorites => List.unmodifiable(_favorites);
   String get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;

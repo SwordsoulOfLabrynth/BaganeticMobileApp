@@ -117,6 +117,17 @@
             <div class="stat-label">Active Pagodas</div>
           </button>
 
+          <button class="stat-card stat-card-button stat-card-featured" type="button" onclick="navigateTo('pagodas')">
+            <div class="stat-card-header">
+              <div class="stat-icon stat-icon-featured" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.78 5.63 6.22.9-4.5 4.39 1.06 6.2L12 17.2l-5.56 2.92 1.06-6.2L3 9.53l6.22-.9L12 3Z"/></svg>
+              </div>
+              <span class="stat-trend featured">Home</span>
+            </div>
+            <div class="stat-value" id="stat-featured-pagodas">—</div>
+            <div class="stat-label">Featured Pagodas</div>
+          </button>
+
           <button class="stat-card stat-card-button" id="stat-card-myanmar-ready" type="button" onclick="navigateTo('pagodas')" hidden>
             <div class="stat-card-header">
               <div class="stat-icon">စာ</div>
@@ -170,23 +181,30 @@
           </div>
         </div>
 
-        <div class="insights-grid">
-          <div class="insight-card">
-            <div class="insight-header">
-              <div>
-                <div class="section-title">Pagoda Catalog</div>
-                <div class="section-subtitle">One shared heritage-site catalog for the mobile app</div>
-              </div>
-              <button class="btn-secondary" type="button" onclick="navigateTo('pagodas')">Open Pagodas</button>
+        <section class="home-feature-card" aria-labelledby="home-feature-heading">
+          <div class="home-feature-header">
+            <div>
+              <div class="feature-eyebrow">Mobile home</div>
+              <div class="section-title" id="home-feature-heading">Featured Pagodas</div>
+              <div class="section-subtitle">These sites appear in the app's Popular Pagodas section.</div>
             </div>
-            <div id="catalog-summary-list" class="insight-list">
-              <div class="empty-state compact">
-                <span class="loading-spinner"></span>
-              </div>
-            </div>
+            <button class="btn-secondary" type="button" onclick="navigateTo('pagodas')">Manage features</button>
           </div>
+          <div id="dashboard-featured-pagodas" class="home-feature-list">
+            <div class="empty-state compact"><span class="loading-spinner"></span></div>
+          </div>
+          <div class="home-feature-footer">Use the star in Pagodas to add or remove cards. New selections appear after the existing featured cards.</div>
+        </section>
 
-          <div class="insight-card">
+        <div class="section-header dashboard-activity-heading">
+          <div>
+            <div class="section-title">Recent activity</div>
+            <div class="section-subtitle">A concise view of the newest people and itineraries.</div>
+          </div>
+        </div>
+
+        <div class="insights-grid dashboard-activity-grid">
+          <div class="insight-card dashboard-activity-card">
             <div class="insight-header">
               <div>
                 <div class="section-title">Recent Users</div>
@@ -201,7 +219,7 @@
             </div>
           </div>
 
-          <div class="insight-card">
+          <div class="insight-card dashboard-activity-card">
             <div class="insight-header">
               <div>
                 <div class="section-title">Recent Trips</div>
@@ -226,18 +244,19 @@
         </div>
         <div class="table-card">
           <div class="table-wrapper">
-            <table class="data-table">
+            <table class="data-table dashboard-posts-table">
               <thead>
                 <tr>
                   <th>Post</th>
                   <th>Author</th>
+                  <th>Type</th>
                   <th>Status</th>
                   <th>Engagement</th>
                   <th>Date</th>
                 </tr>
               </thead>
               <tbody id="recent-posts-body">
-                <tr><td colspan="5"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -277,11 +296,20 @@
           </div>
         </div>
 
-        <div class="content-health-card" id="pagoda-health-card" aria-live="polite"></div>
-
         <input type="file" id="pagoda-json-file-input" accept=".json,application/json" hidden />
 
-        <div class="table-card">
+        <div class="table-card catalog-table-card">
+          <div class="catalog-table-header">
+            <div>
+              <div class="catalog-eyebrow">Live catalog</div>
+              <h3>Heritage sites</h3>
+              <p>Use the star to control what visitors discover first on the Home screen.</p>
+            </div>
+            <div class="catalog-feature-legend" title="Gold stars are shown on the Home screen">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.7 2.57 5.2 5.74.83-4.15 4.04.98 5.71L12 16.78l-5.14 2.7.98-5.71-4.15-4.04 5.74-.83L12 3.7Z"/></svg>
+              <span>Shown on Home</span>
+            </div>
+          </div>
           <div class="table-toolbar table-toolbar-split">
             <div class="search-box">
               <span class="search-icon">🔍</span>
@@ -297,30 +325,28 @@
                 </select>
               </label>
               <label class="toolbar-field">
-                <span>Content</span>
-                <select id="pagodas-quality-filter">
-                  <option value="all">All entries</option>
-                  <option value="ready">Ready to publish</option>
-                  <option value="missing-myanmar">Needs Myanmar copy</option>
-                  <option value="missing-history">Needs history</option>
-                  <option value="missing-gallery">Needs gallery</option>
+                <span>Show</span>
+                <select id="pagodas-feature-filter">
+                  <option value="all">All pagodas</option>
+                  <option value="featured">Featured on Home</option>
                 </select>
               </label>
               <button class="btn-success" type="button" id="btn-new-pagoda">New Pagoda</button>
             </div>
           </div>
           <div class="table-wrapper">
-            <table class="data-table">
+            <table class="data-table catalog-table">
               <thead>
                 <tr>
                   <th>Heritage Site</th>
                   <th>Status</th>
+                  <th class="table-icon-heading">Featured</th>
                   <th>Updated</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="pagodas-table-body">
-                <tr><td colspan="4"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state compact"><span class="loading-spinner"></span></div></td></tr>
               </tbody>
             </table>
           </div>

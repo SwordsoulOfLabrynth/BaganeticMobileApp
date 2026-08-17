@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 enum TripTransportMode {
   walk('walk', 5),
   bike('bike', 15),
@@ -97,7 +99,36 @@ class Trip {
 
   double getTotalDistance() {
     if (stops.length < 2) return 0;
-    return stops.fold(0.0, (sum, stop) => sum + (stop.distanceToNext ?? 0));
+    var total = 0.0;
+    for (var i = 0; i < stops.length - 1; i++) {
+      total += getLegDistance(i);
+    }
+    return total;
+  }
+
+  double getLegDistance(int index) {
+    if (index < 0 || index >= stops.length - 1) return 0;
+    final stop = stops[index];
+    final next = stops[index + 1];
+    final stored = stop.distanceToNext;
+    if (stored != null && stored > 0) {
+      return stored;
+    }
+    return _haversineBetween(stop, next);
+  }
+
+  static double _haversineBetween(TripStop a, TripStop b) {
+    const earthRadiusKm = 6371.0;
+    double toRadians(num deg) => deg * math.pi / 180.0;
+    final dLat = toRadians(b.latitude - a.latitude);
+    final dLon = toRadians(b.longitude - a.longitude);
+    final lat1 = toRadians(a.latitude);
+    final lat2 = toRadians(b.latitude);
+    final s =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.sin(dLon / 2) * math.sin(dLon / 2) * math.cos(lat1) * math.cos(lat2);
+    final c = 2 * math.asin(math.sqrt(s));
+    return earthRadiusKm * c;
   }
 
   int getEstimatedTravelDuration() {

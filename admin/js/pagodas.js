@@ -6,7 +6,7 @@ let filteredPagodas = [];
 let pagodasPage = 1;
 const PAGODAS_PAGE_SIZE = 12;
 let pagodaStatus = 'active';
-let pagodaQuality = 'all';
+let pagodaFeature = 'all';
 let pagodasBound = false;
 let currentPagodaEditId = null;
 let pendingPagodaUploads = 0;
@@ -21,8 +21,8 @@ function initPagodas() {
       pagodaStatus = event.target.value;
       filterPagodas();
     });
-    document.getElementById('pagodas-quality-filter')?.addEventListener('change', (event) => {
-      pagodaQuality = event.target.value;
+    document.getElementById('pagodas-feature-filter')?.addEventListener('change', (event) => {
+      pagodaFeature = event.target.value;
       filterPagodas();
     });
     document.getElementById('btn-new-pagoda')?.addEventListener('click', () => openCreatePagodaModal());
@@ -47,9 +47,12 @@ async function loadPagodas() {
 
   const activeCount = allPagodas.filter((pagoda) => pagoda.status !== 'archived').length;
   const archivedCount = allPagodas.filter((pagoda) => pagoda.status === 'archived').length;
+  const featuredCount = allPagodas.filter(
+    (pagoda) => pagoda.status !== 'archived' && pagoda.isHomeFeatured,
+  ).length;
   const countLabel = document.getElementById('pagodas-count');
   if (countLabel) {
-    countLabel.textContent = `${activeCount} live pagodas · ${archivedCount} archived · Firestore-backed catalog`;
+    countLabel.textContent = `${activeCount} live pagodas · ${featuredCount} featured on Home · ${archivedCount} archived`;
   }
 
   const statusFilter = document.getElementById('pagodas-status-filter');
@@ -57,12 +60,11 @@ async function loadPagodas() {
     statusFilter.value = pagodaStatus;
   }
 
-  const qualityFilter = document.getElementById('pagodas-quality-filter');
-  if (qualityFilter) {
-    qualityFilter.value = pagodaQuality;
+  const featureFilter = document.getElementById('pagodas-feature-filter');
+  if (featureFilter) {
+    featureFilter.value = pagodaFeature;
   }
 
-  renderPagodaContentHealth(allPagodas);
   filterPagodas();
 }
 
@@ -74,20 +76,14 @@ function filterPagodas() {
       (pagodaStatus === 'archived'
         ? pagoda.status === 'archived'
         : pagoda.status !== 'archived');
-    const issues = getPagodaContentIssues(pagoda);
-    const matchesQuality =
-      pagodaQuality === 'all' ||
-      (pagodaQuality === 'ready' && issues.length === 0) ||
-      (pagodaQuality === 'missing-myanmar' && issues.includes('Myanmar copy')) ||
-      (pagodaQuality === 'missing-history' && issues.includes('History')) ||
-      (pagodaQuality === 'missing-gallery' && issues.includes('Gallery'));
+    const matchesFeature = pagodaFeature === 'all' || pagoda.isHomeFeatured;
     const matchesSearch =
       !query ||
       pagoda.name?.toLowerCase().includes(query) ||
       pagoda.description?.toLowerCase().includes(query) ||
       pagoda.id?.toLowerCase().includes(query);
 
-    return matchesStatus && matchesQuality && matchesSearch;
+    return matchesStatus && matchesFeature && matchesSearch;
   });
 
   pagodasPage = 1;
@@ -113,7 +109,7 @@ function renderPagodasTable() {
   if (!filteredPagodas.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="4">
+        <td colspan="5">
           <div class="empty-state">
             <div class="empty-icon">🏛️</div>
             <p>No pagodas match the current search or filter.</p>
@@ -131,12 +127,12 @@ function renderPagodasTable() {
     return `
       <tr>
         <td>
-          <div class="table-primary">${escapeHtml(pagoda.name || pagoda.id)}</div>
-          <div class="cell-muted">${escapeHtml(pagoda.id || '—')}</div>
-          ${renderPagodaContentReadiness(pagoda)}
+          <div class="table-primary catalog-site-name">${escapeHtml(pagoda.name || pagoda.id)}</div>
+          <div class="cell-muted catalog-site-id">${escapeHtml(pagoda.id || '—')}</div>
         </td>
-        <td>${renderPagodaStatusBadge(pagoda.status)}</td>
-        <td class="cell-nowrap cell-muted">${formatDate(pagoda.updatedAt || pagoda.createdAt)}</td>
+        <td class="catalog-status-cell">${renderPagodaStatusBadge(pagoda.status)}</td>
+        <td class="feature-cell">${renderHomeFeatureToggle(pagoda)}</td>
+        <td>${renderPagodaUpdatedAt(pagoda.updatedAt || pagoda.createdAt)}</td>
         <td>
           <div class="action-row">
             <button class="btn-warning" type="button" onclick='openEditPagodaModal(${serializeForInlineHandler(pagoda.id)})'>Edit</button>
@@ -148,46 +144,29 @@ function renderPagodasTable() {
   }).join('');
 }
 
-function getPagodaContentIssues(pagoda) {
-  const issues = [];
-  if (!String(pagoda?.nameMyanmar || '').trim() || !String(pagoda?.descriptionMyanmar || '').trim()) {
-    issues.push('Myanmar copy');
-  }
-  if (!String(pagoda?.historicalInfo || '').trim()) issues.push('History');
-  if (!Array.isArray(pagoda?.images) || pagoda.images.length === 0) issues.push('Gallery');
-  return issues;
+function renderHomeFeatureToggle(pagoda) {
+  const isFeatured = Boolean(pagoda.isHomeFeatured);
+  const isArchived = pagoda.status === 'archived';
+  const actionLabel = isArchived
+    ? 'Archived pagodas cannot be featured on Home'
+    : isFeatured
+      ? `Remove ${pagoda.name || pagoda.id} from Home featured pagodas`
+      : `Show ${pagoda.name || pagoda.id} in Home featured pagodas`;
+  const starFill = isFeatured ? 'currentColor' : 'none';
+  const icon = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="${starFill}" d="m12 3.7 2.57 5.2 5.74.83-4.15 4.04.98 5.71L12 16.78l-5.14 2.7.98-5.71-4.15-4.04 5.74-.83L12 3.7Z"/></svg>`;
+  return `<button class="feature-toggle ${isFeatured ? 'is-featured' : ''}" type="button" aria-pressed="${isFeatured}" aria-label="${escapeHtml(actionLabel)}" title="${escapeHtml(actionLabel)}" onclick='togglePagodaHomeFeature(${serializeForInlineHandler(pagoda.id)})' ${isArchived ? 'disabled' : ''}>${icon}</button>`;
 }
 
-function renderPagodaContentReadiness(pagoda) {
-  const issues = getPagodaContentIssues(pagoda);
-  if (!issues.length) {
-    return '<span class="content-readiness">Content ready</span>';
-  }
-  return `<span class="content-readiness needs-review">Needs: ${escapeHtml(issues.join(', '))}</span>`;
-}
+function renderPagodaUpdatedAt(value) {
+  if (!value) return '<span class="timestamp-empty">—</span>';
+  const date = value?.toDate ? value.toDate() : value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '<span class="timestamp-empty">—</span>';
 
-function renderPagodaContentHealth(pagodas) {
-  const card = document.getElementById('pagoda-health-card');
-  if (!card) return;
-
-  const active = pagodas.filter((pagoda) => pagoda.status !== 'archived');
-  const missingMyanmar = active.filter((pagoda) => getPagodaContentIssues(pagoda).includes('Myanmar copy')).length;
-  const missingHistory = active.filter((pagoda) => getPagodaContentIssues(pagoda).includes('History')).length;
-  const missingGallery = active.filter((pagoda) => getPagodaContentIssues(pagoda).includes('Gallery')).length;
-  const ready = active.filter((pagoda) => getPagodaContentIssues(pagoda).length === 0).length;
-
-  card.innerHTML = `
-    <div>
-      <div class="content-health-title">Content readiness</div>
-      <div class="content-health-copy">Review live catalog overrides before publishing. When these Myanmar fields are blank, the app continues using its bundled reviewed translation.</div>
-    </div>
-    <div class="content-health-stats">
-      <span class="content-health-stat"><strong>${ready}</strong> ready</span>
-      <span class="content-health-stat"><strong>${missingMyanmar}</strong> need Myanmar</span>
-      <span class="content-health-stat"><strong>${missingHistory}</strong> need history</span>
-      <span class="content-health-stat"><strong>${missingGallery}</strong> need gallery</span>
-    </div>
-  `;
+  const time = date.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `<time class="catalog-timestamp" datetime="${date.toISOString()}" title="${formatDateTime(value)}"><span>${formatDate(value)}</span><small>${time}</small></time>`;
 }
 
 function renderPagodaStatusBadge(status) {
@@ -378,6 +357,12 @@ function buildPagodaPayloadFromForm() {
   const longitude = Number(document.getElementById('pagoda-form-longitude').value);
   const yearBuiltRaw = String(document.getElementById('pagoda-form-year-built').value || '').trim();
   const yearBuilt = yearBuiltRaw ? parseInt(yearBuiltRaw, 10) : null;
+  // Home-feature state is intentionally managed from the table star action,
+  // not buried inside the long editor form.
+  const isHomeFeatured = Boolean(existingPagoda?.isHomeFeatured);
+  const homeFeaturedOrder = Number.isInteger(existingPagoda?.homeFeaturedOrder)
+    ? existingPagoda.homeFeaturedOrder
+    : 0;
 
   if (!id) {
     throw new Error('Pagoda ID is required.');
@@ -403,7 +388,6 @@ function buildPagodaPayloadFromForm() {
   if (yearBuiltRaw && Number.isNaN(yearBuilt)) {
     throw new Error('Year built must be a valid number.');
   }
-
   return {
     id,
     name,
@@ -430,6 +414,8 @@ function buildPagodaPayloadFromForm() {
     height: String(document.getElementById('pagoda-form-height').value || '').trim(),
     finalWords: String(document.getElementById('pagoda-form-final-words').value || '').trim(),
     uniqueFeatures: parseUniqueFeaturesInput(document.getElementById('pagoda-form-unique-features').value),
+    isHomeFeatured,
+    homeFeaturedOrder,
   };
 }
 
@@ -941,6 +927,52 @@ async function submitPagodaForm(event) {
     if (submitButton && shouldRestoreSubmitState) {
       syncPagodaSubmitState();
     }
+  }
+}
+
+async function togglePagodaHomeFeature(id) {
+  const pagoda = allPagodas.find((item) => item.id === id);
+  if (!pagoda || pagoda.status === 'archived') return;
+
+  const isHomeFeatured = !pagoda.isHomeFeatured;
+  const homeFeaturedOrder = isHomeFeatured
+    ? Math.max(
+      0,
+      ...allPagodas
+        .filter((item) => item.isHomeFeatured && item.status !== 'archived')
+        .map((item) => Number(item.homeFeaturedOrder) || 0),
+    ) + 1
+    : 0;
+
+  try {
+    const documentPath = buildAdminDocumentPath(window.adminCollections.pagodas, id);
+    const now = createAdminRestTimestamp();
+    await runAdminWriteOperation({
+      action: 'home featured pagoda update',
+      sdkWrite: () =>
+        db.collection(window.adminCollections.pagodas).doc(id).update({
+          isHomeFeatured,
+          homeFeaturedOrder,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }),
+      restWrite: () =>
+        window.adminFirestoreRest.patchDocument(documentPath, {
+          isHomeFeatured,
+          homeFeaturedOrder,
+          updatedAt: now,
+        }),
+    });
+
+    showToast(
+      isHomeFeatured
+        ? `${pagoda.name || id} will appear on the Home screen.`
+        : `${pagoda.name || id} was removed from Home featured pagodas.`,
+      'success',
+    );
+    await refreshAdminData();
+  } catch (error) {
+    console.error('Failed to update Home featured pagoda:', error);
+    showToast('Failed to update the Home featured pagoda.', 'error');
   }
 }
 

@@ -220,6 +220,8 @@ class PagodaDataService {
         bundled.architecturalStyle,
       ),
       yearBuilt: remote.yearBuilt ?? bundled.yearBuilt,
+      isHomeFeatured: remote.isHomeFeatured,
+      homeFeaturedOrder: remote.homeFeaturedOrder,
       legends: pickOptional(remote.legends, bundled.legends),
       religiousImportance: pickOptional(
         remote.religiousImportance,

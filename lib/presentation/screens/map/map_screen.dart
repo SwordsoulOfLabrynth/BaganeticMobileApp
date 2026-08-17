@@ -50,6 +50,7 @@ class _MapScreenState extends State<MapScreen>
   Pagoda? _pathStartPagoda;
   Pagoda? _pathEndPagoda;
   List<Pagoda> _shortestPathPagodas = [];
+  List<MultimodalPathStep> _shortestPathSteps = [];
   double _shortestPathDistanceKm = 0;
   List<LatLng> _shortestPathRoute = [];
   List<MultimodalRouteSegment> _shortestPathRouteSegments = [];
@@ -298,6 +299,7 @@ class _MapScreenState extends State<MapScreen>
       _pathStartPagoda = null;
       _pathEndPagoda = null;
       _shortestPathPagodas = [];
+      _shortestPathSteps = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
       _shortestPathRouteSegments = [];
@@ -352,6 +354,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _pathStartPagoda = pagoda;
       _shortestPathPagodas = [];
+      _shortestPathSteps = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
       _shortestPathRouteSegments = [];
@@ -379,6 +382,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _pathEndPagoda = pagoda;
       _shortestPathPagodas = [];
+      _shortestPathSteps = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
       _shortestPathRouteSegments = [];
@@ -413,6 +417,7 @@ class _MapScreenState extends State<MapScreen>
         _pathStartPagoda = pagoda;
         _pathEndPagoda = null;
         _shortestPathPagodas = [];
+        _shortestPathSteps = [];
         _shortestPathDistanceKm = 0;
         _shortestPathRoute = [];
         _shortestPathRouteSegments = [];
@@ -437,6 +442,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _pathEndPagoda = pagoda;
       _shortestPathPagodas = [];
+      _shortestPathSteps = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
       _shortestPathRouteSegments = [];
@@ -459,6 +465,7 @@ class _MapScreenState extends State<MapScreen>
       _isPathRouteLoading = true;
       _isPathRouteFallback = false;
       _shortestPathPagodas = [];
+      _shortestPathSteps = [];
       _shortestPathDistanceKm = 0;
       _shortestPathRoute = [];
       _shortestPathRouteSegments = [];
@@ -468,6 +475,23 @@ class _MapScreenState extends State<MapScreen>
 
     final result = await PathfindingService.findPath(start, end, allPagodas);
     if (result.requiresRiverCrossing) {
+      final connection =
+          await MultimodalRouteService.instance.connectionForPagoda(start.id) ??
+          await MultimodalRouteService.instance.connectionForPagoda(end.id);
+      final mainlandResult = connection == null
+          ? const PathSearchResult.empty()
+          : await _mainlandPathForFerry(
+              start: start,
+              end: end,
+              connection: connection,
+              allPagodas: allPagodas,
+            );
+      if (!mounted ||
+          _pathStartPagoda?.id != start.id ||
+          _pathEndPagoda?.id != end.id) {
+        return;
+      }
+
       final plan = await MultimodalRouteService.instance.buildPlan(
         RouteEndpoint(
           pagodaId: start.id,
@@ -477,6 +501,8 @@ class _MapScreenState extends State<MapScreen>
           pagodaId: end.id,
           location: LatLng(end.latitude, end.longitude),
         ),
+        mainlandPagodaPath: mainlandResult.path,
+        mainlandRoadNodePath: mainlandResult.roadNodePath,
       );
       if (!mounted ||
           _pathStartPagoda?.id != start.id ||
@@ -494,8 +520,23 @@ class _MapScreenState extends State<MapScreen>
         );
         return;
       }
+
+      final steps = connection == null
+          ? MultimodalRouteService.stepsFromPagodas([start, end])
+          : MultimodalRouteService.buildFerryPathSteps(
+              start: start,
+              end: end,
+              connection: connection,
+              mainlandPath: mainlandResult.path,
+            );
+      final pathPagodas = steps
+          .map((step) => step.pagoda)
+          .whereType<Pagoda>()
+          .toList(growable: false);
+
       setState(() {
-        _shortestPathPagodas = [start, end];
+        _shortestPathPagodas = pathPagodas;
+        _shortestPathSteps = steps;
         _shortestPathDistanceKm = plan.distanceKm;
         _shortestPathRoute = plan.points;
         _shortestPathRouteSegments = plan.segments;
@@ -546,6 +587,7 @@ class _MapScreenState extends State<MapScreen>
     final resolved = route.isEmpty ? points : route;
     setState(() {
       _shortestPathPagodas = result.path;
+      _shortestPathSteps = MultimodalRouteService.stepsFromPagodas(result.path);
       _shortestPathDistanceKm = result.distanceKm;
       _shortestPathRoute = resolved;
       _shortestPathRouteSegments = [];
@@ -554,6 +596,58 @@ class _MapScreenState extends State<MapScreen>
       _isPathRouteLoading = false;
     });
     _focusRoute(resolved);
+  }
+
+  Future<PathSearchResult> _mainlandPathForFerry({
+    required Pagoda start,
+    required Pagoda end,
+    required FerryConnection connection,
+    required List<Pagoda> allPagodas,
+  }) async {
+    final gatewayId = connection.mainlandPagodaId;
+    if (gatewayId == null || gatewayId.isEmpty) {
+      return const PathSearchResult.empty();
+    }
+
+    Pagoda? gateway;
+    for (final pagoda in allPagodas) {
+      if (pagoda.id == gatewayId) {
+        gateway = pagoda;
+        break;
+      }
+    }
+    if (gateway == null) {
+      return const PathSearchResult.empty();
+    }
+
+    final startsAtFerryPagoda = start.id == connection.pagodaId;
+    final legStart = startsAtFerryPagoda ? gateway : start;
+    final legEnd = startsAtFerryPagoda ? end : gateway;
+    if (legStart.id == legEnd.id) {
+      return PathSearchResult(path: [legStart], distanceKm: 0);
+    }
+
+    // This path supplies visible route stops.  A remote pagoda may be far
+    // from an offline road node, but that must not erase real pagodas between
+    // it and the ferry gateway.
+    final leg = await PathfindingService.findPath(
+      legStart,
+      legEnd,
+      allPagodas,
+      requireTrustedRoadAccess: false,
+    );
+    if (!leg.isEmpty && !leg.requiresRiverCrossing) {
+      return leg;
+    }
+    return PathSearchResult(
+      path: [legStart, legEnd],
+      distanceKm: Helpers.calculateDistance(
+        legStart.latitude,
+        legStart.longitude,
+        legEnd.latitude,
+        legEnd.longitude,
+      ),
+    );
   }
 
   Future<void> _openCreateTrip() async {
@@ -911,7 +1005,7 @@ class _MapScreenState extends State<MapScreen>
         _pathStartPagoda != null &&
         _pathEndPagoda != null &&
         _pathStartPagoda!.id != _pathEndPagoda!.id;
-    final hasPath = _shortestPathPagodas.length >= 2;
+    final hasPath = _shortestPathSteps.length >= 2;
     final pathDistance = hasPath ? _shortestPathDistanceKm : 0.0;
 
     return DraggableScrollableSheet(
@@ -1092,7 +1186,7 @@ class _MapScreenState extends State<MapScreen>
                           child: _buildPathSummaryItem(
                             icon: Icons.temple_buddhist,
                             label: l10n.translate('map.pathStopsLabel'),
-                            value: _shortestPathPagodas.length.toString(),
+                            value: _shortestPathSteps.length.toString(),
                           ),
                         ),
                       ],
@@ -1118,11 +1212,11 @@ class _MapScreenState extends State<MapScreen>
                 ),
               ),
               const SizedBox(height: 10),
-              ..._shortestPathPagodas.asMap().entries.map(
+              ..._shortestPathSteps.asMap().entries.map(
                 (entry) => _buildPathStepCard(
-                  pagoda: entry.value,
+                  step: entry.value,
                   index: entry.key,
-                  total: _shortestPathPagodas.length,
+                  total: _shortestPathSteps.length,
                 ),
               ),
             ] else if (_hasAttemptedPathSearch)
@@ -1237,29 +1331,50 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Widget _buildPathStepCard({
-    required Pagoda pagoda,
+    required MultimodalPathStep step,
     required int index,
     required int total,
   }) {
     final isStart = index == 0;
     final isEnd = index == total - 1;
+    final isFerry = step.isFerryTerminal;
     final color = isStart
         ? Colors.green
         : isEnd
         ? Colors.red
+        : isFerry
+        ? const Color(0xFF166B91)
         : Colors.blue;
     final typeLabel = isStart
         ? context.l10n.translate('map.pathStartPoint')
         : isEnd
         ? context.l10n.translate('map.pathEndPoint')
+        : isFerry
+        ? context.l10n.translate('route.ferryTerminal')
         : context.l10n.translate('map.pathWaypoint');
+    final displayName = step.pagoda != null
+        ? context.l10n.pagodaName(
+            step.pagoda!.id,
+            step.pagoda!.name,
+            remoteMyanmar: step.pagoda!.nameMyanmar,
+          )
+        : context.l10n.locale.languageCode == 'my'
+        ? step.nameMyanmar
+        : step.name;
 
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => _focusPagoda(pagoda),
+        onTap: () {
+          final pagoda = step.pagoda;
+          if (pagoda != null) {
+            _focusPagoda(pagoda);
+          } else {
+            _mapController.move(step.location, AppConstants.defaultZoom + 2);
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -1281,11 +1396,7 @@ class _MapScreenState extends State<MapScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.l10n.pagodaName(
-                        pagoda.id,
-                        pagoda.name,
-                        remoteMyanmar: pagoda.nameMyanmar,
-                      ),
+                      displayName,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
@@ -1301,6 +1412,8 @@ class _MapScreenState extends State<MapScreen>
                     ? Icons.play_arrow
                     : isEnd
                     ? Icons.flag
+                    : isFerry
+                    ? Icons.directions_boat_filled_rounded
                     : Icons.place_outlined,
                 color: color,
               ),

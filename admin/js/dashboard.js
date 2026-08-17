@@ -10,6 +10,7 @@ async function loadDashboard() {
 
   const metrics = getDashboardMetrics();
   document.getElementById('stat-pagodas').textContent = metrics.totalPagodas;
+  document.getElementById('stat-featured-pagodas').textContent = metrics.totalFeaturedPagodas;
   document.getElementById('stat-myanmar-ready').textContent = metrics.totalMyanmarReady;
   document.getElementById('stat-archived').textContent = metrics.totalArchivedPagodas;
   document.getElementById('stat-card-myanmar-ready').hidden = metrics.totalMyanmarReady === 0;
@@ -24,6 +25,7 @@ async function loadDashboard() {
     const snapshotItems = [
       community.activePosts > 0 ? `${community.activePosts} active posts` : null,
       community.tipPosts > 0 ? `${community.tipPosts} tips` : null,
+      metrics.totalFeaturedPagodas > 0 ? `${metrics.totalFeaturedPagodas} featured on Home` : null,
       metrics.totalArchivedPagodas > 0 ? `${metrics.totalArchivedPagodas} archived sites` : null,
     ].filter(Boolean);
     dataStatus.textContent = snapshotItems.join(' · ') || 'No additional live activity yet';
@@ -31,9 +33,9 @@ async function loadDashboard() {
 
   renderDashboardWarning();
   renderSyncStatus();
-  renderCatalogSummary(getPagodaCategorySummary());
-  renderRecentUsersPanel(getRecentUsers(5));
-  renderRecentTripsPanel(getRecentTrips(6));
+  renderDashboardFeaturedPagodas(getHomeFeaturedPagodas());
+  renderRecentUsersPanel(getRecentUsers(3));
+  renderRecentTripsPanel(getRecentTrips(3));
   renderRecentPostsTable(getRecentPosts(6));
 }
 
@@ -87,19 +89,40 @@ function renderSyncStatus() {
     : statusText;
 }
 
-function renderCatalogSummary(items) {
-  const container = document.getElementById('catalog-summary-list');
+function renderDashboardFeaturedPagodas(items) {
+  const container = document.getElementById('dashboard-featured-pagodas');
   if (!container) return;
 
-  container.innerHTML = items.map((item) => `
-    <div class="insight-row">
-      <div>
-        <div class="insight-title">${escapeHtml(item.label)}</div>
-        <div class="insight-meta">${escapeHtml(item.description)}</div>
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="home-feature-empty">
+        <div class="home-feature-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.78 5.63 6.22.9-4.5 4.39 1.06 6.2L12 17.2l-5.56 2.92 1.06-6.2L3 9.53l6.22-.9L12 3Z"/></svg></div>
+        <div><strong>No pagodas featured yet</strong><span>Choose sites from the Pagodas table to show them on Home.</span></div>
       </div>
-      <span class="pill">${item.count}</span>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map((pagoda, index) => `
+    <div class="home-feature-row">
+      <span class="home-feature-order" aria-label="Home position ${index + 1}">${index + 1}</span>
+      <div class="home-feature-copy">
+        <strong>${escapeHtml(pagoda.name || pagoda.id)}</strong>
+        <span>${escapeHtml(pagoda.category || 'Heritage site')} · ${escapeHtml(pagoda.era || 'Ready for Home')}</span>
+      </div>
+      <span class="home-feature-state"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.78 5.63 6.22.9-4.5 4.39 1.06 6.2L12 17.2l-5.56 2.92 1.06-6.2L3 9.53l6.22-.9L12 3Z"/></svg>Featured</span>
     </div>
   `).join('');
+}
+
+function getHomeFeaturedPagodas() {
+  return window.adminState.pagodas
+    .filter((pagoda) => pagoda.status !== 'archived' && pagoda.isHomeFeatured)
+    .sort((a, b) => {
+      const aOrder = Number(a.homeFeaturedOrder) || Number.MAX_SAFE_INTEGER;
+      const bOrder = Number(b.homeFeaturedOrder) || Number.MAX_SAFE_INTEGER;
+      return aOrder - bOrder || String(a.name || a.id).localeCompare(String(b.name || b.id));
+    });
 }
 
 function renderRecentUsersPanel(items) {
@@ -163,7 +186,7 @@ function renderRecentPostsTable(items) {
   if (!items.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5">
+        <td colspan="6">
           <div class="empty-state compact">
             <div class="empty-icon">💬</div>
             <p>No community posts yet.</p>
@@ -189,7 +212,8 @@ function renderRecentPostsTable(items) {
           <div class="cell-muted">${escapeHtml(truncate(post.body, 78))}</div>
         </td>
         <td>${escapeHtml(post.authorName || '—')}</td>
-        <td>${typeBadge} ${statusBadge}</td>
+        <td class="post-type-cell">${typeBadge}</td>
+        <td class="post-status-cell">${statusBadge}</td>
         <td class="cell-muted">${post.upvoteCount ?? 0} upvotes · ${post.commentCount ?? 0} comments</td>
         <td class="cell-nowrap cell-muted">${formatDate(post.createdAt)}</td>
       </tr>

@@ -21,6 +21,7 @@ import 'migrations/migration_v10.dart';
 import 'migrations/migration_v11.dart';
 import 'migrations/migration_v12.dart';
 import 'migrations/migration_v13.dart';
+import 'migrations/migration_v14.dart';
 
 class DatabaseService {
   static Database? _database;
@@ -67,6 +68,7 @@ class DatabaseService {
       MigrationToV11(),
       MigrationToV12(),
       MigrationToV13(),
+      MigrationToV14(),
     ]..sort((a, b) => a.targetVersion.compareTo(b.targetVersion));
 
     for (final migration in migrations) {
@@ -105,7 +107,9 @@ class DatabaseService {
         height TEXT,
         finalWords TEXT,
         uniqueFeatures TEXT,
-        isFavorite INTEGER DEFAULT 0
+        isFavorite INTEGER DEFAULT 0,
+        isHomeFeatured INTEGER NOT NULL DEFAULT 0,
+        homeFeaturedOrder INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -222,6 +226,7 @@ class DatabaseService {
       await MigrationToV11().migrate(db);
       await MigrationToV12().migrate(db);
       await MigrationToV13().migrate(db);
+      await MigrationToV14().migrate(db);
     } catch (e, stackTrace) {
       Logger.error('Database schema self-heal failed', e, stackTrace);
     }
@@ -255,6 +260,7 @@ class DatabaseService {
       'images': normalizedImages.join(','),
       'uniqueFeatures': uniqueFeaturesJson,
       'isFavorite': pagoda.isFavorite ? 1 : 0,
+      'isHomeFeatured': pagoda.isHomeFeatured ? 1 : 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

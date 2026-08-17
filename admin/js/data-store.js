@@ -230,9 +230,13 @@ function normalizePagodaRecord(pagoda) {
   const parsedYearBuilt = pagoda?.yearBuilt === null || pagoda?.yearBuilt === undefined || pagoda?.yearBuilt === ''
     ? Number.NaN
     : Number(pagoda.yearBuilt);
+  const id = String(pagoda?.id || '').trim();
+  const legacyHomeFeature = id === 'ananda' || id === 'shwesandaw';
+  const legacyHomeFeatureOrder = id === 'ananda' ? 1 : id === 'shwesandaw' ? 2 : 0;
+  const parsedHomeFeatureOrder = Number(pagoda?.homeFeaturedOrder);
 
   return {
-    id: String(pagoda?.id || '').trim(),
+    id,
     name: String(pagoda?.name || '').trim(),
     nameMyanmar: String(pagoda?.nameMyanmar || '').trim(),
     description: String(pagoda?.description || '').trim(),
@@ -257,6 +261,12 @@ function normalizePagodaRecord(pagoda) {
     height: String(pagoda?.height || '').trim(),
     finalWords: String(pagoda?.finalWords || '').trim(),
     uniqueFeatures: normalizeUniqueFeatures(pagoda?.uniqueFeatures),
+    isHomeFeatured: typeof pagoda?.isHomeFeatured === 'boolean'
+      ? pagoda.isHomeFeatured
+      : legacyHomeFeature,
+    homeFeaturedOrder: Number.isInteger(parsedHomeFeatureOrder) && parsedHomeFeatureOrder > 0
+      ? parsedHomeFeatureOrder
+      : legacyHomeFeatureOrder,
     status: pagoda?.status === 'archived' ? 'archived' : 'active',
     createdAt: pagoda?.createdAt || null,
     updatedAt: pagoda?.updatedAt || null,
@@ -505,9 +515,13 @@ function getDashboardMetrics() {
   const activePosts = window.adminState.posts.filter(
     (post) => (post.status || 'active') === 'active',
   ).length;
+  const featuredPagodas = activePagodas.filter(
+    (pagoda) => pagoda.isHomeFeatured,
+  ).length;
 
   return {
     totalPagodas: activePagodas.length,
+    totalFeaturedPagodas: featuredPagodas,
     totalArchivedPagodas: window.adminState.pagodas.length - activePagodas.length,
     totalMyanmarReady: myanmarReady,
     totalUsers: window.adminState.users.length,

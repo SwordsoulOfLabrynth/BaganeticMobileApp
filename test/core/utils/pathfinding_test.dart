@@ -45,5 +45,42 @@ void main() {
       expect(result.isEmpty, isTrue);
       expect(result.isRoadGraphRoute, isFalse);
     });
+
+    test(
+      'keeps the real mainland pagoda waypoints when planning a ferry route',
+      () async {
+        final graph = await PathfindingService.loadGraph();
+        expect(graph, isNotNull);
+
+        const routeIds = [
+          'tuywintaung',
+          'izagawna',
+          'alodawpyae',
+          'htilominlo',
+          'ananda',
+          'shwegugyi',
+          'bupaya',
+        ];
+        final pagodas = routeIds
+            .map((id) {
+              final node = graph!.nodes[id]!;
+              return _pagoda(id, node.lat, node.lng);
+            })
+            .toList(growable: false);
+
+        final result = await PathfindingService.findPath(
+          pagodas.first,
+          pagodas.last,
+          pagodas,
+          requireTrustedRoadAccess: false,
+        );
+
+        expect(result.path.map((pagoda) => pagoda.id), routeIds);
+        expect(result.roadNodePath, hasLength(routeIds.length));
+        // Tuywin Taung is remote from the offline road mesh, so this route
+        // is still shown as partial coverage rather than a false guarantee.
+        expect(result.isRoadGraphRoute, isFalse);
+      },
+    );
   });
 }

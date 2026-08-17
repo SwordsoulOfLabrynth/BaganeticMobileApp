@@ -33,6 +33,7 @@ migrate_working_dir/
 /android/key.properties
 /android/*.jks
 /android/*.keystore
+/keystore/*.jks
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -60,6 +61,9 @@ app.*.map.json
 
 # Local QA captures and generated presentation artifacts
 /tmp/
+/output/
+/.playwright-cli/
+/deliverables/
 /pitch_build/node_modules/
 /pitch_build/rendered/
 /deliverables/*.inspect.ndjson

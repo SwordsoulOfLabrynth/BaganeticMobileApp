@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart' show Firebase;
+import 'package:http/http.dart' as http;
 
 import '../constants/app_constants.dart';
 import '../../data/datasources/local_datasource.dart';
@@ -270,6 +272,20 @@ class AIChatbotService {
     defaultValue: 'asia-southeast1',
   );
   static const String _functionName = 'generateAiReply';
+  static const String _directNvidiaApiKey = String.fromEnvironment(
+    'NVIDIA_API_KEY',
+  );
+  static const String _nvidiaChatEndpoint =
+      'https://integrate.api.nvidia.com/v1/chat/completions';
+  static const String _nvidiaModel = 'meta/llama-3.1-8b-instruct';
+  // The public Worker URL is safe to include in the client; the NVIDIA key
+  // remains server-side in Cloudflare. A dart-define can still override this
+  // for staging or local development.
+  static const String _proxyUrl = String.fromEnvironment(
+    'AI_PROXY_URL',
+    defaultValue:
+        'https://baganetic-ai-proxy.kyawzayyahein-mdy.workers.dev/v1/chat',
+  );
   static const int _historyLimit = 12;
   static const String englishOnlyFallbackReply =
       'I can help in English only. Please ask your question again in English.';
@@ -322,7 +338,20 @@ class AIChatbotService {
   }
 
   String? get currentUserId => _auth?.currentUser?.uid;
-  bool get isConfigured => _functions != null;
+  Uri? get _proxyEndpoint {
+    final endpoint = Uri.tryParse(_proxyUrl.trim());
+    if (endpoint == null ||
+        !endpoint.hasScheme ||
+        (endpoint.scheme != 'https' && endpoint.scheme != 'http')) {
+      return null;
+    }
+    return endpoint;
+  }
+
+  bool get isConfigured =>
+      _hasDirectNvidiaDemoKey || _proxyEndpoint != null || _functions != null;
+
+  bool get _hasDirectNvidiaDemoKey => _directNvidiaApiKey.trim().isNotEmpty;
 
   Stream<List<AIChatMessage>> messageStream() {
     final uid = currentUserId;
@@ -366,7 +395,7 @@ class AIChatbotService {
     if (uid == null) {
       throw StateError('Sign in is required to use the AI assistant.');
     }
-    if (_functions == null) {
+    if (_functions == null && _proxyEndpoint == null && !_hasDirectNvidiaDemoKey) {
       throw StateError('The AI service is not available in this build.');
     }
 
@@ -421,11 +450,6 @@ class AIChatbotService {
     required AIEntryContext entryContext,
     required AITripContext? tripContext,
   }) async {
-    final functions = _functions;
-    if (functions == null) {
-      throw StateError('The AI service is not available in this build.');
-    }
-
     final relevantPagodas = _selectRelevantPagodas(
       prompt: prompt,
       pagodas: pagodaContext,
@@ -439,29 +463,217 @@ class AIChatbotService {
       entryContext: entryContext,
       tripContext: tripContext,
     );
+    final payload = <String, dynamic>{
+      'prompt': prompt,
+      'history': history
+          .map((message) => {'role': message.role, 'text': message.text})
+          .toList(growable: false),
+      'context': {
+        'entry': entryContext.toJson(),
+        'pagodas': relevantPagodas
+            .map((pagoda) => pagoda.toJson())
+            .toList(growable: false),
+        'trip': tripContext?.toJson(),
+        'communityPosts': relevantCommunityPosts
+            .map((post) => post.toJson())
+            .toList(growable: false),
+      },
+    };
+    if (_hasDirectNvidiaDemoKey) {
+      return _requestDirectNvidiaReply(payload);
+    }
+
+    final proxy = _proxyEndpoint;
+    if (proxy != null) {
+      return _requestProxyReply(proxy, payload);
+    }
+
+    final functions = _functions;
+    if (functions == null) {
+      throw StateError('The AI service is not available in this build.');
+    }
     final response = await functions
         .httpsCallable(
           _functionName,
           options: HttpsCallableOptions(timeout: const Duration(seconds: 60)),
         )
-        .call<Map<String, dynamic>>({
-          'prompt': prompt,
-          'history': history
-              .map((message) => {'role': message.role, 'text': message.text})
-              .toList(growable: false),
-          'context': {
-            'entry': entryContext.toJson(),
-            'pagodas': relevantPagodas
-                .map((pagoda) => pagoda.toJson())
-                .toList(growable: false),
-            'trip': tripContext?.toJson(),
-            'communityPosts': relevantCommunityPosts
-                .map((post) => post.toJson())
-                .toList(growable: false),
-          },
-        });
+        .call<Map<String, dynamic>>(payload);
 
     final result = AIReplyResult.fromJson(response.data);
+    final reply = _sanitizeAssistantReply(result.reply);
+    if (reply.isEmpty) {
+      throw StateError('The AI service returned no reply.');
+    }
+    return AIReplyResult(
+      reply: reply,
+      createdAt: result.createdAt,
+      contextSummary: result.contextSummary,
+    );
+  }
+
+  Future<AIReplyResult> _requestDirectNvidiaReply(
+    Map<String, dynamic> payload,
+  ) async {
+    final context = payload['context'] as Map<String, dynamic>? ?? const {};
+    final history = (payload['history'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (message) => {
+            'role': message['role'] == AIChatMessage.roleAssistant
+                ? 'assistant'
+                : 'user',
+            'content': message['text']?.toString().trim() ?? '',
+          },
+        )
+        .where((message) => (message['content'] as String).isNotEmpty)
+        .toList(growable: false);
+
+    late http.Response response;
+    Object? lastConnectionError;
+    for (var attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        response = await http
+            .post(
+              Uri.parse(_nvidiaChatEndpoint),
+              headers: {
+                'Authorization': 'Bearer ${_directNvidiaApiKey.trim()}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: jsonEncode({
+                'model': _nvidiaModel,
+                'temperature': 0.2,
+                'top_p': 0.9,
+                'max_tokens': 700,
+                'messages': [
+                  {'role': 'system', 'content': _directSystemPrompt(context)},
+                  ...history,
+                  {'role': 'user', 'content': payload['prompt']},
+                ],
+              }),
+            )
+            .timeout(const Duration(seconds: 60));
+        lastConnectionError = null;
+        break;
+      } on TimeoutException catch (error) {
+        lastConnectionError = error;
+      } on http.ClientException catch (error) {
+        lastConnectionError = error;
+      }
+      if (attempt < 2) {
+        await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
+    }
+    if (lastConnectionError != null) {
+      throw lastConnectionError;
+    }
+
+    final decoded = jsonDecode(response.body);
+    final data = decoded is Map<String, dynamic>
+        ? decoded
+        : <String, dynamic>{};
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError(
+        'The AI provider could not complete this request. Please try again later.',
+      );
+    }
+    final choices = data['choices'];
+    final firstChoice = choices is List && choices.isNotEmpty
+        ? choices.first
+        : null;
+    final message = firstChoice is Map ? firstChoice['message'] : null;
+    final rawReply = message is Map
+        ? message['content']?.toString() ?? ''
+        : '';
+    final reply = _sanitizeAssistantReply(rawReply);
+    if (reply.isEmpty) {
+      throw StateError('The AI provider returned no reply.');
+    }
+    return AIReplyResult(
+      reply: reply,
+      createdAt: DateTime.now(),
+      contextSummary: {
+        'pagodaCount': (context['pagodas'] as List?)?.length ?? 0,
+        'tripCount': context['trip'] == null ? 0 : 1,
+        'communityPostCount': (context['communityPosts'] as List?)?.length ?? 0,
+      },
+    );
+  }
+
+  String _directSystemPrompt(Map<String, dynamic> context) {
+    final pagodas = (context['pagodas'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .take(8)
+        .map((pagoda) {
+          final name = pagoda['name']?.toString().trim() ?? '';
+          final category = pagoda['category']?.toString().trim() ?? '';
+          final summary = pagoda['summary']?.toString().trim() ?? '';
+          return name.isEmpty
+              ? ''
+              : '- $name${category.isEmpty ? '' : ' ($category)'}: $summary';
+        })
+        .where((line) => line.isNotEmpty)
+        .join('\n');
+    return [
+      "You are Baganetic's in-app travel assistant for Bagan pagodas.",
+      'Stay inside the Bagan travel domain and answer concisely in English.',
+      'Do not invent facts. Treat community posts as unverified traveler reports.',
+      'Relevant pagoda context:',
+      pagodas.isEmpty ? '- No pagoda context supplied.' : pagodas,
+    ].join('\n');
+  }
+
+  Future<AIReplyResult> _requestProxyReply(
+    Uri endpoint,
+    Map<String, dynamic> payload,
+  ) async {
+    final token = await _auth?.currentUser?.getIdToken();
+    if (token == null || token.isEmpty) {
+      throw StateError('Sign in is required to use the AI assistant.');
+    }
+    late http.Response response;
+    Object? lastConnectionError;
+    for (var attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        response = await http
+            .post(
+              endpoint,
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: jsonEncode(payload),
+            )
+            .timeout(const Duration(seconds: 60));
+        lastConnectionError = null;
+        break;
+      } on TimeoutException catch (error) {
+        lastConnectionError = error;
+      } on http.ClientException catch (error) {
+        lastConnectionError = error;
+      }
+      if (attempt < 2) {
+        await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
+    }
+    if (lastConnectionError != null) {
+      throw lastConnectionError;
+    }
+    final decoded = jsonDecode(response.body);
+    final data = decoded is Map<String, dynamic>
+        ? decoded
+        : <String, dynamic>{};
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = data['error']?.toString().trim();
+      throw StateError(
+        message == null || message.isEmpty
+            ? 'The AI service is temporarily unavailable. Please try again later.'
+            : message,
+      );
+    }
+
+    final result = AIReplyResult.fromJson(data);
     final reply = _sanitizeAssistantReply(result.reply);
     if (reply.isEmpty) {
       throw StateError('The AI service returned no reply.');

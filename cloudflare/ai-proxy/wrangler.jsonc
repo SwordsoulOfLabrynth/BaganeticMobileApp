@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "baganetic-ai-proxy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-17",
+  "vars": {
+    "FIREBASE_PROJECT_ID": "baganetic-mobile"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
