@@ -24,6 +24,7 @@ import 'presentation/providers/pagoda_provider.dart';
 import 'presentation/providers/trip_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/onboarding/onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -171,7 +172,7 @@ class _AppBootstrapShellState extends State<_AppBootstrapShell> {
                   }
                   return supportedLocales.first;
                 },
-                home: isReady ? const HomeScreen() : const _StartupScreen(),
+                home: isReady ? const _ExperienceGate() : const _StartupScreen(),
                 routes: isReady
                     ? {
                         '/login': (context) => const LoginScreen(),
@@ -192,6 +193,51 @@ class _AppBootstrapShellState extends State<_AppBootstrapShell> {
   }
 }
 
+class _ExperienceGate extends StatefulWidget {
+  const _ExperienceGate();
+
+  @override
+  State<_ExperienceGate> createState() => _ExperienceGateState();
+}
+
+class _ExperienceGateState extends State<_ExperienceGate> {
+  late final Future<bool> _completionFuture;
+  bool? _hasCompletedOnboarding;
+
+  @override
+  void initState() {
+    super.initState();
+    _completionFuture = OnboardingPreference.hasCompleted();
+  }
+
+  Future<void> _completeOnboarding() async {
+    await OnboardingPreference.markCompleted();
+    if (mounted) {
+      setState(() => _hasCompletedOnboarding = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasCompletedOnboarding == true) {
+      return const HomeScreen();
+    }
+
+    return FutureBuilder<bool>(
+      future: _completionFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _StartupScreen();
+        }
+        if (snapshot.hasError || snapshot.data != true) {
+          return OnboardingScreen(onFinished: _completeOnboarding);
+        }
+        return const HomeScreen();
+      },
+    );
+  }
+}
+
 class _StartupScreen extends StatelessWidget {
   const _StartupScreen();
 
@@ -200,68 +246,26 @@ class _StartupScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFFCF6), Color(0xFFF4E6BF), Color(0xFFE6C978)],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 116,
-                    height: 116,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.72),
-                      shape: BoxShape.circle,
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x14000000),
-                          blurRadius: 28,
-                          offset: Offset(0, 14),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.temple_buddhist_rounded,
-                      size: 64,
-                      color: Color(0xFFAE5038),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Starting Baganetic',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF4C3410),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Preparing app services and offline data...',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF6A5630),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(strokeWidth: 2.6),
-                  ),
-                ],
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/baganetic_launcher_icon.png',
+                width: 108,
+                height: 108,
+                semanticLabel: 'Baganetic logo',
               ),
-            ),
+              const SizedBox(height: 18),
+              Text('Baganetic', style: theme.textTheme.displaySmall),
+              const SizedBox(height: 18),
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.4),
+              ),
+            ],
           ),
         ),
       ),

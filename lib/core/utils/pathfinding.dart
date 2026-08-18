@@ -86,14 +86,11 @@ class PathfindingService {
       return const PathSearchResult.riverCrossing();
     }
 
-    // Pagodas far from the offline road graph cannot get honest turn-by-turn
-    // polylines, but we still allow graph search for pagoda waypoint lists.
-    const maxTrustedAccessGapKm = 0.5;
-    if (requireTrustedRoadAccess &&
-        (startNode.accessGapKm > maxTrustedAccessGapKm ||
-            goalNode.accessGapKm > maxTrustedAccessGapKm)) {
-      return _buildDirectFallbackResult(start, goal);
-    }
+    // Every catalog item is explicitly snapped to a node in the curated road
+    // graph.  An older rule rejected endpoints with a larger recorded
+    // `accessGapKm`; that replaced a real graph route with a straight/curved
+    // fallback (for example Lawkananda -> Abeyadana).  The gap is useful as
+    // metadata, but it must not discard available road geometry.
 
     final pagodasById = <String, Pagoda>{
       for (final pagoda in allPagodas) pagoda.id: pagoda,
@@ -136,16 +133,11 @@ class PathfindingService {
           pagodasById: pagodasById,
         );
         final roadNodePath = _roadNodePathForPagodaPath(path, graph);
-        final hasTrustedRoadAccess = path.every(
-          (pagoda) =>
-              (graph.nodes[pagoda.id]?.accessGapKm ?? double.infinity) <=
-              maxTrustedAccessGapKm,
-        );
         return PathSearchResult(
           path: path,
           distanceKm: currentG,
           roadNodePath: roadNodePath,
-          isRoadGraphRoute: hasTrustedRoadAccess && roadNodePath.length >= 2,
+          isRoadGraphRoute: roadNodePath.length >= 2,
         );
       }
 

@@ -77,9 +77,10 @@ void main() {
 
         expect(result.path.map((pagoda) => pagoda.id), routeIds);
         expect(result.roadNodePath, hasLength(routeIds.length));
-        // Tuywin Taung is remote from the offline road mesh, so this route
-        // is still shown as partial coverage rather than a false guarantee.
-        expect(result.isRoadGraphRoute, isFalse);
+        // Tuywin Taung is remote from the road mesh, but it is still snapped
+        // to a curated node. Keep its real graph route instead of replacing
+        // it with a fabricated straight-line fallback.
+        expect(result.isRoadGraphRoute, isTrue);
       },
     );
   });
