@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart';
 
+typedef LogErrorSink =
+    void Function(String message, Object? error, StackTrace? stackTrace);
+
 class Logger {
+  static LogErrorSink? errorSink;
+
   static void info(String message) {
     debugPrint(message);
   }
@@ -17,5 +22,6 @@ class Logger {
     if (stackTrace != null) {
       debugPrint(stackTrace.toString());
     }
+    errorSink?.call(message, error, stackTrace);
   }
 }

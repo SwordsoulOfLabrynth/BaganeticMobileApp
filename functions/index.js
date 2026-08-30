@@ -1,12 +1,28 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const {defineSecret} = require("firebase-functions/params");
+const {initializeApp, getApps} = require("firebase-admin/app");
+const {getAuth} = require("firebase-admin/auth");
+const {getFirestore} = require("firebase-admin/firestore");
+const {getStorage} = require("firebase-admin/storage");
+
+if (getApps().length === 0) {
+  initializeApp();
+}
 
 const nvidiaApiKey = defineSecret("NVIDIA_API_KEY");
 const endpoint = "https://integrate.api.nvidia.com/v1/chat/completions";
 const defaultModel = "meta/llama-3.1-8b-instruct";
 const maxPromptLength = 2000;
 const maxHistoryMessages = 12;
+const aiHourlyLimit = 20;
+const functionRegion = "asia-southeast1";
+const firestoreDatabaseId =
+  process.env.FIRESTORE_DATABASE_ID || "baganetic-mobile";
+
+function firestore() {
+  return getFirestore(firestoreDatabaseId);
+}
 
 function asText(value, maxLength = 4000) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
@@ -57,8 +73,55 @@ function buildSystemPrompt(context) {
   ].join("\n");
 }
 
+async function assertAiQuota(uid) {
+  const ref = firestore().collection("aiUsage").doc(uid);
+  const windowMs = 60 * 60 * 1000;
+
+  await firestore().runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(ref);
+    const now = Date.now();
+    let count = 0;
+    let windowStart = now;
+
+    if (snapshot.exists) {
+      const data = snapshot.data() || {};
+      windowStart = typeof data.windowStart === "number" ? data.windowStart : now;
+      count = typeof data.count === "number" ? data.count : 0;
+      if (now - windowStart >= windowMs) {
+        count = 0;
+        windowStart = now;
+      }
+    }
+
+    if (count >= aiHourlyLimit) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "The AI assistant is rate limited. Please try again later.",
+      );
+    }
+
+    transaction.set(ref, {
+      count: count + 1,
+      windowStart,
+      updatedAt: now,
+    });
+  });
+}
+
+async function deleteQuery(query) {
+  const snapshot = await query.get();
+  if (snapshot.empty) {
+    return;
+  }
+  const batch = firestore().batch();
+  for (const doc of snapshot.docs) {
+    batch.delete(doc.ref);
+  }
+  await batch.commit();
+}
+
 exports.generateAiReply = onCall(
-  {region: "asia-southeast1", secrets: [nvidiaApiKey], timeoutSeconds: 60},
+  {region: functionRegion, secrets: [nvidiaApiKey], timeoutSeconds: 60},
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Sign in is required to use the AI assistant.");
@@ -68,6 +131,8 @@ exports.generateAiReply = onCall(
     if (!prompt) {
       throw new HttpsError("invalid-argument", "A non-empty prompt is required.");
     }
+
+    await assertAiQuota(request.auth.uid);
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -113,5 +178,65 @@ exports.generateAiReply = onCall(
           : 0,
       },
     };
+  },
+);
+
+exports.deleteUserAccount = onCall(
+  {region: functionRegion, timeoutSeconds: 60},
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in is required to delete an account.");
+    }
+
+    const uid = request.auth.uid;
+    const db = firestore();
+    const userRef = db.collection("users").doc(uid);
+
+    try {
+      await db.recursiveDelete(userRef);
+    } catch (error) {
+      logger.warn("recursiveDelete user doc failed", {uid, error: String(error)});
+      await userRef.delete().catch(() => undefined);
+    }
+
+    const posts = await db
+      .collection("communityPosts")
+      .where("authorUserId", "==", uid)
+      .get();
+    for (const post of posts.docs) {
+      try {
+        await db.recursiveDelete(post.ref);
+      } catch (error) {
+        logger.warn("recursiveDelete post failed", {postId: post.id, error: String(error)});
+        await post.ref.delete().catch(() => undefined);
+      }
+    }
+
+    try {
+      await deleteQuery(
+        db.collectionGroup("comments").where("authorUserId", "==", uid),
+      );
+    } catch (error) {
+      logger.warn("comment cleanup skipped", {error: String(error)});
+    }
+
+    try {
+      await deleteQuery(
+        db.collectionGroup("votes").where("userId", "==", uid),
+      );
+    } catch (error) {
+      logger.warn("vote cleanup skipped", {error: String(error)});
+    }
+
+    await db.collection("aiUsage").doc(uid).delete().catch(() => undefined);
+
+    try {
+      await getStorage().bucket().file(`users/${uid}/profile.jpg`).delete();
+    } catch (error) {
+      logger.warn("profile photo cleanup skipped", {error: String(error)});
+    }
+
+    await getAuth().deleteUser(uid);
+    return {deleted: true};
   },
 );

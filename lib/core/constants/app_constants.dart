@@ -1,7 +1,7 @@
 class AppConstants {
   // App Info
   static const String appName = 'Baganetic';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.3';
 
   // Firebase Collections
   static const String pagodas = 'pagodas';
@@ -37,6 +37,9 @@ class AppConstants {
   static const double baganLatitude = 21.1717;
   static const double baganLongitude = 94.8589;
   static const double defaultZoom = 13.0;
+  static const double userLocationZoom = 16.0;
+  static const double mapCoverageLatitudePadding = 0.20;
+  static const double mapCoverageLongitudePadding = 0.20;
   static const String mapTileStore = 'baganetic_map_store';
   static const String mapTileUrlTemplate =
       'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';

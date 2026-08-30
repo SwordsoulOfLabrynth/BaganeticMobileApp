@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/device_location_service.dart';
+import '../../../core/services/logger.dart';
 import '../../../core/services/multimodal_route_service.dart';
 import '../../../core/services/offline_route_service.dart';
 import '../../../core/utils/auth_gate.dart';
+import '../../../core/utils/bagan_map_coverage.dart';
 import '../../../core/utils/helpers.dart';
 import '../../../core/utils/pathfinding.dart';
 import '../../../core/utils/responsive.dart';
@@ -60,6 +65,10 @@ class _MapScreenState extends State<MapScreen>
   bool _hasAttemptedPathSearch = false;
   late MapTripMode _mode;
   late final AnimationController _pulseController;
+  final DeviceLocationService _locationService = DeviceLocationService();
+  StreamSubscription<LatLng>? _locationSub;
+  LatLng? _userLocation;
+  var _isLocating = false;
 
   @override
   void initState() {
@@ -81,12 +90,121 @@ class _MapScreenState extends State<MapScreen>
         );
       });
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_startLocationWatch());
+    });
   }
 
   @override
   void dispose() {
+    _locationSub?.cancel();
     _pulseController.dispose();
     super.dispose();
+  }
+
+  Future<void> _startLocationWatch() async {
+    try {
+      await _locationSub?.cancel();
+      _locationSub = _locationService.watchLocation().listen(
+        (point) {
+          if (!mounted) {
+            return;
+          }
+          setState(() => _userLocation = point);
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          Logger.error('Live location updates stopped', error, stackTrace);
+        },
+      );
+    } on DeviceLocationException {
+      // Permission can be granted later from the locate button.
+    } catch (e, stackTrace) {
+      Logger.error('Could not start live location', e, stackTrace);
+    }
+  }
+
+  Future<void> _goToUserLocation() async {
+    if (_isLocating) {
+      return;
+    }
+    setState(() => _isLocating = true);
+    final l10n = context.l10n;
+    try {
+      final point = await _locationService.getCurrentLocation();
+      if (!mounted) {
+        return;
+      }
+      setState(() => _userLocation = point);
+      _mapController.move(point, AppConstants.userLocationZoom);
+      if (!BaganMapCoverage.contains(point)) {
+        Helpers.showSnackBar(
+          context,
+          l10n.translate('map.locationOutsideBagan'),
+        );
+      }
+      unawaited(_startLocationWatch());
+    } on DeviceLocationException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      await _handleLocationError(error.code);
+    } catch (e, stackTrace) {
+      Logger.error('Locate me failed', e, stackTrace);
+      if (mounted) {
+        Helpers.showSnackBar(
+          context,
+          l10n.translate('map.locationUnavailable'),
+          isError: true,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLocating = false);
+      }
+    }
+  }
+
+  Future<void> _handleLocationError(DeviceLocationError code) async {
+    final l10n = context.l10n;
+    switch (code) {
+      case DeviceLocationError.servicesDisabled:
+        Helpers.showSnackBar(
+          context,
+          l10n.translate('map.locationServicesOff'),
+          isError: true,
+        );
+        await _locationService.openLocationSettings();
+        break;
+      case DeviceLocationError.permissionDenied:
+        Helpers.showSnackBar(
+          context,
+          l10n.translate('map.locationPermissionDenied'),
+          isError: true,
+        );
+        break;
+      case DeviceLocationError.permissionDeniedForever:
+        Helpers.showSnackBar(
+          context,
+          l10n.translate('map.locationPermissionDeniedForever'),
+          isError: true,
+        );
+        await _locationService.openAppSettings();
+        break;
+      case DeviceLocationError.unavailable:
+        Helpers.showSnackBar(
+          context,
+          l10n.translate('map.locationUnavailable'),
+          isError: true,
+        );
+        break;
+    }
+  }
+
+  void _resetToBaganOverview() {
+    _mapController.move(
+      LatLng(AppConstants.baganLatitude, AppConstants.baganLongitude),
+      AppConstants.defaultZoom,
+    );
   }
 
   Future<void> _setMode(MapTripMode mode) async {
@@ -790,6 +908,7 @@ class _MapScreenState extends State<MapScreen>
             ..._buildFerryMarkers(
               showTrip ? _tripRouteSegments : _shortestPathRouteSegments,
             ),
+            if (_userLocation != null) _buildUserLocationMarker(_userLocation!),
           ];
 
           return Stack(
@@ -856,12 +975,43 @@ class _MapScreenState extends State<MapScreen>
                   MarkerLayer(markers: markers),
                 ],
               ),
+              Positioned(
+                right: 10,
+                bottom: 10,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.86),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        l10n.translate('map.osmAttribution'),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF5C534C),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               if (pagodas.isEmpty)
                 Center(
                   child: Text(
                     l10n.translate('map.noPagodas'),
                     style: const TextStyle(color: Colors.grey),
                   ),
+                ),
+              if (_mode != MapTripMode.browse)
+                Positioned(
+                  right: 12,
+                  bottom: _mode == MapTripMode.trips ? 120 : 36,
+                  child: _buildLocateButton(),
                 ),
               Positioned(
                 top: 12,
@@ -2023,17 +2173,85 @@ class _MapScreenState extends State<MapScreen>
           ),
           SizedBox(height: Responsive.smallSpacing(context)),
         ],
-        FloatingActionButton(
-          heroTag: 'reset-map',
-          onPressed: () {
-            _mapController.move(
-              LatLng(AppConstants.baganLatitude, AppConstants.baganLongitude),
-              AppConstants.defaultZoom,
+        _buildLocateButton(),
+      ],
+    );
+  }
+
+  Widget _buildLocateButton() {
+    return Material(
+      elevation: 3,
+      color: Colors.white,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: _isLocating ? null : _goToUserLocation,
+        onLongPress: _resetToBaganOverview,
+        child: Tooltip(
+          message: context.l10n.translate('map.locateMe'),
+          child: Semantics(
+            button: true,
+            label: context.l10n.translate('map.locateMe'),
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: Center(
+                child: _isLocating
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2.2),
+                      )
+                    : Icon(
+                        Icons.my_location,
+                        color: _userLocation == null
+                            ? const Color(0xFF5C534C)
+                            : const Color(0xFF1D4E89),
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Marker _buildUserLocationMarker(LatLng point) {
+    return Marker(
+      point: point,
+      width: 56,
+      height: 56,
+      alignment: Alignment.center,
+      child: IgnorePointer(
+        child: AnimatedBuilder(
+          animation: _pulseController,
+          builder: (context, child) {
+            final pulse = 0.35 + (_pulseController.value * 0.45);
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 28 + (18 * _pulseController.value),
+                  height: 28 + (18 * _pulseController.value),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF1D4E89).withValues(alpha: 0.18 * pulse),
+                  ),
+                ),
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF1D4E89),
+                    border: Border.all(color: Colors.white, width: 3),
+                  ),
+                ),
+              ],
             );
           },
-          child: const Icon(Icons.my_location),
         ),
-      ],
+      ),
     );
   }
 }

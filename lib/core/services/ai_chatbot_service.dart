@@ -281,11 +281,7 @@ class AIChatbotService {
   // The public Worker URL is safe to include in the client; the NVIDIA key
   // remains server-side in Cloudflare. A dart-define can still override this
   // for staging or local development.
-  static const String _proxyUrl = String.fromEnvironment(
-    'AI_PROXY_URL',
-    defaultValue:
-        'https://baganetic-ai-proxy.kyawzayyahein-mdy.workers.dev/v1/chat',
-  );
+  static const String _proxyUrl = String.fromEnvironment('AI_PROXY_URL');
   static const int _historyLimit = 12;
   static const String englishOnlyFallbackReply =
       'I can help in English only. Please ask your question again in English.';

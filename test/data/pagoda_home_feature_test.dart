@@ -13,8 +13,8 @@ Map<String, dynamic> pagodaJson({
   'latitude': 21.17,
   'longitude': 94.86,
   'imageUrl': 'assets/images/pagodas/example.jpg',
-  if (isHomeFeatured != null) 'isHomeFeatured': isHomeFeatured,
-  if (homeFeaturedOrder != null) 'homeFeaturedOrder': homeFeaturedOrder,
+  'isHomeFeatured': ?isHomeFeatured,
+  'homeFeaturedOrder': ?homeFeaturedOrder,
 };
 
 void main() {

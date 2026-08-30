@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart'
     show Firebase, FirebaseException;
@@ -22,6 +23,11 @@ class AuthFailure implements Exception {
 }
 
 class FirebaseService {
+  static const _functionsRegion = String.fromEnvironment(
+    'AI_FUNCTION_REGION',
+    defaultValue: 'asia-southeast1',
+  );
+
   firebase_auth.FirebaseAuth? get _authOrNull {
     if (!isFirebaseAvailable) {
       return null;
@@ -168,6 +174,61 @@ class FirebaseService {
       return;
     }
     await auth.signOut();
+  }
+
+  Future<void> deleteAccount({required String password}) async {
+    try {
+      final auth = _requireAuth();
+      final user = auth.currentUser;
+      final email = user?.email?.trim() ?? '';
+      if (user == null || email.isEmpty) {
+        throw AuthFailure('auth.failed');
+      }
+
+      final credential = firebase_auth.EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      try {
+        await FirebaseFunctions.instanceFor(region: _functionsRegion)
+            .httpsCallable(
+              'deleteUserAccount',
+              options: HttpsCallableOptions(
+                timeout: const Duration(seconds: 60),
+              ),
+            )
+            .call();
+        return;
+      } catch (e, st) {
+        Logger.error(
+          'FirebaseService: deleteUserAccount function failed, using client fallback',
+          e,
+          st,
+        );
+      }
+
+      await _deleteOwnedCloudData(user.uid);
+      await user.delete();
+    } catch (e, st) {
+      final failure = _handleAuthException(e);
+      Logger.error('FirebaseService: Delete account failed', e, st);
+      throw failure;
+    }
+  }
+
+  Future<void> _deleteOwnedCloudData(String uid) async {
+    final firestore = _firestoreOrNull;
+    if (firestore != null) {
+      await firestore.collection('users').doc(uid).delete();
+    }
+
+    try {
+      await _storageOrNull?.ref().child('users/$uid/profile.jpg').delete();
+    } catch (e, st) {
+      Logger.error('FirebaseService: Profile photo delete skipped', e, st);
+    }
   }
 
   Future<void> resetPassword(String email) async {
@@ -329,6 +390,8 @@ class FirebaseService {
           return AuthFailure('auth.operationNotAllowed', cause: e);
         case 'user-disabled':
           return AuthFailure('auth.userDisabled', cause: e);
+        case 'requires-recent-login':
+          return AuthFailure('auth.requiresRecentLogin', cause: e);
         case 'too-many-requests':
           return AuthFailure('auth.tooManyRequests', cause: e);
         case 'network-request-failed':

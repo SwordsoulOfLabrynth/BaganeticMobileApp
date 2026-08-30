@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -29,8 +30,20 @@ import 'presentation/screens/onboarding/onboarding_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   _configureDesktopDatabase();
+  _installEarlyErrorHandlers();
 
   runApp(const MyApp());
+}
+
+void _installEarlyErrorHandlers() {
+  FlutterError.onError = (details) {
+    Logger.error('Flutter framework error', details.exception, details.stack);
+    FlutterError.presentError(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    Logger.error('Uncaught platform error', error, stackTrace);
+    return true;
+  };
 }
 
 void _configureDesktopDatabase() {
@@ -76,6 +89,7 @@ Future<_BootstrapResult> _bootstrapApp() async {
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 8));
     firebaseReady = true;
+    await _configureCrashlytics();
     final firestore = FirestoreInstance.instanceOrNull;
     if (firestore != null) {
       firestore.settings = const Settings(persistenceEnabled: true);
@@ -88,6 +102,39 @@ Future<_BootstrapResult> _bootstrapApp() async {
   }
 
   return _BootstrapResult(firebaseReady: firebaseReady);
+}
+
+Future<void> _configureCrashlytics() async {
+  try {
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+      !kDebugMode,
+    );
+    FlutterError.onError = (details) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      Logger.error('Flutter framework error', details.exception, details.stack);
+      if (kDebugMode) {
+        FlutterError.presentError(details);
+      }
+    };
+    PlatformDispatcher.instance.onError = (error, stackTrace) {
+      FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: true);
+      Logger.error('Uncaught platform error', error, stackTrace);
+      return true;
+    };
+    Logger.errorSink = (message, error, stackTrace) {
+      if (kDebugMode) {
+        return;
+      }
+      FirebaseCrashlytics.instance.recordError(
+        error ?? Exception(message),
+        stackTrace,
+        reason: message,
+        fatal: false,
+      );
+    };
+  } catch (e, stackTrace) {
+    Logger.error('Crashlytics configuration failed', e, stackTrace);
+  }
 }
 
 class _BootstrapResult {

@@ -13,6 +13,7 @@ import '../../providers/language_provider.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../community/community_feed_screen.dart';
+import '../legal/legal_document_screen.dart';
 import '../map/map_screen.dart';
 import '../pagodas/pagodas_list_screen.dart';
 
@@ -160,8 +161,45 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     onTap: () => _showAboutDialog(context),
                   ),
+                  _ProfileMenuItem(
+                    icon: Icons.privacy_tip_outlined,
+                    title: context.l10n.translate('legal.privacyTitle'),
+                    subtitle: context.l10n.translate('legal.privacySubtitle'),
+                    onTap: () => _openLegalDocument(
+                      context,
+                      titleKey: 'legal.privacyTitle',
+                      bodyKey: 'legal.privacyBody',
+                    ),
+                  ),
+                  _ProfileMenuItem(
+                    icon: Icons.gavel_outlined,
+                    title: context.l10n.translate('legal.termsTitle'),
+                    subtitle: context.l10n.translate('legal.termsSubtitle'),
+                    onTap: () => _openLegalDocument(
+                      context,
+                      titleKey: 'legal.termsTitle',
+                      bodyKey: 'legal.termsBody',
+                    ),
+                  ),
                 ],
               ),
+              if (!guest) ...[
+                const SizedBox(height: 26),
+                _SectionLabel(context.l10n.translate('profile.sectionAccount')),
+                const SizedBox(height: 10),
+                _ProfileMenuGroup(
+                  items: [
+                    _ProfileMenuItem(
+                      icon: Icons.delete_forever_outlined,
+                      title: context.l10n.translate('profile.deleteAccount'),
+                      subtitle: context.l10n.translate(
+                        'profile.deleteAccountSubtitle',
+                      ),
+                      onTap: () => _confirmDeleteAccount(context),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 30),
               _SessionButton(
                 guest: guest,
@@ -214,6 +252,106 @@ class ProfileScreen extends StatelessWidget {
         Helpers.showSnackBar(context, l10n.translate('profile.signedOut'));
       }
     }
+  }
+
+  void _openLegalDocument(
+    BuildContext context, {
+    required String titleKey,
+    required String bodyKey,
+  }) {
+    final l10n = context.l10n;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LegalDocumentScreen(
+          title: l10n.translate(titleKey),
+          body: l10n.translate(bodyKey),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final l10n = context.l10n;
+    final passwordController = TextEditingController();
+    var obscurePassword = true;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: Text(l10n.translate('profile.deleteAccount')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l10n.translate('profile.deleteAccountConfirmBody')),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: obscurePassword,
+                    autofillHints: const [AutofillHints.password],
+                    decoration: InputDecoration(
+                      labelText: l10n.translate('auth.password'),
+                      suffixIcon: IconButton(
+                        onPressed: () => setDialogState(
+                          () => obscurePassword = !obscurePassword,
+                        ),
+                        icon: Icon(
+                          obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: Text(l10n.translate('common.cancel')),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: Text(l10n.translate('profile.deleteAccount')),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) {
+      passwordController.dispose();
+      return;
+    }
+
+    final password = passwordController.text;
+    passwordController.dispose();
+    if (password.isEmpty) {
+      Helpers.showSnackBar(
+        context,
+        l10n.translate('auth.passwordRequired'),
+        isError: true,
+      );
+      return;
+    }
+
+    final auth = context.read<AuthProvider>();
+    final success = await auth.deleteAccount(password: password);
+    if (!context.mounted) {
+      return;
+    }
+    if (success) {
+      Helpers.showSnackBar(context, l10n.translate('profile.accountDeleted'));
+      return;
+    }
+    Helpers.showSnackBar(
+      context,
+      l10n.translate(auth.errorKey ?? 'profile.deleteAccountFailed'),
+      isError: true,
+    );
   }
 
   Future<void> _pickProfilePhoto(BuildContext context) async {

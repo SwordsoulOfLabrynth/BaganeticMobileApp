@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Baganetic uses your photo library so you can set a profile picture.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Baganetic does not save photos to your library unless you choose to share an image.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Baganetic uses your location on the map to show where you are among Bagan pagodas. Location is only used while the map is open and is not uploaded to our servers.</string>
 </dict>
 </plist>

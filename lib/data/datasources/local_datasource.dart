@@ -797,6 +797,65 @@ class DatabaseService {
     await db.delete(AppConstants.tableAiChatMessagesLocal);
   }
 
+  Future<void> clearAccountData(String userId) async {
+    if (userId.isEmpty || userId == AppConstants.guestOwnerId) {
+      return;
+    }
+    final db = await database;
+    final trips = await db.query(
+      AppConstants.tableTrips,
+      columns: const ['id'],
+      where: 'ownerUserId = ?',
+      whereArgs: [userId],
+    );
+    for (final trip in trips) {
+      final tripId = trip['id'] as String?;
+      if (tripId == null || tripId.isEmpty) {
+        continue;
+      }
+      await db.delete(
+        AppConstants.tableTripStops,
+        where: 'tripId = ?',
+        whereArgs: [tripId],
+      );
+    }
+    await db.delete(
+      AppConstants.tableTrips,
+      where: 'ownerUserId = ?',
+      whereArgs: [userId],
+    );
+    await db.delete(
+      AppConstants.tableFavorites,
+      where: 'ownerUserId = ?',
+      whereArgs: [userId],
+    );
+    await db.delete(
+      AppConstants.tableFeedbacks,
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+    await db.delete(
+      AppConstants.tableCommunityPostVotes,
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+    await db.delete(
+      AppConstants.tableCommunityComments,
+      where: 'authorUserId = ?',
+      whereArgs: [userId],
+    );
+    await db.delete(
+      AppConstants.tableCommunityPosts,
+      where: 'authorUserId = ?',
+      whereArgs: [userId],
+    );
+    await db.delete(
+      AppConstants.tableAiChatMessagesLocal,
+      where: 'ownerUserId = ?',
+      whereArgs: [userId],
+    );
+  }
+
   // Feedback CRUD operations
   Future<void> insertFeedback(PagodaFeedback feedback) async {
     final db = await database;

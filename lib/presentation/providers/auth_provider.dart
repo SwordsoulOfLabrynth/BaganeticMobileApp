@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/firebase_service.dart';
 import '../../core/services/logger.dart';
+import '../../data/datasources/local_datasource.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
@@ -126,6 +127,55 @@ class AuthProvider with ChangeNotifier {
     _isGuest = false;
     _localProfilePhotoPath = null;
     notifyListeners();
+  }
+
+  Future<bool> deleteAccount({required String password}) async {
+    _isLoading = true;
+    _errorKey = null;
+    _errorDetails = null;
+    notifyListeners();
+
+    var success = false;
+    final userId = _user?.uid;
+    try {
+      await _firebaseService.deleteAccount(password: password);
+      if (userId != null && userId.isNotEmpty) {
+        try {
+          await DatabaseService().clearAccountData(userId);
+        } catch (e, st) {
+          Logger.error('Could not clear local account data', e, st);
+        }
+        try {
+          final photo = File(
+            '${(await getApplicationDocumentsDirectory()).path}'
+            '${Platform.pathSeparator}profile_$userId.jpg',
+          );
+          if (await photo.exists()) {
+            await photo.delete();
+          }
+          await (await SharedPreferences.getInstance()).remove(
+            'profile_photo_path_$userId',
+          );
+        } catch (e, st) {
+          Logger.error('Could not remove local profile photo', e, st);
+        }
+      }
+      _user = null;
+      _isGuest = false;
+      _localProfilePhotoPath = null;
+      success = true;
+    } on AuthFailure catch (e) {
+      _setAuthFailure(e);
+      Logger.error('Delete account error: ${e.code}', e.cause);
+    } catch (e) {
+      _errorKey = 'profile.deleteAccountFailed';
+      _errorDetails = e.toString();
+      Logger.error('Delete account error: $_errorKey', e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+    return success;
   }
 
   Future<void> resetPassword(String email) async {

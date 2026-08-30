@@ -112,6 +112,14 @@ flutter analyze
 flutter test
 ```
 
+CI runs the same checks on every push and pull request (`.github/workflows/ci.yml`).
+
+After backend changes, deploy rules and functions:
+
+```bash
+firebase deploy --only functions,firestore:rules,storage
+```
+
 ## Build
 
 Android APK:
