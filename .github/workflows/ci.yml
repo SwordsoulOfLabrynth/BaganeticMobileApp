@@ -8,12 +8,25 @@ on:
 jobs:
   analyze-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          # Keep GitHub on the Flutter SDK verified for this project locally.
+          flutter-version: "3.41.6"
           cache: true
-      - run: flutter pub get
+      - name: Install dependencies
+        run: |
+          for attempt in 1 2 3; do
+            if flutter pub get --enforce-lockfile; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Dependency download failed; retrying in $((attempt * 15)) seconds..."
+              sleep $((attempt * 15))
+            fi
+          done
+          exit 1
       - run: flutter analyze
       - run: flutter test
