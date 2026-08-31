@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
@@ -21,12 +22,15 @@ import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/sign_in_required_view.dart';
+import '../../widgets/pagoda_image_widget.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/trip_detail_screen.dart';
 import '../../../core/localization/app_localizations.dart';
 
 enum MapTripMode { browse, path, trips }
+
+enum MapBrowseCategory { all, pagodas, stays, food, ebikes }
 
 class MapScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -69,6 +73,8 @@ class _MapScreenState extends State<MapScreen>
   StreamSubscription<LatLng>? _locationSub;
   LatLng? _userLocation;
   var _isLocating = false;
+  MapBrowseCategory _browseCategory = MapBrowseCategory.all;
+  double _mapZoom = AppConstants.defaultZoom;
 
   @override
   void initState() {
@@ -881,9 +887,6 @@ class _MapScreenState extends State<MapScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isLoggedIn = context.select<AuthProvider, bool>(
-      (auth) => auth.user != null,
-    );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.translate('map.title')), elevation: 0),
       body: Consumer3<PagodaProvider, TripProvider, AuthProvider>(
@@ -894,6 +897,10 @@ class _MapScreenState extends State<MapScreen>
 
           final isLoggedIn = authProvider.user != null;
           final pagodas = pagodaProvider.allPagodas;
+          final browsePagodas = _browseCategory == MapBrowseCategory.all ||
+                  _browseCategory == MapBrowseCategory.pagodas
+              ? pagodas
+              : const <Pagoda>[];
           final showTrip = _mode == MapTripMode.trips && _selectedTrip != null;
           final showPath =
               _mode == MapTripMode.path && _shortestPathRoute.isNotEmpty;
@@ -901,15 +908,18 @@ class _MapScreenState extends State<MapScreen>
             MapTripMode.path => _buildPathMarkers(pagodas),
             MapTripMode.trips when showTrip && _selectedTrip != null =>
               _buildTripMarkers(_selectedTrip!, pagodas),
-            _ => _buildPagodaMarkers(pagodas),
+            _ => _buildPagodaMarkers(browsePagodas),
           };
-          final markers = [
-            ...baseMarkers,
+          final auxiliaryMarkers = [
             ..._buildFerryMarkers(
               showTrip ? _tripRouteSegments : _shortestPathRouteSegments,
             ),
             if (_userLocation != null) _buildUserLocationMarker(_userLocation!),
           ];
+          final overviewMarkers =
+              _mode == MapTripMode.browse && _mapZoom < 10.5
+              ? _buildBrowseAreaMarkers(browsePagodas)
+              : const <Marker>[];
 
           return Stack(
             children: [
@@ -921,6 +931,12 @@ class _MapScreenState extends State<MapScreen>
                     AppConstants.baganLongitude,
                   ),
                   initialZoom: AppConstants.defaultZoom,
+                  onPositionChanged: (camera, _) {
+                    if (!mounted || (camera.zoom - _mapZoom).abs() < 0.01) {
+                      return;
+                    }
+                    setState(() => _mapZoom = camera.zoom);
+                  },
                 ),
                 children: [
                   TileLayer(
@@ -972,7 +988,28 @@ class _MapScreenState extends State<MapScreen>
                         roadColor: const Color(0xFFFF7F11),
                       ),
                     ),
-                  MarkerLayer(markers: markers),
+                  if (overviewMarkers.isNotEmpty)
+                    MarkerLayer(markers: overviewMarkers)
+                  else if (_mode == MapTripMode.browse)
+                    MarkerClusterLayerWidget(
+                      options: MarkerClusterLayerOptions(
+                        markers: baseMarkers,
+                        maxClusterRadius: 34,
+                        size: const Size(32, 32),
+                        padding: const EdgeInsets.all(48),
+                        maxZoom: 17,
+                        disableClusteringAtZoom: 14,
+                        zoomToBoundsOnClick: true,
+                        spiderfyCluster: true,
+                        showPolygon: false,
+                        markerChildBehavior: true,
+                        builder: (context, clusteredMarkers) =>
+                            _MapClusterMarker(count: clusteredMarkers.length),
+                      ),
+                    )
+                  else
+                    MarkerLayer(markers: baseMarkers),
+                  MarkerLayer(markers: auxiliaryMarkers),
                 ],
               ),
               Positioned(
@@ -1007,6 +1044,10 @@ class _MapScreenState extends State<MapScreen>
                     style: const TextStyle(color: Colors.grey),
                   ),
                 ),
+              if (_mode == MapTripMode.browse &&
+                  pagodas.isNotEmpty &&
+                  browsePagodas.isEmpty)
+                Center(child: _buildEmptyBrowseCategory()),
               if (_mode != MapTripMode.browse)
                 Positioned(
                   right: 12,
@@ -1019,10 +1060,16 @@ class _MapScreenState extends State<MapScreen>
                 right: 16,
                 child: SafeArea(child: _buildModeToggle(context)),
               ),
-              if ((showTrip && _isTripRouteFallback) ||
-                  (_mode == MapTripMode.path && _isPathRouteFallback))
+              if (_mode == MapTripMode.browse)
                 Positioned(
                   top: 72,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(top: false, child: _buildCategoryFilters()),
+                ),
+              if (showTrip && _isTripRouteFallback)
+                Positioned(
+                  top: 218,
                   right: 16,
                   child: IgnorePointer(
                     child: Container(
@@ -1045,10 +1092,9 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ),
                 ),
-              if ((showTrip && _tripRouteUsesFerry) ||
-                  (_mode == MapTripMode.path && _shortestPathUsesFerry))
+              if (showTrip && _tripRouteUsesFerry)
                 Positioned(
-                  top: 72,
+                  top: 218,
                   left: 16,
                   child: IgnorePointer(
                     child: Container(
@@ -1092,15 +1138,25 @@ class _MapScreenState extends State<MapScreen>
                     child: _buildPagodaInfo(_selectedPagoda!),
                   ),
                 ),
+              if (_mode == MapTripMode.browse &&
+                  _selectedPagoda == null &&
+                  browsePagodas.isNotEmpty)
+                Positioned(
+                  left: 16,
+                  right: 84,
+                  bottom: 24,
+                  child: _buildBrowseOverviewControl(browsePagodas),
+                ),
+              if (_mode == MapTripMode.browse)
+                Positioned(
+                  right: 16,
+                  bottom: _selectedPagoda == null ? 24 : 196,
+                  child: _buildFloatingActionButtons(isLoggedIn: isLoggedIn),
+                ),
             ],
           );
         },
       ),
-      // Path and trip sheets own their primary actions. Keeping the map FABs
-      // in Browse mode prevents them from covering forms and panel buttons.
-      floatingActionButton: _mode == MapTripMode.browse
-          ? _buildFloatingActionButtons(isLoggedIn: isLoggedIn)
-          : null,
     );
   }
 
@@ -1109,38 +1165,715 @@ class _MapScreenState extends State<MapScreen>
     final l10n = context.l10n;
 
     return Material(
-      elevation: 3,
+      elevation: 2,
       borderRadius: BorderRadius.circular(18),
-      color: Colors.white.withValues(alpha: 0.95),
-      child: Row(
-        children: [
-          _ModeToggleItem(
-            selected: _mode == MapTripMode.browse,
-            label: l10n.translate('map.mode.browse'),
-            icon: Icons.map_outlined,
-            activeColor: theme.colorScheme.primary,
-            onTap: () => _setMode(MapTripMode.browse),
+      color: const Color(0xFFFFFBF3).withValues(alpha: 0.97),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: Color(0xFFE7D5BC)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Column(
+          children: [
+            if (Responsive.isDesktopOrLarger(context))
+              Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.temple_buddhist_rounded,
+                    color: Colors.white,
+                    size: 23,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.translate('map.title'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontSize: 17,
+                          color: const Color(0xFF30251D),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.translate('map.title'),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFF786A5D),
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0E4CE),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _mode == MapTripMode.browse
+                        ? Icons.explore_outlined
+                        : _mode == MapTripMode.path
+                        ? Icons.alt_route_rounded
+                        : Icons.route_rounded,
+                    color: const Color(0xFFA34A2A),
+                    size: 21,
+                  ),
+                ),
+              ],
+            ),
+            if (Responsive.isDesktopOrLarger(context))
+              const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0E4CE),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  _ModeToggleItem(
+                    selected: _mode == MapTripMode.browse,
+                    label: l10n.translate('map.mode.browse'),
+                    icon: Icons.explore_outlined,
+                    activeColor: theme.colorScheme.primary,
+                    onTap: () => _setMode(MapTripMode.browse),
+                  ),
+                  _ModeToggleItem(
+                    selected: _mode == MapTripMode.path,
+                    label: l10n.translate('map.mode.path'),
+                    icon: Icons.alt_route_rounded,
+                    activeColor: theme.colorScheme.primary,
+                    onTap: () => _setMode(MapTripMode.path),
+                  ),
+                  _ModeToggleItem(
+                    selected: _mode == MapTripMode.trips,
+                    label: l10n.translate('map.planTrip'),
+                    icon: Icons.route_rounded,
+                    activeColor: theme.colorScheme.primary,
+                    onTap: () => _setMode(MapTripMode.trips),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBrowseOverviewControl(List<Pagoda> pagodas) {
+    final theme = Theme.of(context);
+    return Material(
+      color: const Color(0xFFFFFBF3),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 4,
+      child: InkWell(
+        onTap: () => _showPagodaOverview(pagodas),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0E4CE),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.format_list_bulleted_rounded,
+                color: Color(0xFFA34A2A),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.translate('map.overviewTitle'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: const Color(0xFF30251D),
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    context.l10n.translate(
+                      'map.pagodaCount',
+                      args: {'count': pagodas.length.toString()},
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: const Color(0xFF786A5D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0E4CE),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                pagodas.length.toString(),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: const Color(0xFFA34A2A),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilters() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Material(
+        color: const Color(0xFFFFFBF3).withValues(alpha: 0.97),
+        borderRadius: BorderRadius.circular(14),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFFE7D5BC)),
+        ),
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: _MapCategoryChip(
+                  label: context.l10n.translate('map.allPlaces'),
+                  icon: _browseCategoryIcon(MapBrowseCategory.all),
+                  color: theme.colorScheme.primary,
+                  selected: _browseCategory == MapBrowseCategory.all,
+                  showLabel: true,
+                  onTap: () => _selectBrowseCategory(MapBrowseCategory.all),
+                ),
+              ),
+              for (final category in MapBrowseCategory.values.skip(1)) ...[
+                Container(
+                  width: 1,
+                  height: 24,
+                  color: const Color(0xFFE7D5BC),
+                ),
+                Expanded(
+                  child: _MapCategoryChip(
+                    label: _browseCategoryLabel(category),
+                    icon: _browseCategoryIcon(category),
+                    color: theme.colorScheme.primary,
+                    selected: _browseCategory == category,
+                    onTap: () => _selectBrowseCategory(category),
+                  ),
+                ),
+              ],
+            ],
           ),
-          _ModeToggleItem(
-            selected: _mode == MapTripMode.path,
-            label: l10n.translate('map.mode.path'),
-            icon: Icons.alt_route,
-            activeColor: theme.colorScheme.primary,
-            onTap: () => _setMode(MapTripMode.path),
+        ),
+      ),
+    );
+  }
+
+  void _selectBrowseCategory(MapBrowseCategory category) {
+    setState(() {
+      _browseCategory = category;
+      _selectedPagoda = null;
+    });
+  }
+
+  Widget _buildEmptyBrowseCategory() {
+    final l10n = context.l10n;
+    final label = _browseCategoryLabel(_browseCategory);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(48, 136, 48, 144),
+      child: Material(
+        color: const Color(0xFFFFFBF3).withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(20),
+        elevation: 3,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _browseCategoryIcon(_browseCategory),
+                color: _browseCategoryColor(_browseCategory),
+                size: 30,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.translate(
+                  'map.categoryEmptyTitle',
+                  args: {'category': label},
+                ),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: const Color(0xFF30251D),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.translate('map.categoryEmptyBody'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFF786A5D),
+                  height: 1.35,
+                ),
+              ),
+            ],
           ),
-          _ModeToggleItem(
-            selected: _mode == MapTripMode.trips,
-            label: l10n.translate('map.planTrip'),
-            icon: Icons.route,
-            activeColor: theme.colorScheme.primary,
-            onTap: () => _setMode(MapTripMode.trips),
+        ),
+      ),
+    );
+  }
+
+  String _browseCategoryLabel(MapBrowseCategory category) {
+    return context.l10n.translate(
+      switch (category) {
+        MapBrowseCategory.all => 'map.category.all',
+        MapBrowseCategory.pagodas => 'map.category.pagodas',
+        MapBrowseCategory.stays => 'map.category.stays',
+        MapBrowseCategory.food => 'map.category.food',
+        MapBrowseCategory.ebikes => 'map.category.ebikes',
+      },
+    );
+  }
+
+  IconData _browseCategoryIcon(MapBrowseCategory category) {
+    return switch (category) {
+      MapBrowseCategory.all => Icons.grid_view_rounded,
+      MapBrowseCategory.pagodas => Icons.temple_buddhist_rounded,
+      MapBrowseCategory.stays => Icons.bed_rounded,
+      MapBrowseCategory.food => Icons.restaurant_rounded,
+      MapBrowseCategory.ebikes => Icons.electric_bike_rounded,
+    };
+  }
+
+  Color _browseCategoryColor(MapBrowseCategory category) {
+    return switch (category) {
+      MapBrowseCategory.all => const Color(0xFFA34A2A),
+      MapBrowseCategory.pagodas => const Color(0xFF9B6B20),
+      MapBrowseCategory.stays => const Color(0xFF91624E),
+      MapBrowseCategory.food => const Color(0xFF9A512E),
+      MapBrowseCategory.ebikes => const Color(0xFF166B91),
+    };
+  }
+
+  Future<void> _showPagodaOverview(List<Pagoda> pagodas) async {
+    final sortedPagodas = [...pagodas]
+      ..sort(
+        (a, b) => context.l10n
+            .pagodaName(a.id, a.name, remoteMyanmar: a.nameMyanmar)
+            .compareTo(
+              context.l10n.pagodaName(
+                b.id,
+                b.name,
+                remoteMyanmar: b.nameMyanmar,
+              ),
+            ),
+      );
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.58,
+        minChildSize: 0.35,
+        maxChildSize: 0.88,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFBF3),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-        ],
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCCCB3),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.l10n.translate('map.overviewTitle'),
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            context.l10n.translate(
+                              'map.pagodaCount',
+                              args: {'count': sortedPagodas.length.toString()},
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                  itemCount: sortedPagodas.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final pagoda = sortedPagodas[index];
+                    return Material(
+                      color: const Color(0xFFF7F2E9),
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          _selectPagoda(pagoda);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: PagodaImageWidget(
+                                  imageUrl: pagoda.imageUrl,
+                                  width: 52,
+                                  height: 52,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      context.l10n.pagodaName(
+                                        pagoda.id,
+                                        pagoda.name,
+                                        remoteMyanmar: pagoda.nameMyanmar,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      pagoda.category,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Color(0xFFA34A2A),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildPathPanel(List<Pagoda> pagodas) {
+    final l10n = context.l10n;
+    final sortedPagodas = [...pagodas]
+      ..sort(
+        (a, b) => l10n
+            .pagodaName(a.id, a.name, remoteMyanmar: a.nameMyanmar)
+            .compareTo(
+              l10n.pagodaName(
+                b.id,
+                b.name,
+                remoteMyanmar: b.nameMyanmar,
+              ),
+            ),
+      );
+    final canFind =
+        _pathStartPagoda != null &&
+        _pathEndPagoda != null &&
+        _pathStartPagoda!.id != _pathEndPagoda!.id;
+    final hasSelection = _pathStartPagoda != null || _pathEndPagoda != null;
+    final hasPath = _shortestPathSteps.length >= 2;
+
+    return Stack(
+      children: [
+        Positioned(
+          top: 84,
+          left: 16,
+          right: 16,
+          child: _buildPathBuilderCard(
+            pagodas: sortedPagodas,
+            canSwap: canFind,
+            hasSelection: hasSelection,
+          ),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 20,
+          child: _buildPathActionCard(
+            pagodas: pagodas,
+            canFind: canFind,
+            hasPath: hasPath,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPathBuilderCard({
+    required List<Pagoda> pagodas,
+    required bool canSwap,
+    required bool hasSelection,
+  }) {
+    final l10n = context.l10n;
+    return Material(
+      color: const Color(0xFFFFFBF3).withValues(alpha: 0.98),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 8, 10),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.alt_route_rounded,
+                  color: Color(0xFFA34A2A),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.translate('map.pathTitle'),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: const Color(0xFF30251D),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.translate('common.swap'),
+                  onPressed: canSwap ? () => _swapPathEndpoints(pagodas) : null,
+                  icon: const Icon(Icons.swap_vert_rounded),
+                  color: const Color(0xFFA34A2A),
+                ),
+                if (hasSelection)
+                  IconButton(
+                    tooltip: l10n.translate('map.pathClear'),
+                    onPressed: _clearPathSelection,
+                    icon: const Icon(Icons.close_rounded),
+                    color: const Color(0xFF786A5D),
+                  ),
+              ],
+            ),
+            _buildPathDropdown(
+              label: l10n.translate('map.pathFrom'),
+              value: _pathStartPagoda,
+              pagodas: pagodas,
+              onChanged: _setPathStart,
+              accentColor: const Color(0xFFA34A2A),
+            ),
+            const SizedBox(height: 8),
+            _buildPathDropdown(
+              label: l10n.translate('map.pathTo'),
+              value: _pathEndPagoda,
+              pagodas: pagodas,
+              onChanged: _setPathEnd,
+              accentColor: const Color(0xFFA34A2A),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPathActionCard({
+    required List<Pagoda> pagodas,
+    required bool canFind,
+    required bool hasPath,
+  }) {
+    final l10n = context.l10n;
+    return Material(
+      color: const Color(0xFFFFFBF3).withValues(alpha: 0.98),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_isPathRouteFallback) ...[
+              Text(
+                l10n.translate('route.fallback'),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: const Color(0xFF786A5D),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (_shortestPathUsesFerry) ...[
+              Text(
+                l10n.translate('route.ferryRoute'),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: const Color(0xFF166B91),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (hasPath) ...[
+              Row(
+                children: [
+                  const Icon(
+                    Icons.route_rounded,
+                    color: Color(0xFFA34A2A),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${Helpers.formatDistance(context, _shortestPathDistanceKm)} · '
+                      '${_shortestPathSteps.length} ${l10n.translate('map.pathStopsLabel')}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF30251D),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _showPathDetails,
+                    child: Text(l10n.translate('map.details')),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ] else if (_isPathRouteLoading) ...[
+              const LinearProgressIndicator(color: Color(0xFFA34A2A)),
+              const SizedBox(height: 10),
+            ],
+            ElevatedButton.icon(
+              onPressed: canFind && !_isPathRouteLoading
+                  ? () => _loadShortestPath(pagodas)
+                  : null,
+              icon: const Icon(Icons.alt_route_rounded),
+              label: Text(
+                _isPathRouteLoading
+                    ? l10n.translate('map.pathFinding')
+                    : l10n.translate('map.pathFind'),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFA34A2A),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPathDetails() {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.58,
+        minChildSize: 0.36,
+        maxChildSize: 0.88,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFBF3),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: ListView.separated(
+            controller: scrollController,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+            itemCount: _shortestPathSteps.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Text(
+                  context.l10n.translate('map.pathRouteList'),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                );
+              }
+              return _buildPathStepCard(
+                step: _shortestPathSteps[index - 1],
+                index: index - 1,
+                total: _shortestPathSteps.length,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ignore: unused_element
+  Widget _buildLegacyPathSheet(List<Pagoda> pagodas) {
     final l10n = context.l10n;
     final sortedPagodas = [...pagodas]
       ..sort(
@@ -1397,9 +2130,12 @@ class _MapScreenState extends State<MapScreen>
       initialValue: value?.id,
       isExpanded: true,
       decoration: InputDecoration(
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(vertical: 10),
         labelText: label,
         labelStyle: TextStyle(color: accentColor, fontWeight: FontWeight.w600),
-        prefixIcon: Icon(Icons.temple_buddhist, color: accentColor),
+        prefixIcon: Icon(Icons.temple_buddhist_rounded, color: accentColor),
+        prefixIconConstraints: const BoxConstraints(minWidth: 42, minHeight: 42),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -1583,7 +2319,7 @@ class _MapScreenState extends State<MapScreen>
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
       ),
       child: Column(
@@ -1601,16 +2337,199 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Widget _buildTripPanel(TripProvider provider, {required bool isLoggedIn}) {
-    final label = context.l10n.translate('map.planTrip');
-    final helper = context.l10n.translate('map.planHelp');
+    return Stack(
+      children: [
+        Positioned(
+          top: 84,
+          left: 16,
+          right: 16,
+          child: _buildTripPlannerCard(isLoggedIn: isLoggedIn),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 20,
+          child: _buildSavedTripsBar(provider, isLoggedIn: isLoggedIn),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTripPlannerCard({required bool isLoggedIn}) {
+    final l10n = context.l10n;
+    return Material(
+      color: const Color(0xFFFFFBF3).withValues(alpha: 0.98),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0E4CE),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(
+                Icons.route_rounded,
+                color: Color(0xFFA34A2A),
+              ),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.translate('map.tripPlannerTitle'),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: const Color(0xFF30251D),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.translate('map.tripPlannerHint'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF786A5D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              onPressed: isLoggedIn ? _openCreateTrip : null,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFA34A2A),
+                side: const BorderSide(color: Color(0xFFA34A2A)),
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              child: Text(l10n.translate('map.addStop')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavedTripsBar(
+    TripProvider provider, {
+    required bool isLoggedIn,
+  }) {
+    final l10n = context.l10n;
+    return Material(
+      color: const Color(0xFFFFFBF3).withValues(alpha: 0.98),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 4,
+      child: SizedBox(
+        height: 64,
+        child: Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                button: true,
+                label: l10n.translate('map.savedTrips'),
+                child: InkWell(
+                  onTap: () => _showSavedTrips(
+                    provider,
+                    isLoggedIn: isLoggedIn,
+                  ),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(18),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0E4CE),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.format_list_bulleted_rounded,
+                            color: Color(0xFFA34A2A),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 11),
+                        Expanded(
+                          child: Text(
+                            l10n.translate('map.savedTrips'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: const Color(0xFF30251D),
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: Color(0xFFA34A2A),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton.icon(
+                onPressed: isLoggedIn ? _openCreateTrip : null,
+                icon: const Icon(Icons.add_rounded),
+                label: Text(l10n.translate('common.create')),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFA34A2A),
+                  minimumSize: const Size(92, 48),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSavedTrips(
+    TripProvider provider, {
+    required bool isLoggedIn,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _buildTripSheet(
+        provider,
+        isLoggedIn: isLoggedIn,
+        initialChildSize: 0.62,
+      ),
+    );
+  }
+
+  Widget _buildTripSheet(
+    TripProvider provider, {
+    required bool isLoggedIn,
+    double initialChildSize = 0.62,
+  }) {
+    final label = context.l10n.translate('map.savedTrips');
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.2,
-      minChildSize: 0.12,
-      maxChildSize: 0.6,
+      initialChildSize: initialChildSize,
+      minChildSize: 0.20,
+      maxChildSize: 0.82,
+      expand: false,
       builder: (context, scrollController) => Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFFFFBF3),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
@@ -1664,13 +2583,6 @@ class _MapScreenState extends State<MapScreen>
                             ),
                           ),
                       ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Text(
-                      helper,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                   ),
                   if (_selectedTrip != null)
@@ -1937,17 +2849,74 @@ class _MapScreenState extends State<MapScreen>
     return pagodas.map((pagoda) {
       return Marker(
         point: LatLng(pagoda.latitude, pagoda.longitude),
-        width: 40,
-        height: 40,
-        child: GestureDetector(
-          onTap: () => _selectPagoda(pagoda),
-          child: _MapMarker(
-            isSelected: _selectedPagoda?.id == pagoda.id,
-            pulse: _pulseController,
+        width: 32,
+        height: 32,
+        child: Semantics(
+          button: true,
+          label: context.l10n.pagodaName(
+            pagoda.id,
+            pagoda.name,
+            remoteMyanmar: pagoda.nameMyanmar,
+          ),
+          child: GestureDetector(
+            onTap: () => _selectPagoda(pagoda),
+            child: _MapMarker(
+              isSelected: _selectedPagoda?.id == pagoda.id,
+              pulse: _pulseController,
+            ),
           ),
         ),
       );
     }).toList();
+  }
+
+  List<Marker> _buildBrowseAreaMarkers(List<Pagoda> pagodas) {
+    final areas = <String, List<Pagoda>>{};
+    for (final pagoda in pagodas) {
+      final areaKey = switch (pagoda.latitude) {
+        >= 21.182 => 'map.area.nyaungU',
+        <= 21.148 => 'map.area.newBagan',
+        _ => 'map.area.oldBagan',
+      };
+      areas.putIfAbsent(areaKey, () => []).add(pagoda);
+    }
+
+    return areas.entries.map((entry) {
+      final areaPagodas = entry.value;
+      final center = LatLng(
+        areaPagodas.map((pagoda) => pagoda.latitude).reduce((a, b) => a + b) /
+            areaPagodas.length,
+        areaPagodas
+                .map((pagoda) => pagoda.longitude)
+                .reduce((a, b) => a + b) /
+            areaPagodas.length,
+      );
+      final label = context.l10n.translate(entry.key);
+      return Marker(
+        point: center,
+        width: 122,
+        height: 36,
+        child: Semantics(
+          button: true,
+          label: '$label, ${areaPagodas.length}',
+          child: GestureDetector(
+            onTap: () => _mapController.fitCamera(
+              CameraFit.bounds(
+                bounds: LatLngBounds.fromPoints(
+                  areaPagodas
+                      .map(
+                        (pagoda) => LatLng(pagoda.latitude, pagoda.longitude),
+                      )
+                      .toList(growable: false),
+                ),
+                padding: const EdgeInsets.all(72),
+              ),
+            ),
+            child: _MapAreaMarker(label: label, count: areaPagodas.length),
+          ),
+        ),
+      );
+    }).toList(growable: false);
   }
 
   List<Marker> _buildPathMarkers(List<Pagoda> pagodas) {
@@ -1956,7 +2925,15 @@ class _MapScreenState extends State<MapScreen>
       pathIndexes[_shortestPathPagodas[i].id] = i;
     }
 
-    return pagodas.map((pagoda) {
+    final visiblePagodas = _shortestPathPagodas.isEmpty
+        ? pagodas
+        : pagodas.where((pagoda) {
+            return pathIndexes.containsKey(pagoda.id) ||
+                pagoda.id == _pathStartPagoda?.id ||
+                pagoda.id == _pathEndPagoda?.id;
+          }).toList(growable: false);
+
+    return visiblePagodas.map((pagoda) {
       final isStart = _pathStartPagoda?.id == pagoda.id;
       final isEnd = _pathEndPagoda?.id == pagoda.id;
       final pathIndex = pathIndexes[pagoda.id];
@@ -2009,124 +2986,188 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Widget _buildPagodaInfo(Pagoda pagoda) {
+    final theme = Theme.of(context);
+    final title = context.l10n.pagodaName(
+      pagoda.id,
+      pagoda.name,
+      remoteMyanmar: pagoda.nameMyanmar,
+    );
+    final metadata = [
+      pagoda.category,
+      if (pagoda.yearBuilt != null) pagoda.yearBuilt.toString(),
+    ].where((value) => value.isNotEmpty).join('  •  ');
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: ResponsiveContent(
         child: Container(
-          margin: EdgeInsets.all(Responsive.spacing(context)),
+          margin: EdgeInsets.fromLTRB(
+            Responsive.spacing(context),
+            0,
+            Responsive.spacing(context),
+            Responsive.spacing(context),
+          ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFFFFFBF3),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFDCCCB3)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 18,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
-          child: Padding(
-            padding: Responsive.cardPadding(context),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        context.l10n.pagodaName(
-                          pagoda.id,
-                          pagoda.name,
-                          remoteMyanmar: pagoda.nameMyanmar,
-                        ),
-                        style: TextStyle(
-                          fontSize: Responsive.responsiveFontSize(context, 20),
-                          fontWeight: FontWeight.bold,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(21),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    width: 104,
+                    child: PagodaImageWidget(
+                      imageUrl: pagoda.imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: const ColoredBox(
+                        color: Color(0xFFF0E4CE),
+                        child: Icon(
+                          Icons.temple_buddhist_rounded,
+                          color: Color(0xFFA34A2A),
+                          size: 34,
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        setState(() {
-                          _selectedPagoda = null;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: Responsive.smallSpacing(context)),
-                Text(
-                  context.l10n.pagodaDescription(
-                    pagoda.id,
-                    pagoda.description,
-                    remoteMyanmar: pagoda.descriptionMyanmar,
                   ),
-                  maxLines: Responsive.isDesktopOrLarger(context) ? 3 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: Responsive.responsiveFontSize(context, 14),
-                  ),
-                ),
-                FutureBuilder<PagodaRouteGraphData?>(
-                  future: PathfindingService.loadGraph(),
-                  builder: (context, snapshot) {
-                    final requiresRiverCrossing =
-                        snapshot
-                            .data
-                            ?.nodes[pagoda.id]
-                            ?.requiresRiverCrossing ??
-                        false;
-                    if (!requiresRiverCrossing) {
-                      return const SizedBox.shrink();
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Row(
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.directions_boat_outlined,
-                            size: 18,
-                            color: Color(0xFFA34A2A),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              context.l10n.translate(
-                                'route.riverCrossingLocation',
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  metadata,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: const Color(0xFFA34A2A),
+                                    letterSpacing: 0.65,
+                                  ),
+                                ),
                               ),
-                              style: const TextStyle(
-                                color: Color(0xFF786A5D),
-                                fontSize: 12,
-                                height: 1.3,
+                              Semantics(
+                                button: true,
+                                label: context.l10n.translate(
+                                  'map.clearSelection',
+                                ),
+                                child: IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () {
+                                    setState(() => _selectedPagoda = null);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontSize: Responsive.responsiveFontSize(
+                                context,
+                                19,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            context.l10n.pagodaDescription(
+                              pagoda.id,
+                              pagoda.description,
+                              remoteMyanmar: pagoda.descriptionMyanmar,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFF786A5D),
+                              height: 1.3,
+                            ),
+                          ),
+                          FutureBuilder<PagodaRouteGraphData?>(
+                            future: PathfindingService.loadGraph(),
+                            builder: (context, snapshot) {
+                              final requiresRiverCrossing =
+                                  snapshot
+                                      .data
+                                      ?.nodes[pagoda.id]
+                                      ?.requiresRiverCrossing ??
+                                  false;
+                              if (!requiresRiverCrossing) {
+                                return const SizedBox.shrink();
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 7),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.directions_boat_outlined,
+                                      size: 16,
+                                      color: Color(0xFF166B91),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      child: Text(
+                                        context.l10n.translate(
+                                          'route.riverCrossingLocation',
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: const Color(0xFF166B91),
+                                              letterSpacing: 0.25,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 44,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PagodaDetailScreen(pagoda: pagoda),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.menu_book_outlined, size: 18),
+                              label: Text(
+                                context.l10n.translate('map.viewDetails'),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-                SizedBox(height: Responsive.spacing(context)),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PagodaDetailScreen(pagoda: pagoda),
-                        ),
-                      );
-                    },
-                    child: Text(context.l10n.translate('map.viewDetails')),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -2276,13 +3317,13 @@ class _ModeToggleItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          height: Responsive.isCompact(context) ? 36 : 40,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           decoration: BoxDecoration(
             color: selected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -2291,7 +3332,7 @@ class _ModeToggleItem extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: 17,
+                  size: 18,
                   color: selected ? Colors.white : activeColor,
                 ),
                 const SizedBox(width: 5),
@@ -2300,11 +3341,84 @@ class _ModeToggleItem extends StatelessWidget {
                   style: TextStyle(
                     color: selected ? Colors.white : activeColor,
                     fontWeight: FontWeight.w600,
-                    fontSize: Responsive.responsiveFontSize(context, 14),
+                    fontSize: Responsive.responsiveFontSize(context, 13),
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MapCategoryChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final bool showLabel;
+  final VoidCallback onTap;
+
+  const _MapCategoryChip({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    this.showLabel = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Material(
+        color: selected
+            ? color
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(11),
+        elevation: 0,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(11),
+          child: Center(
+            child: showLabel
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icon,
+                          size: 18,
+                          color: selected ? Colors.white : color,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            color: selected
+                                ? Colors.white
+                                : const Color(0xFF30251D),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Tooltip(
+                    message: label,
+                    child: Icon(
+                      icon,
+                      size: 20,
+                      color: selected ? Colors.white : color,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -2438,6 +3552,94 @@ class _MapMarker extends StatelessWidget {
         ),
         marker,
       ],
+    );
+  }
+}
+
+class _MapClusterMarker extends StatelessWidget {
+  final int count;
+
+  const _MapClusterMarker({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFA34A2A),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFFFFBF3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          count.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MapAreaMarker extends StatelessWidget {
+  final String label;
+  final int count;
+
+  const _MapAreaMarker({required this.label, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFFFFBF3).withValues(alpha: 0.94),
+      borderRadius: BorderRadius.circular(18),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF30251D),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 5),
+            Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: Color(0xFFA34A2A),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                count.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
