@@ -297,8 +297,8 @@ class _PostBoard extends StatelessWidget {
               onPressed: onVote,
               icon: Icon(
                 post.isUpvoted
-                    ? Icons.arrow_upward_rounded
-                    : Icons.arrow_upward_outlined,
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 color: _gold,
               ),
               label: Text(

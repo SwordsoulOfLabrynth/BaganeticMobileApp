@@ -503,8 +503,8 @@ class _CommunityPreview extends StatelessWidget {
                       children: [
                         Icon(
                           post.isUpvoted
-                              ? Icons.keyboard_arrow_up_rounded
-                              : Icons.keyboard_arrow_up_outlined,
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
                           size: 18,
                           color: post.isUpvoted
                               ? const Color(0xFFA34A2A)
