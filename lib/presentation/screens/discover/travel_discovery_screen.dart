@@ -374,17 +374,9 @@ class _AreaImage extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            place.imageUrl ?? _categoryImageUrl(place.category),
+          Image.asset(
+            place.imageAsset ?? _categoryImageAsset(place.category),
             fit: BoxFit.cover,
-            loadingBuilder: (context, image, progress) => progress == null
-                ? image
-                : ColoredBox(
-                    color: _categoryColor(
-                      place.category,
-                    ).withValues(alpha: 0.18),
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
             errorBuilder: (_, _, _) => ColoredBox(
               color: _categoryColor(place.category).withValues(alpha: 0.18),
               child: Center(
@@ -517,13 +509,10 @@ class _AreaPill extends StatelessWidget {
   );
 }
 
-String _categoryImageUrl(TravelPlaceCategory category) => switch (category) {
-  TravelPlaceCategory.stay =>
-    'https://commons.wikimedia.org/wiki/Special:FilePath/2013_Myanmar_Luyten-De-Hauwere_Bagan_094_sunset_from_thande_hotel.jpg?width=1280',
-  TravelPlaceCategory.food =>
-    'https://commons.wikimedia.org/wiki/Special:FilePath/SanonTrainingBagan.jpg?width=1280',
-  TravelPlaceCategory.transport =>
-    'https://commons.wikimedia.org/wiki/Special:FilePath/20160801_E-bike_Bagan_6616.jpg?width=1280',
+String _categoryImageAsset(TravelPlaceCategory category) => switch (category) {
+  TravelPlaceCategory.stay => 'assets/images/travel/bagan-hotel-context.jpg',
+  TravelPlaceCategory.food => 'assets/images/travel/sanon-restaurant.jpg',
+  TravelPlaceCategory.transport => 'assets/images/travel/bagan-e-bike.jpg',
 };
 
 String _travelImageAttribution(TravelPlace place) =>

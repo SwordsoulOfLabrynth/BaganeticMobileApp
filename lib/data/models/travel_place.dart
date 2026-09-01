@@ -35,7 +35,7 @@ class TravelPlace {
     required this.sourceName,
     required this.sourceUrl,
     required this.lastVerified,
-    this.imageUrl,
+    this.imageAsset,
     this.imageAttribution,
   });
 
@@ -57,7 +57,7 @@ class TravelPlace {
   final String sourceName;
   final String sourceUrl;
   final DateTime lastVerified;
-  final String? imageUrl;
+  final String? imageAsset;
   final String? imageAttribution;
 
   /// Converts the catalogue's USD planning estimates to MMK for display.
@@ -162,7 +162,7 @@ class TravelPlace {
       sourceName: json['sourceName'] as String,
       sourceUrl: json['sourceUrl'] as String,
       lastVerified: DateTime.parse(json['lastVerified'] as String),
-      imageUrl: json['imageUrl'] as String?,
+      imageAsset: json['imageAsset'] as String?,
       imageAttribution: json['imageAttribution'] as String?,
     );
   }
