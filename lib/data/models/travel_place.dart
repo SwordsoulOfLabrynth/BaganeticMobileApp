@@ -22,6 +22,10 @@ class TravelPlace {
     required this.summaryMyanmar,
     required this.note,
     required this.noteMyanmar,
+    required this.priceEstimate,
+    required this.priceEstimateMyanmar,
+    required this.highlights,
+    required this.highlightsMyanmar,
     required this.sourceName,
     required this.sourceUrl,
     required this.lastVerified,
@@ -38,6 +42,10 @@ class TravelPlace {
   final String summaryMyanmar;
   final String note;
   final String noteMyanmar;
+  final String priceEstimate;
+  final String priceEstimateMyanmar;
+  final List<String> highlights;
+  final List<String> highlightsMyanmar;
   final String sourceName;
   final String sourceUrl;
   final DateTime lastVerified;
@@ -77,6 +85,21 @@ class TravelPlace {
       TravelPlaceCategory.transport =>
         'ထွက်ချိန်၊ နှုန်းထားနှင့် လာကြိုအစီအစဉ်ကို တိုက်ရိုက်အတည်ပြုပါ။',
     };
+    final defaultPriceEstimate = switch (category) {
+      TravelPlaceCategory.stay => 'Price on request',
+      TravelPlaceCategory.food => 'Typical meal budget varies',
+      TravelPlaceCategory.transport => 'Price varies by operator',
+    };
+    final defaultPriceEstimateMyanmar = switch (category) {
+      TravelPlaceCategory.stay => 'စျေးနှုန်း မေးမြန်းရန်',
+      TravelPlaceCategory.food => 'အစားအသောက်အသုံးစရိတ် ကွာခြားနိုင်သည်',
+      TravelPlaceCategory.transport => 'ဝန်ဆောင်မှုပေးသူအလိုက် စျေးနှုန်းကွာခြားနိုင်သည်',
+    };
+    final defaultHighlights = switch (category) {
+      TravelPlaceCategory.stay => <String>['Bagan base', area],
+      TravelPlaceCategory.food => <String>['Dining stop', area],
+      TravelPlaceCategory.transport => <String>['Travel planning', area],
+    };
 
     return TravelPlace(
       id: json['id'] as String,
@@ -90,6 +113,21 @@ class TravelPlace {
       summaryMyanmar: json['summaryMyanmar'] as String? ?? defaultSummaryMyanmar,
       note: json['note'] as String? ?? defaultNote,
       noteMyanmar: json['noteMyanmar'] as String? ?? defaultNoteMyanmar,
+      priceEstimate:
+          json['priceEstimate'] as String? ?? defaultPriceEstimate,
+      priceEstimateMyanmar: json['priceEstimateMyanmar'] as String? ??
+          defaultPriceEstimateMyanmar,
+      highlights: (json['highlights'] as List<dynamic>?)
+              ?.whereType<String>()
+              .toList(growable: false) ??
+          defaultHighlights,
+      highlightsMyanmar: (json['highlightsMyanmar'] as List<dynamic>?)
+              ?.whereType<String>()
+              .toList(growable: false) ??
+          (json['highlights'] as List<dynamic>?)
+                  ?.whereType<String>()
+                  .toList(growable: false) ??
+              defaultHighlights,
       sourceName: json['sourceName'] as String,
       sourceUrl: json['sourceUrl'] as String,
       lastVerified: DateTime.parse(json['lastVerified'] as String),

@@ -28,6 +28,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/sign_in_required_view.dart';
 import '../../widgets/pagoda_image_widget.dart';
 import '../pagoda_detail/pagoda_detail_screen.dart';
+import '../discover/travel_discovery_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/trip_detail_screen.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -35,6 +36,12 @@ import '../../../core/localization/app_localizations.dart';
 enum MapTripMode { browse, path, trips }
 
 enum MapBrowseCategory { all, pagodas, stays, food, transport }
+
+const _featuredTravelPlaceIds = {
+  'thiripyitsaya-sanctuary-resort',
+  'the-moon-vegetarian',
+  'e-scooter-rent',
+};
 
 class MapScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -950,6 +957,8 @@ class _MapScreenState extends State<MapScreen>
               : const <Pagoda>[];
           final browseTravelPlaces = _browseCategory == MapBrowseCategory.all
               ? travelPlaces
+                  .where((place) => _featuredTravelPlaceIds.contains(place.id))
+                  .toList()
               : travelPlaces
                   .where(
                     (place) => place.category == _travelPlaceCategoryForBrowse(),
@@ -1232,8 +1241,8 @@ class _MapScreenState extends State<MapScreen>
                   right: 84,
                   bottom: 24,
                   child: _buildBrowseOverviewControl(
-                    browsePagodas,
-                    browseTravelPlaces,
+                    pagodas,
+                    travelPlaces,
                   ),
                 ),
               if (_mode == MapTripMode.browse)
@@ -1447,7 +1456,8 @@ class _MapScreenState extends State<MapScreen>
     List<TravelPlace> travelPlaces,
   ) {
     final theme = Theme.of(context);
-    final count = pagodas.length + travelPlaces.length;
+    final isTravelOverview = _browseCategory != MapBrowseCategory.pagodas;
+    final count = isTravelOverview ? travelPlaces.length : pagodas.length;
     return Material(
       color: const Color(0xFFFFFBF3),
       borderRadius: BorderRadius.circular(18),
@@ -1489,7 +1499,9 @@ class _MapScreenState extends State<MapScreen>
                   const SizedBox(height: 1),
                   Text(
                     context.l10n.translate(
-                      'map.travelPlaceCount',
+                      isTravelOverview
+                          ? 'map.travelPlaceCount'
+                          : 'map.pagodaCount',
                       args: {'count': count.toString()},
                     ),
                     maxLines: 1,
@@ -1525,7 +1537,7 @@ class _MapScreenState extends State<MapScreen>
     List<Pagoda> pagodas,
     List<TravelPlace> travelPlaces,
   ) {
-    if (travelPlaces.isNotEmpty && pagodas.isEmpty) {
+    if (_browseCategory != MapBrowseCategory.pagodas && travelPlaces.isNotEmpty) {
       return _showTravelPlaceOverview(travelPlaces);
     }
     return _showPagodaOverview(pagodas);
@@ -1677,112 +1689,11 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Future<void> _showTravelPlaceOverview(List<TravelPlace> places) async {
-    final sortedPlaces = [...places]..sort((a, b) => a.name.compareTo(b.name));
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.52,
-        minChildSize: 0.32,
-        maxChildSize: 0.88,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFFBF3),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCCCB3),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 14, 12, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _browseCategoryLabel(_browseCategory),
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
-                  itemCount: sortedPlaces.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final place = sortedPlaces[index];
-                    return Material(
-                      color: const Color(0xFFF7F2E9),
-                      borderRadius: BorderRadius.circular(14),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(14),
-                        onTap: () {
-                          Navigator.of(sheetContext).pop();
-                          setState(() => _selectedTravelPlace = place);
-                          _mapController.move(
-                            LatLng(place.latitude, place.longitude),
-                            AppConstants.defaultZoom + 2,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                _travelPlaceIcon(place.category),
-                                color: _travelPlaceColor(place.category),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      place.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context).textTheme.titleMedium,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      place.area,
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                color: Color(0xFFA34A2A),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelDiscoveryScreen(
+          places: places,
+          initialCategory: _travelPlaceCategoryForBrowse(),
         ),
       ),
     );
