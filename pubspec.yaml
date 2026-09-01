@@ -132,7 +132,6 @@ flutter:
     - assets/images/pagodas/Thambula/
     - assets/images/pagodas/Thatbyinnyu Temple/
     - assets/images/stitch/
-    - assets/images/travel/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -180,13 +180,6 @@ class TravelPlaceDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              _travelImageAttribution(place),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: const Color(0xFF786A5D),
-              ),
-            ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
@@ -375,7 +368,7 @@ class _AreaImage extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            place.imageAsset ?? _categoryImageAsset(place.category),
+            'assets/images/stitch/bagan_sunrise.jpg',
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => ColoredBox(
               color: _categoryColor(place.category).withValues(alpha: 0.18),
@@ -508,23 +501,6 @@ class _AreaPill extends StatelessWidget {
     ),
   );
 }
-
-String _categoryImageAsset(TravelPlaceCategory category) => switch (category) {
-  TravelPlaceCategory.stay => 'assets/images/travel/bagan-hotel-context.jpg',
-  TravelPlaceCategory.food => 'assets/images/travel/sanon-restaurant.jpg',
-  TravelPlaceCategory.transport => 'assets/images/travel/bagan-e-bike.jpg',
-};
-
-String _travelImageAttribution(TravelPlace place) =>
-    place.imageAttribution ??
-    switch (place.category) {
-      TravelPlaceCategory.stay =>
-        'Representative Bagan stay photo: Chris and Denis Luyten-De Hauwere, CC BY 4.0 (view from Thande Hotel).',
-      TravelPlaceCategory.food =>
-        'Representative Bagan restaurant photo: Etan J. Tal, CC BY-SA 4.0 (Sanon training restaurant).',
-      TravelPlaceCategory.transport =>
-        'Representative Bagan transport photo: Jakub Hałun, CC BY-SA 4.0 (e-bike on the Bagan plain).',
-    };
 
 IconData _categoryIcon(TravelPlaceCategory category) => switch (category) {
   TravelPlaceCategory.stay => Icons.hotel_rounded,
