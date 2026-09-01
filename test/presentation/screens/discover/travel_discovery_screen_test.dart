@@ -49,7 +49,9 @@ final _places = [
 ];
 
 void main() {
-  testWidgets('filters the customer discovery list by category', (tester) async {
+  testWidgets('filters the customer discovery list by category', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [
@@ -65,7 +67,7 @@ void main() {
 
     expect(find.text('Bagan Stay'), findsOneWidget);
     expect(find.text('Bagan Food'), findsOneWidget);
-    expect(find.text('From US\$55 / night'), findsOneWidget);
+    expect(find.text('From MMK 201,190 / night'), findsOneWidget);
 
     await tester.tap(find.text('Food'));
     await tester.pumpAndSettle();
@@ -77,6 +79,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Estimated price'), findsOneWidget);
+    expect(
+      find.text('USD reference: Approx. US\$4–12 / person'),
+      findsOneWidget,
+    );
     expect(find.text('Why it may suit your trip'), findsOneWidget);
     expect(find.text('Open in Google Maps'), findsNothing);
   });
