@@ -8,19 +8,19 @@ void main() {
   test('bundled travel catalogue has sourced entries for every category', () async {
     final places = await const TravelPlaceDataService().loadPlaces();
 
-    expect(places, hasLength(10));
+    expect(places.length, greaterThanOrEqualTo(90));
     expect(places.map((place) => place.id).toSet(), hasLength(places.length));
     expect(
-      places.where((place) => place.category == TravelPlaceCategory.stay),
-      hasLength(3),
+      places.where((place) => place.category == TravelPlaceCategory.stay).length,
+      greaterThanOrEqualTo(25),
     );
     expect(
-      places.where((place) => place.category == TravelPlaceCategory.food),
-      hasLength(3),
+      places.where((place) => place.category == TravelPlaceCategory.food).length,
+      greaterThanOrEqualTo(45),
     );
     expect(
-      places.where((place) => place.category == TravelPlaceCategory.transport),
-      hasLength(4),
+      places.where((place) => place.category == TravelPlaceCategory.transport).length,
+      greaterThanOrEqualTo(15),
     );
     for (final place in places) {
       expect(place.sourceUrl, startsWith('https://'));

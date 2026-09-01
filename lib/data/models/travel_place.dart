@@ -43,18 +43,36 @@ class TravelPlace {
   final DateTime lastVerified;
 
   factory TravelPlace.fromJson(Map<String, dynamic> json) {
+    final category = _categoryFromJson(json['category'] as String);
+    final defaultSummary = switch (category) {
+      TravelPlaceCategory.stay => 'Map-verified place to stay in Bagan.',
+      TravelPlaceCategory.food => 'Map-verified place to eat or have a drink in Bagan.',
+      TravelPlaceCategory.transport =>
+        'Map-verified transport service or departure point in Bagan.',
+    };
+    final defaultSummaryMyanmar = switch (category) {
+      TravelPlaceCategory.stay => 'ပုဂံရှိ မြေပုံမှ အတည်ပြုထားသော တည်းခိုရာနေရာ။',
+      TravelPlaceCategory.food => 'ပုဂံရှိ မြေပုံမှ အတည်ပြုထားသော စားသောက်ရာနေရာ။',
+      TravelPlaceCategory.transport =>
+        'ပုဂံရှိ မြေပုံမှ အတည်ပြုထားသော သွားလာရေးဝန်ဆောင်မှု သို့မဟုတ် ထွက်ခွာရာနေရာ။',
+    };
+    const defaultNote =
+        'Confirm current opening status, prices, and availability directly before making a special trip.';
+    const defaultNoteMyanmar =
+        'အထူးသွားရောက်မည်ဆိုပါက လက်ရှိဖွင့်လှစ်မှု၊ နှုန်းထားနှင့် ရရှိနိုင်မှုကို တိုက်ရိုက်အတည်ပြုပါ။';
+
     return TravelPlace(
       id: json['id'] as String,
       name: json['name'] as String,
       nameMyanmar: json['nameMyanmar'] as String? ?? json['name'] as String,
-      category: _categoryFromJson(json['category'] as String),
+      category: category,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       area: json['area'] as String,
-      summary: json['summary'] as String,
-      summaryMyanmar: json['summaryMyanmar'] as String? ?? json['summary'] as String,
-      note: json['note'] as String,
-      noteMyanmar: json['noteMyanmar'] as String? ?? json['note'] as String,
+      summary: json['summary'] as String? ?? defaultSummary,
+      summaryMyanmar: json['summaryMyanmar'] as String? ?? defaultSummaryMyanmar,
+      note: json['note'] as String? ?? defaultNote,
+      noteMyanmar: json['noteMyanmar'] as String? ?? defaultNoteMyanmar,
       sourceName: json['sourceName'] as String,
       sourceUrl: json['sourceUrl'] as String,
       lastVerified: DateTime.parse(json['lastVerified'] as String),
