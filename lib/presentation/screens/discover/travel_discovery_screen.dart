@@ -224,7 +224,7 @@ class _AreaImage extends StatelessWidget {
         begin: Alignment.topCenter, end: Alignment.bottomCenter,
         colors: [Color(0x10000000), Color(0xAA21110A)],
       ))),
-      if (child != null) child!,
+      if (child case final Widget child) child,
       if (child == null) Positioned(left: 8, right: 8, bottom: 8, child: Text(place.area, textAlign: TextAlign.center,
         maxLines: 1, overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800))),
