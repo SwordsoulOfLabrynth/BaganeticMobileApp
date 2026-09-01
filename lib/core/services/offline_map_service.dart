@@ -11,6 +11,8 @@ import 'logger.dart';
 // Conditional import for InternetAddress - only import on non-web
 import 'dart:io' if (dart.library.html) 'dart:html' show InternetAddress;
 
+enum OfflineMapStatus { notDownloaded, downloading, ready, partial, failed }
+
 class OfflineMapService {
   OfflineMapService._();
 
@@ -31,6 +33,22 @@ class OfflineMapService {
   static const Duration _staleInProgressThreshold = Duration(hours: 6);
 
   bool _isDownloading = false;
+
+  Future<OfflineMapStatus> getStatus() async {
+    final store = const FMTCStore(AppConstants.mapTileStore);
+    return statusFromMetadata(await store.metadata.read);
+  }
+
+  @visibleForTesting
+  static OfflineMapStatus statusFromMetadata(Map<String, String> metadata) {
+    return switch (metadata[_statusKey]) {
+      _statusComplete => OfflineMapStatus.ready,
+      _statusInProgress => OfflineMapStatus.downloading,
+      _statusPartial => OfflineMapStatus.partial,
+      _statusFailed => OfflineMapStatus.failed,
+      _ => OfflineMapStatus.notDownloaded,
+    };
+  }
 
   Future<void> startBackgroundPrefetch({bool force = false}) async {
     if (_isDownloading) return;

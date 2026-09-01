@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
@@ -10,6 +11,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/services/device_location_service.dart';
 import '../../../core/services/logger.dart';
 import '../../../core/services/multimodal_route_service.dart';
+import '../../../core/services/offline_map_service.dart';
 import '../../../core/services/offline_route_service.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/bagan_map_coverage.dart';
@@ -17,6 +19,8 @@ import '../../../core/utils/helpers.dart';
 import '../../../core/utils/pathfinding.dart';
 import '../../../core/utils/responsive.dart';
 import '../../../data/models/pagoda_model.dart';
+import '../../../data/models/travel_place.dart';
+import '../../../data/services/travel_place_data_service.dart';
 import '../../../data/models/trip_model.dart';
 import '../../providers/pagoda_provider.dart';
 import '../../providers/trip_provider.dart';
@@ -30,7 +34,7 @@ import '../../../core/localization/app_localizations.dart';
 
 enum MapTripMode { browse, path, trips }
 
-enum MapBrowseCategory { all, pagodas, stays, food, ebikes }
+enum MapBrowseCategory { all, pagodas, stays, food, transport }
 
 class MapScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -50,6 +54,8 @@ class _MapScreenState extends State<MapScreen>
     with SingleTickerProviderStateMixin {
   final MapController _mapController = MapController();
   Pagoda? _selectedPagoda;
+  TravelPlace? _selectedTravelPlace;
+  late final Future<List<TravelPlace>> _travelPlacesFuture;
   Trip? _selectedTrip;
   List<LatLng> _tripRoute = [];
   bool _isTripRouteLoading = false;
@@ -73,6 +79,8 @@ class _MapScreenState extends State<MapScreen>
   StreamSubscription<LatLng>? _locationSub;
   LatLng? _userLocation;
   var _isLocating = false;
+  OfflineMapStatus? _offlineMapStatus;
+  var _isOfflineMapRetrying = false;
   MapBrowseCategory _browseCategory = MapBrowseCategory.all;
   double _mapZoom = AppConstants.defaultZoom;
 
@@ -80,6 +88,7 @@ class _MapScreenState extends State<MapScreen>
   void initState() {
     super.initState();
     _mode = widget.initialMode;
+    _travelPlacesFuture = const TravelPlaceDataService().loadPlaces();
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
@@ -98,6 +107,7 @@ class _MapScreenState extends State<MapScreen>
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_startLocationWatch());
+      unawaited(_refreshOfflineMapStatus());
     });
   }
 
@@ -206,6 +216,35 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
+  Future<void> _refreshOfflineMapStatus() async {
+    try {
+      final status = await OfflineMapService.instance.getStatus();
+      if (mounted) {
+        setState(() => _offlineMapStatus = status);
+      }
+    } catch (error, stackTrace) {
+      Logger.error('Could not read offline map status', error, stackTrace);
+    }
+  }
+
+  Future<void> _retryOfflineMapDownload() async {
+    if (_isOfflineMapRetrying) {
+      return;
+    }
+
+    setState(() => _isOfflineMapRetrying = true);
+    try {
+      await OfflineMapService.instance.startBackgroundPrefetch(force: true);
+      await _refreshOfflineMapStatus();
+    } catch (error, stackTrace) {
+      Logger.error('Could not retry offline map download', error, stackTrace);
+    } finally {
+      if (mounted) {
+        setState(() => _isOfflineMapRetrying = false);
+      }
+    }
+  }
+
   void _resetToBaganOverview() {
     _mapController.move(
       LatLng(AppConstants.baganLatitude, AppConstants.baganLongitude),
@@ -234,6 +273,9 @@ class _MapScreenState extends State<MapScreen>
             ));
     setState(() {
       _mode = mode;
+      if (mode != MapTripMode.browse) {
+        _selectedTravelPlace = null;
+      }
       if (shouldClearSelectedPagoda) {
         _selectedPagoda = null;
       }
@@ -444,6 +486,7 @@ class _MapScreenState extends State<MapScreen>
   void _selectPagoda(Pagoda pagoda) {
     setState(() {
       _selectedPagoda = pagoda;
+      _selectedTravelPlace = null;
     });
     _focusPagoda(pagoda);
   }
@@ -889,18 +932,29 @@ class _MapScreenState extends State<MapScreen>
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.translate('map.title')), elevation: 0),
-      body: Consumer3<PagodaProvider, TripProvider, AuthProvider>(
-        builder: (context, pagodaProvider, tripProvider, authProvider, _) {
+      body: FutureBuilder<List<TravelPlace>>(
+        future: _travelPlacesFuture,
+        builder: (context, travelPlacesSnapshot) =>
+            Consumer3<PagodaProvider, TripProvider, AuthProvider>(
+              builder: (context, pagodaProvider, tripProvider, authProvider, _) {
           if (pagodaProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final isLoggedIn = authProvider.user != null;
           final pagodas = pagodaProvider.allPagodas;
+          final travelPlaces = travelPlacesSnapshot.data ?? const <TravelPlace>[];
           final browsePagodas = _browseCategory == MapBrowseCategory.all ||
                   _browseCategory == MapBrowseCategory.pagodas
               ? pagodas
               : const <Pagoda>[];
+          final browseTravelPlaces = _browseCategory == MapBrowseCategory.all
+              ? travelPlaces
+              : travelPlaces
+                  .where(
+                    (place) => place.category == _travelPlaceCategoryForBrowse(),
+                  )
+                  .toList(growable: false);
           final showTrip = _mode == MapTripMode.trips && _selectedTrip != null;
           final showPath =
               _mode == MapTripMode.path && _shortestPathRoute.isNotEmpty;
@@ -908,7 +962,10 @@ class _MapScreenState extends State<MapScreen>
             MapTripMode.path => _buildPathMarkers(pagodas),
             MapTripMode.trips when showTrip && _selectedTrip != null =>
               _buildTripMarkers(_selectedTrip!, pagodas),
-            _ => _buildPagodaMarkers(browsePagodas),
+            _ => [
+                ..._buildPagodaMarkers(browsePagodas),
+                ..._buildTravelPlaceMarkers(browseTravelPlaces),
+              ],
           };
           final auxiliaryMarkers = [
             ..._buildFerryMarkers(
@@ -944,6 +1001,12 @@ class _MapScreenState extends State<MapScreen>
                     fallbackUrl: AppConstants.mapFallbackTileUrlTemplate,
                     subdomains: AppConstants.mapTileSubdomains,
                     userAgentPackageName: AppConstants.mapTileUserAgent,
+                    tileProvider: FMTCTileProvider(
+                      stores: {
+                        AppConstants.mapTileStore:
+                            BrowseStoreStrategy.readUpdateCreate,
+                      },
+                    ),
                   ),
                   if (showTrip &&
                       _tripRoute.isNotEmpty &&
@@ -1037,7 +1100,7 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ),
               ),
-              if (pagodas.isEmpty)
+              if (pagodas.isEmpty && travelPlaces.isEmpty)
                 Center(
                   child: Text(
                     l10n.translate('map.noPagodas'),
@@ -1045,8 +1108,9 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ),
               if (_mode == MapTripMode.browse &&
-                  pagodas.isNotEmpty &&
-                  browsePagodas.isEmpty)
+                  (pagodas.isNotEmpty || travelPlaces.isNotEmpty) &&
+                  browsePagodas.isEmpty &&
+                  browseTravelPlaces.isEmpty)
                 Center(child: _buildEmptyBrowseCategory()),
               if (_mode != MapTripMode.browse)
                 Positioned(
@@ -1066,6 +1130,16 @@ class _MapScreenState extends State<MapScreen>
                   left: 0,
                   right: 0,
                   child: SafeArea(top: false, child: _buildCategoryFilters()),
+                ),
+              if (_mode == MapTripMode.browse)
+                Positioned(
+                  top: 128,
+                  left: 16,
+                  right: 16,
+                  child: SafeArea(
+                    top: false,
+                    child: _buildOfflineMapStatus(),
+                  ),
                 ),
               if (showTrip && _isTripRouteFallback)
                 Positioned(
@@ -1138,24 +1212,114 @@ class _MapScreenState extends State<MapScreen>
                     child: _buildPagodaInfo(_selectedPagoda!),
                   ),
                 ),
+              if (_selectedTravelPlace != null && _mode == MapTripMode.browse)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    top: false,
+                    minimum: const EdgeInsets.only(bottom: 8),
+                    child: _buildTravelPlaceInfo(_selectedTravelPlace!),
+                  ),
+                ),
               if (_mode == MapTripMode.browse &&
                   _selectedPagoda == null &&
-                  browsePagodas.isNotEmpty)
+                  _selectedTravelPlace == null &&
+                  (browsePagodas.isNotEmpty || browseTravelPlaces.isNotEmpty))
                 Positioned(
                   left: 16,
                   right: 84,
                   bottom: 24,
-                  child: _buildBrowseOverviewControl(browsePagodas),
+                  child: _buildBrowseOverviewControl(
+                    browsePagodas,
+                    browseTravelPlaces,
+                  ),
                 ),
               if (_mode == MapTripMode.browse)
                 Positioned(
                   right: 16,
-                  bottom: _selectedPagoda == null ? 24 : 196,
+                  bottom: _selectedPagoda == null && _selectedTravelPlace == null
+                      ? 24
+                      : 196,
                   child: _buildFloatingActionButtons(isLoggedIn: isLoggedIn),
                 ),
             ],
           );
-        },
+              },
+            ),
+      ),
+    );
+  }
+
+  Future<void> _openTripPlannerAction() async {
+    final selectedTrip = _selectedTrip;
+    if (selectedTrip != null) {
+      await _openEditTrip(selectedTrip);
+      return;
+    }
+    await _openCreateTrip();
+  }
+
+  Widget _buildOfflineMapStatus() {
+    final status = _offlineMapStatus;
+    if (status == null || status == OfflineMapStatus.ready) {
+      return const SizedBox.shrink();
+    }
+
+    final l10n = context.l10n;
+    final isDownloading = status == OfflineMapStatus.downloading;
+    final messageKey = switch (status) {
+      OfflineMapStatus.notDownloaded => 'map.offlineMapDownloadRequired',
+      OfflineMapStatus.downloading => 'map.offlineMapDownloading',
+      OfflineMapStatus.partial => 'map.offlineMapPartial',
+      OfflineMapStatus.failed => 'map.offlineMapFailed',
+      OfflineMapStatus.ready => throw StateError('Ready status is hidden'),
+    };
+
+    return Semantics(
+      liveRegion: true,
+      label: l10n.translate(messageKey),
+      child: Material(
+        color: const Color(0xFF30251D).withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+          child: Row(
+            children: [
+              Icon(
+                isDownloading
+                    ? Icons.downloading_rounded
+                    : Icons.download_for_offline_outlined,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.translate(messageKey),
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+              if (!isDownloading)
+                TextButton(
+                  onPressed: _isOfflineMapRetrying
+                      ? null
+                      : _retryOfflineMapDownload,
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFD995),
+                    minimumSize: const Size(48, 48),
+                  ),
+                  child: _isOfflineMapRetrying
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.translate('map.offlineMapRetry')),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1278,14 +1442,18 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  Widget _buildBrowseOverviewControl(List<Pagoda> pagodas) {
+  Widget _buildBrowseOverviewControl(
+    List<Pagoda> pagodas,
+    List<TravelPlace> travelPlaces,
+  ) {
     final theme = Theme.of(context);
+    final count = pagodas.length + travelPlaces.length;
     return Material(
       color: const Color(0xFFFFFBF3),
       borderRadius: BorderRadius.circular(18),
       elevation: 4,
       child: InkWell(
-        onTap: () => _showPagodaOverview(pagodas),
+        onTap: () => _showBrowseOverview(pagodas, travelPlaces),
         borderRadius: BorderRadius.circular(18),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1321,8 +1489,8 @@ class _MapScreenState extends State<MapScreen>
                   const SizedBox(height: 1),
                   Text(
                     context.l10n.translate(
-                      'map.pagodaCount',
-                      args: {'count': pagodas.length.toString()},
+                      'map.travelPlaceCount',
+                      args: {'count': count.toString()},
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1340,7 +1508,7 @@ class _MapScreenState extends State<MapScreen>
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                pagodas.length.toString(),
+                count.toString(),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: const Color(0xFFA34A2A),
                 ),
@@ -1351,6 +1519,16 @@ class _MapScreenState extends State<MapScreen>
       ),
       ),
     );
+  }
+
+  Future<void> _showBrowseOverview(
+    List<Pagoda> pagodas,
+    List<TravelPlace> travelPlaces,
+  ) {
+    if (travelPlaces.isNotEmpty && pagodas.isEmpty) {
+      return _showTravelPlaceOverview(travelPlaces);
+    }
+    return _showPagodaOverview(pagodas);
   }
 
   Widget _buildCategoryFilters() {
@@ -1407,6 +1585,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _browseCategory = category;
       _selectedPagoda = null;
+      _selectedTravelPlace = null;
     });
   }
 
@@ -1463,7 +1642,7 @@ class _MapScreenState extends State<MapScreen>
         MapBrowseCategory.pagodas => 'map.category.pagodas',
         MapBrowseCategory.stays => 'map.category.stays',
         MapBrowseCategory.food => 'map.category.food',
-        MapBrowseCategory.ebikes => 'map.category.ebikes',
+        MapBrowseCategory.transport => 'map.category.transport',
       },
     );
   }
@@ -1474,7 +1653,7 @@ class _MapScreenState extends State<MapScreen>
       MapBrowseCategory.pagodas => Icons.temple_buddhist_rounded,
       MapBrowseCategory.stays => Icons.bed_rounded,
       MapBrowseCategory.food => Icons.restaurant_rounded,
-      MapBrowseCategory.ebikes => Icons.electric_bike_rounded,
+      MapBrowseCategory.transport => Icons.directions_transit_rounded,
     };
   }
 
@@ -1484,8 +1663,129 @@ class _MapScreenState extends State<MapScreen>
       MapBrowseCategory.pagodas => const Color(0xFF9B6B20),
       MapBrowseCategory.stays => const Color(0xFF91624E),
       MapBrowseCategory.food => const Color(0xFF9A512E),
-      MapBrowseCategory.ebikes => const Color(0xFF166B91),
+      MapBrowseCategory.transport => const Color(0xFF166B91),
     };
+  }
+
+  TravelPlaceCategory? _travelPlaceCategoryForBrowse() {
+    return switch (_browseCategory) {
+      MapBrowseCategory.stays => TravelPlaceCategory.stay,
+      MapBrowseCategory.food => TravelPlaceCategory.food,
+      MapBrowseCategory.transport => TravelPlaceCategory.transport,
+      MapBrowseCategory.all || MapBrowseCategory.pagodas => null,
+    };
+  }
+
+  Future<void> _showTravelPlaceOverview(List<TravelPlace> places) async {
+    final sortedPlaces = [...places]..sort((a, b) => a.name.compareTo(b.name));
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.52,
+        minChildSize: 0.32,
+        maxChildSize: 0.88,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFBF3),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCCCB3),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _browseCategoryLabel(_browseCategory),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                      onPressed: () => Navigator.of(sheetContext).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                  itemCount: sortedPlaces.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final place = sortedPlaces[index];
+                    return Material(
+                      color: const Color(0xFFF7F2E9),
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          setState(() => _selectedTravelPlace = place);
+                          _mapController.move(
+                            LatLng(place.latitude, place.longitude),
+                            AppConstants.defaultZoom + 2,
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _travelPlaceIcon(place.category),
+                                color: _travelPlaceColor(place.category),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      place.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      place.area,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Color(0xFFA34A2A),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _showPagodaOverview(List<Pagoda> pagodas) async {
@@ -2357,6 +2657,8 @@ class _MapScreenState extends State<MapScreen>
 
   Widget _buildTripPlannerCard({required bool isLoggedIn}) {
     final l10n = context.l10n;
+    final selectedTrip = _selectedTrip;
+    final isEditingTrip = selectedTrip != null;
     return Material(
       color: const Color(0xFFFFFBF3).withValues(alpha: 0.98),
       borderRadius: BorderRadius.circular(18),
@@ -2384,14 +2686,23 @@ class _MapScreenState extends State<MapScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.translate('map.tripPlannerTitle'),
+                    isEditingTrip
+                        ? selectedTrip.name
+                        : l10n.translate('map.tripPlannerTitle'),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: const Color(0xFF30251D),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    l10n.translate('map.tripPlannerHint'),
+                    isEditingTrip
+                        ? l10n.translate(
+                            'map.tripPlannerSelectedHint',
+                            args: {
+                              'count': selectedTrip.stops.length.toString(),
+                            },
+                          )
+                        : l10n.translate('map.tripPlannerHint'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -2403,14 +2714,18 @@ class _MapScreenState extends State<MapScreen>
             ),
             const SizedBox(width: 8),
             OutlinedButton(
-              onPressed: isLoggedIn ? _openCreateTrip : null,
+              onPressed: isLoggedIn ? _openTripPlannerAction : null,
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFA34A2A),
                 side: const BorderSide(color: Color(0xFFA34A2A)),
                 minimumSize: const Size(44, 44),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
-              child: Text(l10n.translate('map.addStop')),
+              child: Text(
+                l10n.translate(
+                  isEditingTrip ? 'map.addStop' : 'map.createTrip',
+                ),
+              ),
             ),
           ],
         ),
@@ -2435,14 +2750,12 @@ class _MapScreenState extends State<MapScreen>
               child: Semantics(
                 button: true,
                 label: l10n.translate('map.savedTrips'),
-                child: InkWell(
-                  onTap: () => _showSavedTrips(
-                    provider,
-                    isLoggedIn: isLoggedIn,
-                  ),
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(18),
-                  ),
+              child: InkWell(
+                onTap: () => _showSavedTrips(
+                  provider,
+                  isLoggedIn: isLoggedIn,
+                ),
+                borderRadius: BorderRadius.circular(18),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Row(
@@ -2478,18 +2791,6 @@ class _MapScreenState extends State<MapScreen>
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: TextButton.icon(
-                onPressed: isLoggedIn ? _openCreateTrip : null,
-                icon: const Icon(Icons.add_rounded),
-                label: Text(l10n.translate('common.create')),
-                style: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFA34A2A),
-                  minimumSize: const Size(92, 48),
                 ),
               ),
             ),
@@ -2845,6 +3146,49 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
+  IconData _travelPlaceIcon(TravelPlaceCategory category) {
+    return switch (category) {
+      TravelPlaceCategory.stay => Icons.bed_rounded,
+      TravelPlaceCategory.food => Icons.restaurant_rounded,
+      TravelPlaceCategory.transport => Icons.directions_transit_rounded,
+    };
+  }
+
+  Color _travelPlaceColor(TravelPlaceCategory category) {
+    return switch (category) {
+      TravelPlaceCategory.stay => const Color(0xFF91624E),
+      TravelPlaceCategory.food => const Color(0xFF9A512E),
+      TravelPlaceCategory.transport => const Color(0xFF166B91),
+    };
+  }
+
+  List<Marker> _buildTravelPlaceMarkers(List<TravelPlace> places) {
+    return places
+        .map(
+          (place) => Marker(
+            point: LatLng(place.latitude, place.longitude),
+            width: 38,
+            height: 38,
+            child: Semantics(
+              button: true,
+              label: '${place.name}, ${place.area}',
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _selectedPagoda = null;
+                  _selectedTravelPlace = place;
+                }),
+                child: _TravelPlaceMapMarker(
+                  icon: _travelPlaceIcon(place.category),
+                  color: _travelPlaceColor(place.category),
+                  isSelected: _selectedTravelPlace?.id == place.id,
+                ),
+              ),
+            ),
+          ),
+        )
+        .toList(growable: false);
+  }
+
   List<Marker> _buildPagodaMarkers(List<Pagoda> pagodas) {
     return pagodas.map((pagoda) {
       return Marker(
@@ -2983,6 +3327,188 @@ class _MapScreenState extends State<MapScreen>
         ),
       );
     }).toList();
+  }
+
+  void _showTravelPlaceSource(TravelPlace place) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Container(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBF3),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.translate('map.sourceReference'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(place.sourceName),
+              const SizedBox(height: 12),
+              SelectableText(
+                place.sourceUrl,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFF166B91),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(sheetContext).pop(),
+                  child: Text(context.l10n.translate('common.done')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTravelPlaceInfo(TravelPlace place) {
+    final theme = Theme.of(context);
+    final isMyanmar = Localizations.localeOf(context).languageCode == 'my';
+    final summary = isMyanmar ? place.summaryMyanmar : place.summary;
+    final note = isMyanmar ? place.noteMyanmar : place.note;
+    final lastVerified = place.lastVerified.toIso8601String().split('T').first;
+    final color = _travelPlaceColor(place.category);
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ResponsiveContent(
+        child: Container(
+          margin: EdgeInsets.fromLTRB(
+            Responsive.spacing(context),
+            0,
+            Responsive.spacing(context),
+            Responsive.spacing(context),
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBF3),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFDCCCB3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 18,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(_travelPlaceIcon(place.category), color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${_browseCategoryLabel(_browseCategory)}  •  ${place.area}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: color,
+                                letterSpacing: 0.55,
+                              ),
+                            ),
+                          ),
+                          Semantics(
+                            button: true,
+                            label: context.l10n.translate('map.clearSelection'),
+                            child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () =>
+                                  setState(() => _selectedTravelPlace = null),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        isMyanmar ? place.nameMyanmar : place.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: const Color(0xFF30251D),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        summary,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFF786A5D),
+                          height: 1.28,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        note,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFF5C534C),
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              context.l10n.translate(
+                                'map.lastVerified',
+                                args: {'date': lastVerified},
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: const Color(0xFF786A5D),
+                              ),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => _showTravelPlaceSource(place),
+                            icon: const Icon(Icons.info_outline_rounded, size: 16),
+                            label: Text(context.l10n.translate('map.openSource')),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildPagodaInfo(Pagoda pagoda) {
@@ -3179,14 +3705,6 @@ class _MapScreenState extends State<MapScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (_mode == MapTripMode.trips && isLoggedIn) ...[
-          FloatingActionButton.small(
-            heroTag: 'create-trip',
-            onPressed: _openCreateTrip,
-            child: const Icon(Icons.add),
-          ),
-          SizedBox(height: Responsive.smallSpacing(context)),
-        ],
         if (_mode == MapTripMode.path && _shortestPathRoute.isNotEmpty) ...[
           FloatingActionButton.small(
             heroTag: 'focus-shortest-path',
@@ -3195,18 +3713,20 @@ class _MapScreenState extends State<MapScreen>
           ),
           SizedBox(height: Responsive.smallSpacing(context)),
         ],
-        if (_selectedPagoda != null &&
+        if ((_selectedPagoda != null || _selectedTravelPlace != null) &&
             (_mode == MapTripMode.browse ||
                 (_mode == MapTripMode.trips && _selectedTrip != null))) ...[
           FloatingActionButton.small(
             heroTag: 'selected-pagoda',
             onPressed: () {
-              final selected = _selectedPagoda;
-              if (selected == null) {
-                return;
-              }
+              final selectedPagoda = _selectedPagoda;
+              final selectedTravelPlace = _selectedTravelPlace;
+              if (selectedPagoda == null && selectedTravelPlace == null) return;
               _mapController.move(
-                LatLng(selected.latitude, selected.longitude),
+                LatLng(
+                  selectedPagoda?.latitude ?? selectedTravelPlace!.latitude,
+                  selectedPagoda?.longitude ?? selectedTravelPlace!.longitude,
+                ),
                 AppConstants.defaultZoom + 2,
               );
             },
@@ -3552,6 +4072,41 @@ class _MapMarker extends StatelessWidget {
         ),
         marker,
       ],
+    );
+  }
+}
+
+class _TravelPlaceMapMarker extends StatelessWidget {
+  const _TravelPlaceMapMarker({
+    required this.icon,
+    required this.color,
+    required this.isSelected,
+  });
+
+  final IconData icon;
+  final Color color;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected ? const Color(0xFFFFD995) : Colors.white,
+          width: isSelected ? 3 : 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isSelected ? 0.28 : 0.16),
+            blurRadius: isSelected ? 8 : 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: Colors.white, size: 19),
     );
   }
 }

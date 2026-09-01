@@ -109,6 +109,7 @@ flutter:
     - assets/data/pagoda_route_graph.json
     - assets/data/multimodal_routes.json
     - assets/data/sample_pagodas.json
+    - assets/data/bagan_travel_places.json
     - assets/images/pagodas/
     - assets/images/pagodas/Alodawpyae Pagoda/
     - assets/images/pagodas/Ananda Temple/
