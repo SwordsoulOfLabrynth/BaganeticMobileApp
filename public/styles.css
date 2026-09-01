@@ -1,0 +1,12 @@
+:root { color-scheme: light; font-family: Inter, Arial, sans-serif; color: #31271e; background: #fffaf2; }
+body { margin: 0; line-height: 1.6; }
+main { max-width: 720px; margin: 0 auto; padding: 72px 24px; }
+h1 { color: #7d351e; line-height: 1.15; margin: 0 0 16px; }
+h2 { color: #7d351e; margin-top: 36px; }
+.eyebrow { color: #a85d2c; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.lead { font-size: 1.15rem; }
+nav { display: grid; gap: 12px; margin: 32px 0; }
+nav a { background: #fff; border: 1px solid #ead7be; border-radius: 12px; color: #7d351e; font-weight: 700; padding: 14px 16px; text-decoration: none; }
+a { color: #9a4326; }
+.contact { margin-top: 42px; }
+li { margin: 8px 0; }

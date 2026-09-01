@@ -145,13 +145,9 @@ class CommunityDataService {
         .doc(comment.id);
 
     try {
-      await firestore.runTransaction((txn) async {
-        txn.set(commentRef, _serializeComment(comment));
-        txn.update(postRef, {
-          'updatedAt': Timestamp.fromDate(comment.updatedAt),
-          'commentCount': FieldValue.increment(1),
-        });
-      });
+      // Aggregate totals are maintained by trusted Firestore triggers. Clients
+      // may create their own comments but cannot forge a post's counters.
+      await commentRef.set(_serializeComment(comment));
     } catch (e, stackTrace) {
       Logger.error(
         'CommunityDataService: Remote comment create failed, caching locally',
@@ -189,7 +185,6 @@ class CommunityDataService {
         final voteSnapshot = await txn.get(voteRef);
         if (voteSnapshot.exists) {
           txn.delete(voteRef);
-          txn.update(postRef, {'upvoteCount': FieldValue.increment(-1)});
           return;
         }
 
@@ -198,7 +193,6 @@ class CommunityDataService {
           'userId': userId,
           'createdAt': FieldValue.serverTimestamp(),
         });
-        txn.update(postRef, {'upvoteCount': FieldValue.increment(1)});
       });
     } catch (e, stackTrace) {
       Logger.error(

@@ -60,6 +60,7 @@ app.*.map.json
 /android/app/release
 
 # Local QA captures and generated presentation artifacts
+/.firebase/
 /tmp/
 /output/
 /.playwright-cli/

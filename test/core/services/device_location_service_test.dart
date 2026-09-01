@@ -85,4 +85,29 @@ void main() {
       ),
     );
   });
+
+  test('fails without opening a permission prompt when permission is permanent',
+      () async {
+    var requested = false;
+    final service = DeviceLocationService(
+      isServiceEnabled: () async => true,
+      checkPermission: () async => LocationPermission.deniedForever,
+      requestPermission: () async {
+        requested = true;
+        return LocationPermission.whileInUse;
+      },
+    );
+
+    expect(
+      () => service.getCurrentLocation(),
+      throwsA(
+        isA<DeviceLocationException>().having(
+          (error) => error.code,
+          'code',
+          DeviceLocationError.permissionDeniedForever,
+        ),
+      ),
+    );
+    expect(requested, isFalse);
+  });
 }

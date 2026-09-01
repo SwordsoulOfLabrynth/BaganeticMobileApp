@@ -80,6 +80,7 @@ class _MapScreenState extends State<MapScreen>
   bool _isPathRouteLoading = false;
   bool _isPathRouteFallback = false;
   bool _hasAttemptedPathSearch = false;
+  bool _isPathMapFocus = false;
   late MapTripMode _mode;
   late final AnimationController _pulseController;
   final DeviceLocationService _locationService = DeviceLocationService();
@@ -280,6 +281,8 @@ class _MapScreenState extends State<MapScreen>
             ));
     setState(() {
       _mode = mode;
+      _isPathMapFocus =
+          mode == MapTripMode.path && _shortestPathRoute.isNotEmpty;
       if (mode != MapTripMode.browse) {
         _selectedTravelPlace = null;
       }
@@ -480,6 +483,7 @@ class _MapScreenState extends State<MapScreen>
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
+      _isPathMapFocus = false;
     });
   }
 
@@ -536,6 +540,7 @@ class _MapScreenState extends State<MapScreen>
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
+      _isPathMapFocus = false;
     });
 
     if (pagoda != null) {
@@ -599,6 +604,7 @@ class _MapScreenState extends State<MapScreen>
         _isPathRouteLoading = false;
         _isPathRouteFallback = false;
         _hasAttemptedPathSearch = false;
+        _isPathMapFocus = false;
       });
       _focusPagoda(pagoda);
       return;
@@ -624,6 +630,7 @@ class _MapScreenState extends State<MapScreen>
       _isPathRouteLoading = false;
       _isPathRouteFallback = false;
       _hasAttemptedPathSearch = false;
+      _isPathMapFocus = false;
     });
     _focusPagoda(pagoda);
   }
@@ -717,6 +724,7 @@ class _MapScreenState extends State<MapScreen>
         _shortestPathUsesFerry = true;
         _isPathRouteFallback = plan.usesFallback;
         _isPathRouteLoading = false;
+        _isPathMapFocus = true;
       });
       _focusRoute(plan.points);
       return;
@@ -768,6 +776,7 @@ class _MapScreenState extends State<MapScreen>
       _shortestPathUsesFerry = false;
       _isPathRouteFallback = !result.isRoadGraphRoute || route.isEmpty;
       _isPathRouteLoading = false;
+      _isPathMapFocus = true;
     });
     _focusRoute(resolved);
   }
@@ -967,6 +976,9 @@ class _MapScreenState extends State<MapScreen>
           final showTrip = _mode == MapTripMode.trips && _selectedTrip != null;
           final showPath =
               _mode == MapTripMode.path && _shortestPathRoute.isNotEmpty;
+          final shouldClusterMarkers =
+              _mode == MapTripMode.browse ||
+              (_mode == MapTripMode.trips && !showTrip);
           final baseMarkers = switch (_mode) {
             MapTripMode.path => _buildPathMarkers(pagodas),
             MapTripMode.trips when showTrip && _selectedTrip != null =>
@@ -1062,7 +1074,7 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   if (overviewMarkers.isNotEmpty)
                     MarkerLayer(markers: overviewMarkers)
-                  else if (_mode == MapTripMode.browse)
+                  else if (shouldClusterMarkers)
                     MarkerClusterLayerWidget(
                       options: MarkerClusterLayerOptions(
                         markers: baseMarkers,
@@ -1200,8 +1212,17 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ),
                 ),
-              if (_mode == MapTripMode.path)
+              if (_mode == MapTripMode.path && !_isPathMapFocus)
                 Positioned.fill(child: _buildPathPanel(pagodas)),
+              if (_mode == MapTripMode.path && _isPathMapFocus)
+                Positioned(
+                  top: 84,
+                  left: 16,
+                  child: SafeArea(
+                    top: false,
+                    child: _buildPathControlsButton(),
+                  ),
+                ),
               if (_mode == MapTripMode.trips)
                 Positioned.fill(
                   child: _buildTripPanel(tripProvider, isLoggedIn: isLoggedIn),
@@ -1890,6 +1911,34 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
+  Widget _buildPathControlsButton() {
+    final l10n = context.l10n;
+    return Semantics(
+      button: true,
+      label: l10n.translate('map.pathShowControls'),
+      child: Tooltip(
+        message: l10n.translate('map.pathShowControls'),
+        child: Material(
+          color: const Color(0xFFFFFBF3).withValues(alpha: 0.98),
+          elevation: 4,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () => setState(() => _isPathMapFocus = false),
+            child: const SizedBox(
+              width: 48,
+              height: 48,
+              child: Icon(
+                Icons.tune_rounded,
+                color: Color(0xFFA34A2A),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPathBuilderCard({
     required List<Pagoda> pagodas,
     required bool canSwap,
@@ -1927,12 +1976,36 @@ class _MapScreenState extends State<MapScreen>
                   color: const Color(0xFFA34A2A),
                 ),
                 if (hasSelection)
-                  IconButton(
-                    tooltip: l10n.translate('map.pathClear'),
+                  TextButton.icon(
                     onPressed: _clearPathSelection,
-                    icon: const Icon(Icons.close_rounded),
-                    color: const Color(0xFF786A5D),
+                    icon: const Icon(Icons.restart_alt_rounded, size: 19),
+                    label: Text(l10n.translate('map.pathReset')),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFA34A2A),
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
                   ),
+                Tooltip(
+                  message: l10n.translate('map.pathHideControls'),
+                  child: Material(
+                    color: const Color(0xFFF0E4CE),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => setState(() => _isPathMapFocus = true),
+                      child: const SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Icon(
+                          Icons.close_rounded,
+                          color: Color(0xFFA34A2A),
+                          size: 25,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
             _buildPathDropdown(
@@ -2337,59 +2410,240 @@ class _MapScreenState extends State<MapScreen>
     required ValueChanged<Pagoda?> onChanged,
     required Color accentColor,
   }) {
-    return DropdownButtonFormField<String>(
-      initialValue: value?.id,
-      isExpanded: true,
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-        labelText: label,
-        labelStyle: TextStyle(color: accentColor, fontWeight: FontWeight.w600),
-        prefixIcon: Icon(Icons.temple_buddhist_rounded, color: accentColor),
-        prefixIconConstraints: const BoxConstraints(minWidth: 42, minHeight: 42),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: accentColor.withValues(alpha: 0.25)),
-        ),
-      ),
-      items: [
-        DropdownMenuItem<String>(
-          value: null,
-          child: Text(
-            context.l10n.translate('map.pathChoosePagoda'),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    final l10n = context.l10n;
+    final displayName = value == null
+        ? l10n.translate('map.pathChoosePagoda')
+        : l10n.pagodaName(
+            value.id,
+            value.name,
+            remoteMyanmar: value.nameMyanmar,
+          );
+
+    return Semantics(
+      button: true,
+      label: '$label: $displayName',
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => _showPathPagodaPicker(
+            label: label,
+            value: value,
+            pagodas: pagodas,
+            onChanged: onChanged,
           ),
-        ),
-        ...pagodas.map(
-          (pagoda) => DropdownMenuItem<String>(
-            value: pagoda.id,
-            child: Text(
-              context.l10n.pagodaName(
-                pagoda.id,
-                pagoda.name,
-                remoteMyanmar: pagoda.nameMyanmar,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 56),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: accentColor.withValues(alpha: 0.36)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.temple_buddhist_rounded, color: accentColor),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: accentColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: value == null
+                              ? const Color(0xFF786A5D)
+                              : const Color(0xFF30251D),
+                          fontWeight:
+                              value == null ? FontWeight.w500 : FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.search_rounded, color: accentColor),
+              ],
             ),
           ),
         ),
-      ],
-      onChanged: (selectedId) {
-        Pagoda? selected;
-        for (final pagoda in pagodas) {
-          if (pagoda.id == selectedId) {
-            selected = pagoda;
-            break;
-          }
-        }
-        onChanged(selected);
-      },
+      ),
     );
+  }
+
+  Future<void> _showPathPagodaPicker({
+    required String label,
+    required Pagoda? value,
+    required List<Pagoda> pagodas,
+    required ValueChanged<Pagoda?> onChanged,
+  }) async {
+    final searchController = TextEditingController();
+    var query = '';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final normalizedQuery = query.trim().toLowerCase();
+          final matches = pagodas.where((pagoda) {
+            if (normalizedQuery.isEmpty) {
+              return true;
+            }
+            final localizedName = context.l10n.pagodaName(
+              pagoda.id,
+              pagoda.name,
+              remoteMyanmar: pagoda.nameMyanmar,
+            );
+            return '$localizedName ${pagoda.name} ${pagoda.nameMyanmar ?? ''}'
+                .toLowerCase()
+                .contains(normalizedQuery);
+          }).toList(growable: false);
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.72,
+            minChildSize: 0.4,
+            maxChildSize: 0.92,
+            expand: false,
+            builder: (context, scrollController) => Material(
+              color: const Color(0xFFFFFBF3),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0D1BE),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              label,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).closeButtonTooltip,
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                      child: TextField(
+                        controller: searchController,
+                        autofocus: true,
+                        onChanged: (nextQuery) =>
+                            setSheetState(() => query = nextQuery),
+                        decoration: InputDecoration(
+                          hintText: context.l10n.translate(
+                            'map.pathSearchPagoda',
+                          ),
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          suffixIcon: query.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: MaterialLocalizations.of(
+                                    context,
+                                  ).deleteButtonTooltip,
+                                  onPressed: () {
+                                    searchController.clear();
+                                    setSheetState(() => query = '');
+                                  },
+                                  icon: const Icon(Icons.clear_rounded),
+                                ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: matches.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  context.l10n.translate(
+                                    'map.pathNoPagodaMatches',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          : ListView.separated(
+                              controller: scrollController,
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                              itemCount: matches.length,
+                              separatorBuilder: (_, _) =>
+                                  const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final pagoda = matches[index];
+                                final displayName = context.l10n.pagodaName(
+                                  pagoda.id,
+                                  pagoda.name,
+                                  remoteMyanmar: pagoda.nameMyanmar,
+                                );
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  minVerticalPadding: 10,
+                                  leading: const Icon(
+                                    Icons.temple_buddhist_rounded,
+                                    color: Color(0xFFA34A2A),
+                                  ),
+                                  title: Text(
+                                    displayName,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  selected: value?.id == pagoda.id,
+                                  onTap: () {
+                                    onChanged(pagoda);
+                                    Navigator.of(sheetContext).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    searchController.dispose();
   }
 
   Widget _buildPathSummaryItem({

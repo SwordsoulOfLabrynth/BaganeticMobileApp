@@ -1,9 +1,10 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {onDocumentCreated, onDocumentDeleted} = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 const {defineSecret} = require("firebase-functions/params");
 const {initializeApp, getApps} = require("firebase-admin/app");
 const {getAuth} = require("firebase-admin/auth");
-const {getFirestore} = require("firebase-admin/firestore");
+const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {getStorage} = require("firebase-admin/storage");
 
 if (getApps().length === 0) {
@@ -22,6 +23,27 @@ const firestoreDatabaseId =
 
 function firestore() {
   return getFirestore(firestoreDatabaseId);
+}
+
+async function updateCommunityPostCounter(event, field, delta) {
+  const source = event.data;
+  const postRef = source?.ref.parent.parent;
+  if (!postRef) {
+    return;
+  }
+
+  await firestore().runTransaction(async (transaction) => {
+    const post = await transaction.get(postRef);
+    if (!post.exists) {
+      return;
+    }
+
+    const current = Number(post.get(field)) || 0;
+    transaction.update(postRef, {
+      [field]: Math.max(0, current + delta),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
 }
 
 function asText(value, maxLength = 4000) {
@@ -179,6 +201,32 @@ exports.generateAiReply = onCall(
       },
     };
   },
+);
+
+const communityCounterTriggerOptions = (document) => ({
+  document,
+  region: functionRegion,
+  database: firestoreDatabaseId,
+});
+
+exports.incrementCommunityCommentCount = onDocumentCreated(
+  communityCounterTriggerOptions("communityPosts/{postId}/comments/{commentId}"),
+  (event) => updateCommunityPostCounter(event, "commentCount", 1),
+);
+
+exports.decrementCommunityCommentCount = onDocumentDeleted(
+  communityCounterTriggerOptions("communityPosts/{postId}/comments/{commentId}"),
+  (event) => updateCommunityPostCounter(event, "commentCount", -1),
+);
+
+exports.incrementCommunityVoteCount = onDocumentCreated(
+  communityCounterTriggerOptions("communityPosts/{postId}/votes/{userId}"),
+  (event) => updateCommunityPostCounter(event, "upvoteCount", 1),
+);
+
+exports.decrementCommunityVoteCount = onDocumentDeleted(
+  communityCounterTriggerOptions("communityPosts/{postId}/votes/{userId}"),
+  (event) => updateCommunityPostCounter(event, "upvoteCount", -1),
 );
 
 exports.deleteUserAccount = onCall(

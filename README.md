@@ -120,6 +120,10 @@ After backend changes, deploy rules and functions:
 firebase deploy --only functions,firestore:rules,storage
 ```
 
+Deploy the rules and functions together. Community vote/comment totals are
+maintained by trusted Functions, so interactions must not be released with only
+one side of that update.
+
 ## Build
 
 Android APK:

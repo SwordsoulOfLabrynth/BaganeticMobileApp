@@ -48,7 +48,9 @@ firebase functions:secrets:set NVIDIA_API_KEY
 firebase deploy --only functions,firestore:rules,storage
 ```
 
-This deploys `generateAiReply` (hourly per-user limit) and `deleteUserAccount`.
+This deploys `generateAiReply` (hourly per-user limit), `deleteUserAccount`,
+and trusted community vote/comment counter maintenance. Always deploy the
+Functions and Firestore rules together so clients cannot write aggregate totals.
 
 The Function defaults to `asia-southeast1`. If you deploy it elsewhere, copy
 `config/dart_defines.example.env` to `config/dart_defines.local.env`, set
