@@ -3329,57 +3329,11 @@ class _MapScreenState extends State<MapScreen>
     }).toList();
   }
 
-  void _showTravelPlaceSource(TravelPlace place) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => SafeArea(
-        top: false,
-        child: Container(
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFBF3),
-            borderRadius: BorderRadius.circular(22),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n.translate('map.sourceReference'),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(place.sourceName),
-              const SizedBox(height: 12),
-              SelectableText(
-                place.sourceUrl,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF166B91),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(sheetContext).pop(),
-                  child: Text(context.l10n.translate('common.done')),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildTravelPlaceInfo(TravelPlace place) {
     final theme = Theme.of(context);
     final isMyanmar = Localizations.localeOf(context).languageCode == 'my';
     final summary = isMyanmar ? place.summaryMyanmar : place.summary;
     final note = isMyanmar ? place.noteMyanmar : place.note;
-    final lastVerified = place.lastVerified.toIso8601String().split('T').first;
     final color = _travelPlaceColor(place.category);
 
     return Align(
@@ -3476,29 +3430,6 @@ class _MapScreenState extends State<MapScreen>
                           color: const Color(0xFF5C534C),
                           height: 1.25,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              context.l10n.translate(
-                                'map.lastVerified',
-                                args: {'date': lastVerified},
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: const Color(0xFF786A5D),
-                              ),
-                            ),
-                          ),
-                          TextButton.icon(
-                            onPressed: () => _showTravelPlaceSource(place),
-                            icon: const Icon(Icons.info_outline_rounded, size: 16),
-                            label: Text(context.l10n.translate('map.openSource')),
-                          ),
-                        ],
                       ),
                     ],
                   ),

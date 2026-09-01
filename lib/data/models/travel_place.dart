@@ -44,22 +44,39 @@ class TravelPlace {
 
   factory TravelPlace.fromJson(Map<String, dynamic> json) {
     final category = _categoryFromJson(json['category'] as String);
+    final area = json['area'] as String;
     final defaultSummary = switch (category) {
-      TravelPlaceCategory.stay => 'Map-verified place to stay in Bagan.',
-      TravelPlaceCategory.food => 'Map-verified place to eat or have a drink in Bagan.',
+      TravelPlaceCategory.stay =>
+        'A convenient stay in $area for exploring Bagan at your own pace.',
+      TravelPlaceCategory.food =>
+        'A dining stop in $area for your Bagan day.',
       TravelPlaceCategory.transport =>
-        'Map-verified transport service or departure point in Bagan.',
+        'A travel service or departure point in $area for getting around Bagan.',
     };
     final defaultSummaryMyanmar = switch (category) {
-      TravelPlaceCategory.stay => 'ပုဂံရှိ မြေပုံမှ အတည်ပြုထားသော တည်းခိုရာနေရာ။',
-      TravelPlaceCategory.food => 'ပုဂံရှိ မြေပုံမှ အတည်ပြုထားသော စားသောက်ရာနေရာ။',
+      TravelPlaceCategory.stay =>
+        '$area တွင် တည်းခိုပြီး ပုဂံကို အေးဆေးစွာ လေ့လာနိုင်သောနေရာ။',
+      TravelPlaceCategory.food =>
+        '$area တွင် ခရီးသွားရင်း စားသောက်နားနေနိုင်သောနေရာ။',
       TravelPlaceCategory.transport =>
-        'ပုဂံရှိ မြေပုံမှ အတည်ပြုထားသော သွားလာရေးဝန်ဆောင်မှု သို့မဟုတ် ထွက်ခွာရာနေရာ။',
+        '$area တွင် ပုဂံအတွင်း သွားလာရန် ဝန်ဆောင်မှု သို့မဟုတ် ထွက်ခွာရာနေရာ။',
     };
-    const defaultNote =
-        'Confirm current opening status, prices, and availability directly before making a special trip.';
-    const defaultNoteMyanmar =
-        'အထူးသွားရောက်မည်ဆိုပါက လက်ရှိဖွင့်လှစ်မှု၊ နှုန်းထားနှင့် ရရှိနိုင်မှုကို တိုက်ရိုက်အတည်ပြုပါ။';
+    final defaultNote = switch (category) {
+      TravelPlaceCategory.stay =>
+        'Contact the property for availability and arrival arrangements.',
+      TravelPlaceCategory.food =>
+        'Menus and opening times can change, so check before visiting.',
+      TravelPlaceCategory.transport =>
+        'Confirm schedules, fares, and pickup arrangements directly.',
+    };
+    final defaultNoteMyanmar = switch (category) {
+      TravelPlaceCategory.stay =>
+        'အခန်းလွတ်မှုနှင့် ရောက်ရှိလာမည့်အစီအစဉ်ကို တည်းခိုခန်းထံတွင် အတည်ပြုပါ။',
+      TravelPlaceCategory.food =>
+        'မီနူးနှင့် ဖွင့်ချိန် ပြောင်းလဲနိုင်သောကြောင့် မသွားမီ စစ်ဆေးပါ။',
+      TravelPlaceCategory.transport =>
+        'ထွက်ချိန်၊ နှုန်းထားနှင့် လာကြိုအစီအစဉ်ကို တိုက်ရိုက်အတည်ပြုပါ။',
+    };
 
     return TravelPlace(
       id: json['id'] as String,
@@ -68,7 +85,7 @@ class TravelPlace {
       category: category,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
-      area: json['area'] as String,
+      area: area,
       summary: json['summary'] as String? ?? defaultSummary,
       summaryMyanmar: json['summaryMyanmar'] as String? ?? defaultSummaryMyanmar,
       note: json['note'] as String? ?? defaultNote,
