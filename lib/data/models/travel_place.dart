@@ -5,11 +5,17 @@ TravelPlaceCategory _categoryFromJson(String rawCategory) {
     'stay' => TravelPlaceCategory.stay,
     'food' => TravelPlaceCategory.food,
     'transport' => TravelPlaceCategory.transport,
-    _ => throw FormatException('Unsupported travel place category: $rawCategory'),
+    _ => throw FormatException(
+      'Unsupported travel place category: $rawCategory',
+    ),
   };
 }
 
 class TravelPlace {
+  /// Indicative official bank rate used to make the offline catalogue useful
+  /// for local travellers. Individual venues may quote a different rate.
+  static const int mmkPerUsd = 3658;
+
   const TravelPlace({
     required this.id,
     required this.name,
@@ -29,6 +35,8 @@ class TravelPlace {
     required this.sourceName,
     required this.sourceUrl,
     required this.lastVerified,
+    this.imageUrl,
+    this.imageAttribution,
   });
 
   final String id;
@@ -49,6 +57,26 @@ class TravelPlace {
   final String sourceName;
   final String sourceUrl;
   final DateTime lastVerified;
+  final String? imageUrl;
+  final String? imageAttribution;
+
+  /// Converts the catalogue's USD planning estimates to MMK for display.
+  /// Entries without a USD amount remain unchanged rather than inventing a
+  /// local price.
+  String get localPriceEstimate =>
+      priceEstimate.replaceAllMapped(RegExp(r'US\$(\d+)'), (match) {
+        final amount = int.parse(match.group(1)!);
+        return 'MMK ${_groupThousands(amount * mmkPerUsd)}';
+      });
+
+  static String _groupThousands(int amount) {
+    final digits = amount.toString();
+    final groups = <String>[];
+    for (var end = digits.length; end > 0; end -= 3) {
+      groups.add(digits.substring(end < 3 ? 0 : end - 3, end));
+    }
+    return groups.reversed.join(',');
+  }
 
   factory TravelPlace.fromJson(Map<String, dynamic> json) {
     final category = _categoryFromJson(json['category'] as String);
@@ -56,8 +84,7 @@ class TravelPlace {
     final defaultSummary = switch (category) {
       TravelPlaceCategory.stay =>
         'A convenient stay in $area for exploring Bagan at your own pace.',
-      TravelPlaceCategory.food =>
-        'A dining stop in $area for your Bagan day.',
+      TravelPlaceCategory.food => 'A dining stop in $area for your Bagan day.',
       TravelPlaceCategory.transport =>
         'A travel service or departure point in $area for getting around Bagan.',
     };
@@ -93,7 +120,8 @@ class TravelPlace {
     final defaultPriceEstimateMyanmar = switch (category) {
       TravelPlaceCategory.stay => 'စျေးနှုန်း မေးမြန်းရန်',
       TravelPlaceCategory.food => 'အစားအသောက်အသုံးစရိတ် ကွာခြားနိုင်သည်',
-      TravelPlaceCategory.transport => 'ဝန်ဆောင်မှုပေးသူအလိုက် စျေးနှုန်းကွာခြားနိုင်သည်',
+      TravelPlaceCategory.transport =>
+        'ဝန်ဆောင်မှုပေးသူအလိုက် စျေးနှုန်းကွာခြားနိုင်သည်',
     };
     final defaultHighlights = switch (category) {
       TravelPlaceCategory.stay => <String>['Bagan base', area],
@@ -110,27 +138,32 @@ class TravelPlace {
       longitude: (json['longitude'] as num).toDouble(),
       area: area,
       summary: json['summary'] as String? ?? defaultSummary,
-      summaryMyanmar: json['summaryMyanmar'] as String? ?? defaultSummaryMyanmar,
+      summaryMyanmar:
+          json['summaryMyanmar'] as String? ?? defaultSummaryMyanmar,
       note: json['note'] as String? ?? defaultNote,
       noteMyanmar: json['noteMyanmar'] as String? ?? defaultNoteMyanmar,
-      priceEstimate:
-          json['priceEstimate'] as String? ?? defaultPriceEstimate,
-      priceEstimateMyanmar: json['priceEstimateMyanmar'] as String? ??
+      priceEstimate: json['priceEstimate'] as String? ?? defaultPriceEstimate,
+      priceEstimateMyanmar:
+          json['priceEstimateMyanmar'] as String? ??
           defaultPriceEstimateMyanmar,
-      highlights: (json['highlights'] as List<dynamic>?)
-              ?.whereType<String>()
-              .toList(growable: false) ??
+      highlights:
+          (json['highlights'] as List<dynamic>?)?.whereType<String>().toList(
+            growable: false,
+          ) ??
           defaultHighlights,
-      highlightsMyanmar: (json['highlightsMyanmar'] as List<dynamic>?)
+      highlightsMyanmar:
+          (json['highlightsMyanmar'] as List<dynamic>?)
               ?.whereType<String>()
               .toList(growable: false) ??
-          (json['highlights'] as List<dynamic>?)
-                  ?.whereType<String>()
-                  .toList(growable: false) ??
-              defaultHighlights,
+          (json['highlights'] as List<dynamic>?)?.whereType<String>().toList(
+            growable: false,
+          ) ??
+          defaultHighlights,
       sourceName: json['sourceName'] as String,
       sourceUrl: json['sourceUrl'] as String,
       lastVerified: DateTime.parse(json['lastVerified'] as String),
+      imageUrl: json['imageUrl'] as String?,
+      imageAttribution: json['imageAttribution'] as String?,
     );
   }
 }
