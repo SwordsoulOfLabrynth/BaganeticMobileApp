@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -72,6 +73,7 @@ class HomeContentScreen extends StatelessWidget {
           const DecoratedBox(
             decoration: BoxDecoration(color: Color(0x40000000)),
           ),
+          const _HeroDustOverlay(),
           Padding(
             padding: EdgeInsets.fromLTRB(20, topInset + 12, 20, 38),
             child: Column(
@@ -688,4 +690,212 @@ class _HomeAvatarInitial extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// A restrained dawn-dust layer that keeps the photograph and copy readable.
+/// It is intentionally non-interactive and honours the device motion setting.
+class _HeroDustOverlay extends StatefulWidget {
+  const _HeroDustOverlay();
+
+  @override
+  State<_HeroDustOverlay> createState() => _HeroDustOverlayState();
+}
+
+class _HeroDustOverlayState extends State<_HeroDustOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool? _reducedMotion;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 11),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (_reducedMotion == reduceMotion) return;
+    _reducedMotion = reduceMotion;
+    if (reduceMotion) {
+      _controller.stop();
+    } else {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: ExcludeSemantics(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) => CustomPaint(
+              painter: _HeroDustPainter(
+                progress: _reducedMotion == true ? 0.24 : _controller.value,
+              ),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroDustPainter extends CustomPainter {
+  const _HeroDustPainter({required this.progress});
+
+  final double progress;
+
+  // Long smoke ribbons are deliberately visible from a normal viewing
+  // distance, inspired by a game lobby's living atmospheric backdrop.
+  static const _wisps = <_DustWisp>[
+    _DustWisp(0.18, 0.68, 0.052, 0.34, 0.08),
+    _DustWisp(0.34, 0.76, 0.064, 0.28, 0.37),
+    _DustWisp(0.51, 0.64, 0.058, 0.32, 0.71),
+    _DustWisp(0.66, 0.70, 0.048, 0.24, 0.93),
+  ];
+
+  // Original small, soft motes: an accent for the smoke, not a glitter layer.
+  static const _motes = <_DustMote>[
+    _DustMote(0.03, 0.17, 1.6, 0.22, 0.11, 0.58),
+    _DustMote(0.14, 0.30, 2.3, 0.16, 0.78, 0.88),
+    _DustMote(0.24, 0.13, 1.2, 0.24, 0.36, 0.64),
+    _DustMote(0.32, 0.44, 2.8, 0.18, 0.59, 0.78),
+    _DustMote(0.40, 0.24, 1.5, 0.20, 0.17, 0.72),
+    _DustMote(0.48, 0.56, 2.0, 0.16, 0.91, 0.56),
+    _DustMote(0.55, 0.11, 2.5, 0.13, 0.46, 0.94),
+    _DustMote(0.62, 0.36, 1.4, 0.25, 0.68, 0.66),
+    _DustMote(0.69, 0.49, 3.0, 0.14, 0.29, 0.82),
+    _DustMote(0.76, 0.20, 1.9, 0.22, 0.84, 0.61),
+    _DustMote(0.82, 0.65, 2.4, 0.15, 0.52, 0.75),
+    _DustMote(0.90, 0.33, 1.3, 0.23, 0.05, 0.92),
+    _DustMote(0.96, 0.54, 2.7, 0.12, 0.72, 0.69),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final wisp in _wisps) {
+      final wave = (progress * math.pi * 2) + wisp.phase * math.pi * 2;
+      final drift = math.sin(wave) * size.width * 0.10;
+      final y =
+          wisp.y * size.height + math.cos(wave * 1.5) * size.height * 0.018;
+      final start = Offset(-size.width * 0.20 + drift, y);
+      final end = Offset(start.dx + wisp.length * size.width, y);
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..cubicTo(
+          start.dx + size.width * 0.20,
+          start.dy - size.height * 0.08,
+          end.dx - size.width * 0.24,
+          end.dy + size.height * 0.07,
+          end.dx,
+          end.dy - size.height * 0.012,
+        );
+      final intensity = 0.80 + math.sin(wave * 0.75).abs() * 0.20;
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0xFFE2A15C).withValues(
+            alpha: wisp.opacity * intensity * 0.66,
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = size.height * wisp.thickness * 3.0
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = MaskFilter.blur(
+            BlurStyle.normal,
+            size.height * wisp.thickness * 1.25,
+          ),
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0xFFFFD39A).withValues(
+            alpha: wisp.opacity * intensity,
+          )
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = size.height * wisp.thickness
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = MaskFilter.blur(
+            BlurStyle.normal,
+            size.height * wisp.thickness * 0.35,
+          ),
+      );
+    }
+
+    for (final mote in _motes) {
+      final travel = (progress * mote.speed + mote.phase) % 1.0;
+      final x = (mote.x + travel * 0.24) % 1.12 - 0.06;
+      final y = mote.y +
+          math.sin((progress * math.pi * 2) + mote.phase * math.pi) * 0.012;
+      if (x < 0 || x > 1 || y < 0 || y > 1) continue;
+
+      final shimmer = 0.72 +
+          0.28 * math.sin((progress * math.pi * 2) + mote.phase * 7);
+      final radius = mote.radius * (size.shortestSide / 360);
+      final center = Offset(x * size.width, y * size.height);
+      final color = const Color(0xFFFFE0A2).withValues(
+        alpha: mote.opacity * shimmer,
+      );
+
+      canvas.drawCircle(
+        center,
+        radius * 2.3,
+        Paint()
+          ..color = color.withValues(alpha: color.a * 0.16)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 1.5),
+      );
+      canvas.drawCircle(center, radius, Paint()..color = color);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HeroDustPainter oldDelegate) =>
+      oldDelegate.progress != progress;
+}
+
+class _DustWisp {
+  const _DustWisp(
+    this.y,
+    this.length,
+    this.thickness,
+    this.opacity,
+    this.phase,
+  );
+
+  final double y;
+  final double length;
+  final double thickness;
+  final double opacity;
+  final double phase;
+}
+
+class _DustMote {
+  const _DustMote(
+    this.x,
+    this.y,
+    this.radius,
+    this.opacity,
+    this.phase,
+    this.speed,
+  );
+
+  final double x;
+  final double y;
+  final double radius;
+  final double opacity;
+  final double phase;
+  final double speed;
 }
