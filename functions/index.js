@@ -131,15 +131,19 @@ async function assertAiQuota(uid) {
 }
 
 async function deleteQuery(query) {
-  const snapshot = await query.get();
-  if (snapshot.empty) {
-    return;
+  // A Firestore batch supports at most 500 operations. Continue in bounded
+  // batches so an account with substantial community activity is fully erased.
+  while (true) {
+    const snapshot = await query.limit(400).get();
+    if (snapshot.empty) {
+      return;
+    }
+    const batch = firestore().batch();
+    for (const doc of snapshot.docs) {
+      batch.delete(doc.ref);
+    }
+    await batch.commit();
   }
-  const batch = firestore().batch();
-  for (const doc of snapshot.docs) {
-    batch.delete(doc.ref);
-  }
-  await batch.commit();
 }
 
 exports.generateAiReply = onCall(
@@ -240,49 +244,26 @@ exports.deleteUserAccount = onCall(
     const db = firestore();
     const userRef = db.collection("users").doc(uid);
 
-    try {
-      await db.recursiveDelete(userRef);
-    } catch (error) {
-      logger.warn("recursiveDelete user doc failed", {uid, error: String(error)});
-      await userRef.delete().catch(() => undefined);
-    }
+    await db.recursiveDelete(userRef);
 
     const posts = await db
       .collection("communityPosts")
       .where("authorUserId", "==", uid)
       .get();
     for (const post of posts.docs) {
-      try {
-        await db.recursiveDelete(post.ref);
-      } catch (error) {
-        logger.warn("recursiveDelete post failed", {postId: post.id, error: String(error)});
-        await post.ref.delete().catch(() => undefined);
-      }
+      await db.recursiveDelete(post.ref);
     }
 
-    try {
-      await deleteQuery(
-        db.collectionGroup("comments").where("authorUserId", "==", uid),
-      );
-    } catch (error) {
-      logger.warn("comment cleanup skipped", {error: String(error)});
-    }
-
-    try {
-      await deleteQuery(
-        db.collectionGroup("votes").where("userId", "==", uid),
-      );
-    } catch (error) {
-      logger.warn("vote cleanup skipped", {error: String(error)});
-    }
-
-    await db.collection("aiUsage").doc(uid).delete().catch(() => undefined);
-
-    try {
-      await getStorage().bucket().file(`users/${uid}/profile.jpg`).delete();
-    } catch (error) {
-      logger.warn("profile photo cleanup skipped", {error: String(error)});
-    }
+    await deleteQuery(
+      db.collectionGroup("comments").where("authorUserId", "==", uid),
+    );
+    await deleteQuery(
+      db.collectionGroup("votes").where("userId", "==", uid),
+    );
+    await db.collection("aiUsage").doc(uid).delete();
+    await getStorage().bucket().file(`users/${uid}/profile.jpg`).delete({
+      ignoreNotFound: true,
+    });
 
     await getAuth().deleteUser(uid);
     return {deleted: true};

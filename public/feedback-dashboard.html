@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="my">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Baganetic | Feedback dashboard</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, system-ui, -apple-system, sans-serif; background: #f4f7f8; color: #16343b; }
+      body { margin: 0; } .wrap { max-width: 1180px; margin: auto; padding: 28px 18px 50px; }
+      header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:22px; }
+      h1 { margin:0 0 5px; font-size: clamp(24px, 4vw, 36px); } .muted { color:#61767c; }
+      button { border:0; border-radius:10px; padding:11px 16px; background:#0f6875; color:white; font-weight:700; cursor:pointer; } button.secondary { background:#e2ecee; color:#16434c; }
+      .panel { background:#fff; border:1px solid #dce7e9; border-radius:16px; box-shadow:0 5px 18px #15343b0d; padding:20px; margin-bottom:18px; }
+      #login { max-width:420px; margin:9vh auto; } label { display:block; font-weight:700; margin:14px 0 6px; } input, textarea, select { width:100%; box-sizing:border-box; border:1px solid #c9dadd; border-radius:9px; padding:11px; font:inherit; } textarea { min-height:90px; resize:vertical; }
+      .row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; } .stat { padding:16px; border-radius:12px; background:#eef7f7; } .stat b { display:block; font-size:28px; color:#0f6875; }
+      .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; } .toolbar input { max-width:280px; } .toolbar select { width:auto; }
+      .table-wrap { overflow:auto; } table { width:100%; border-collapse:collapse; min-width:760px; } th,td { text-align:left; padding:13px 10px; border-bottom:1px solid #e4eeee; vertical-align:top; } th { color:#557178; font-size:13px; } tr.clickable { cursor:pointer; } tr.clickable:hover { background:#f5fbfb; }
+      .rating { color:#d58b16; letter-spacing:1px; } .badge { display:inline-block; background:#e9f3f4; color:#24636c; border-radius:99px; padding:4px 9px; font-size:12px; }
+      .details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .details section { background:#f7fafb; border-radius:11px; padding:14px; } .details h3 { margin:0 0 8px; font-size:14px; color:#557178; } .details p { margin:0; white-space:pre-wrap; line-height:1.55; }
+      .error { color:#a22e2e; margin-top:12px; } .empty { padding:35px; text-align:center; color:#6b7f84; } .hide { display:none !important; }
+      @media (max-width:700px) { header { flex-direction:column; } .row { grid-template-columns:repeat(2,1fr); } .details { grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section id="login" class="panel">
+        <h1>အကြံပြုချက်များ / Feedback</h1>
+        <p class="muted">Admin only · စီမံခန့်ခွဲသူများသာ ဝင်ရောက်နိုင်သည်</p>
+        <form id="login-form"><label>Email</label><input id="email" type="email" required autocomplete="username"><label>Password</label><input id="password" type="password" required autocomplete="current-password"><p id="login-error" class="error"></p><button type="submit">ဝင်မည် / Sign in</button></form>
+      </section>
+      <section id="dashboard" class="hide">
+        <header><div><h1>Tester feedback dashboard</h1><div class="muted">အကြံပြုချက် စုစည်းမှု · First-round tester feedback</div></div><button id="sign-out" class="secondary">Sign out</button></header>
+        <div class="row"><div class="stat"><b id="total">0</b>Total / စုစုပေါင်း</div><div class="stat"><b id="avg">—</b>Average rating / ပျမ်းမျှအမှတ်</div><div class="stat"><b id="would-use">—</b>Would use / ဆက်သုံးမည်</div><div class="stat"><b id="issues">0</b>Reported issues / ပြဿနာ</div></div>
+        <section class="panel"><div class="toolbar"><input id="search" placeholder="Search / ရှာရန်"><select id="rating-filter"><option value="">All ratings</option><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option><option value="0">No rating</option></select><button id="refresh">Refresh</button></div></section>
+        <section class="panel"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Name / Device</th><th>Rating</th><th>Would use</th><th>Summary</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hide">No feedback found.</div></div></section>
+        <section id="detail" class="panel hide"><h2 id="detail-title">Feedback details</h2><div class="details" id="detail-content"></div></section>
+      </section>
+    </main>
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+      import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+      import { collection, getDocs, getFirestore, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+      const app = initializeApp({ apiKey:'AIzaSyBCPoRPdPB6p74PmXqTJrjh4z_BdPDiVhs', authDomain:'baganetic-mobile.firebaseapp.com', projectId:'baganetic-mobile', storageBucket:'baganetic-mobile.firebasestorage.app', messagingSenderId:'1076087639842', appId:'1:1076087639842:web:1b6a0aa3b4e9497428df7b' });
+      const auth = getAuth(app), db = getFirestore(app, 'baganetic-mobile'); let records = [];
+      const $ = (id) => document.getElementById(id); const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      $('login-form').addEventListener('submit', async (e) => { e.preventDefault(); $('login-error').textContent=''; try { await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value); } catch { $('login-error').textContent='Sign-in failed. Check your admin email and password.'; } });
+      $('sign-out').addEventListener('click', () => signOut(auth)); $('refresh').addEventListener('click', load); $('search').addEventListener('input', render); $('rating-filter').addEventListener('change', render);
+      onAuthStateChanged(auth, async (user) => { $('login').classList.toggle('hide', !!user); $('dashboard').classList.toggle('hide', !user); if (user) await load(); });
+      async function load() { $('rows').innerHTML='<tr><td colspan="5">Loading…</td></tr>'; try { const snap=await getDocs(query(collection(db,'feedbacks'), orderBy('createdAt','desc'))); records=snap.docs.map(d=>({id:d.id,...d.data()})); render(); } catch { $('rows').innerHTML='<tr><td colspan="5" class="error">Could not load feedback. Your account may not be an administrator.</td></tr>'; } }
+      function date(v) { if (!v) return '—'; const d=v.toDate ? v.toDate() : new Date(v); return isNaN(d) ? '—' : d.toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'}); }
+      function render() { const text=$('search').value.toLowerCase(); const rf=$('rating-filter').value; const shown=records.filter(r => (!rf || String(Number(r.rating)||0)===rf) && (!text || JSON.stringify(r).toLowerCase().includes(text))); $('total').textContent=records.length; const rated=records.map(r=>Number(r.rating)).filter(Number.isFinite).filter(n=>n>0); $('avg').textContent=rated.length ? (rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1) : '—'; const yes=records.filter(r=>Number(r.wouldUse)>=4).length; $('would-use').textContent=records.length ? `${Math.round(yes/records.length*100)}%` : '—'; $('issues').textContent=records.filter(r=>r.issueDetails || r.confusing).length; $('empty').classList.toggle('hide', shown.length>0); $('rows').innerHTML=shown.map((r,i)=>`<tr class="clickable" data-index="${records.indexOf(r)}"><td>${esc(date(r.createdAt))}</td><td><b>${esc(r.userName||'Anonymous')}</b><br><span class="muted">${esc(r.device||'—')}</span></td><td><span class="rating">${'★'.repeat(Math.max(0,Math.min(5,Number(r.rating)||0)))}${'☆'.repeat(5-Math.max(0,Math.min(5,Number(r.rating)||0)))}</span></td><td>${Number(r.wouldUse)>=4?'✅':'—'}</td><td>${esc((r.comment||r.suggestion||'').slice(0,140))}</td></tr>`).join(''); document.querySelectorAll('tr[data-index]').forEach(row=>row.addEventListener('click',()=>showDetail(records[Number(row.dataset.index)]))); }
+      function showDetail(r) { $('detail').classList.remove('hide'); $('detail-title').textContent=`${r.userName||'Anonymous'} · ${date(r.createdAt)}`; const fields=[['Device / ဖုန်း',r.device],['Rating / အမှတ်',`${r.rating||'—'} / 5`],['Would use / ဆက်သုံးမည်',r.wouldUse>=4?'Yes / ဟုတ်ကဲ့':'No or unsure / မသေချာ'],['Completed tasks',Array.isArray(r.completedTasks)?r.completedTasks.join(', '):r.completedTasks],['What worked / ကောင်းသောအချက်',r.comment],['Confusing / မရှင်းလင်းသောအချက်',r.confusing],['Issues / ပြဿနာ',r.issueDetails],['Suggestions / အကြံပြုချက်',r.suggestion],['Follow-up contact',r.contact]]; $('detail-content').innerHTML=fields.map(([h,v])=>`<section><h3>${esc(h)}</h3><p>${esc(v||'—')}</p></section>`).join(''); $('detail').scrollIntoView({behavior:'smooth',block:'start'}); }
+    </script>
+  </body>
+</html>

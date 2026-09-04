@@ -10,7 +10,7 @@ void main() {
     () async {
       final places = await const TravelPlaceDataService().loadPlaces();
 
-      expect(places, hasLength(20));
+      expect(places, hasLength(26));
       expect(places.map((place) => place.id).toSet(), hasLength(places.length));
       expect(
         places
@@ -30,6 +30,15 @@ void main() {
             .length,
         6,
       );
+      final photoSpots = places
+          .where((place) => place.category == TravelPlaceCategory.scenery)
+          .toList(growable: false);
+      expect(photoSpots, hasLength(6));
+      for (final photoSpot in photoSpots) {
+        expect(photoSpot.bestTime, isNotEmpty);
+        expect(photoSpot.seasonNote, isNotEmpty);
+        expect(photoSpot.photoTip, isNotEmpty);
+      }
       for (final place in places) {
         expect(place.sourceUrl, startsWith('https://'));
         expect(place.latitude, inInclusiveRange(-90, 90));

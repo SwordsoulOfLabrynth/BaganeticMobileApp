@@ -49,7 +49,6 @@ class DefaultFirebaseOptions {
     projectId: 'baganetic-mobile',
     storageBucket: 'baganetic-mobile.firebasestorage.app',
     authDomain: 'baganetic-mobile.firebaseapp.com',
-    measurementId: 'G-XXXXXXXXXX', // Optional: Add if using Analytics
   );
 
   // Desktop Firebase config. Generated via FlutterFire for desktop or
@@ -61,7 +60,6 @@ class DefaultFirebaseOptions {
     projectId: 'baganetic-mobile',
     storageBucket: 'baganetic-mobile.firebasestorage.app',
     authDomain: 'baganetic-mobile.firebaseapp.com',
-    measurementId: 'G-XXXXXXXXXX',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
@@ -71,7 +69,6 @@ class DefaultFirebaseOptions {
     projectId: 'baganetic-mobile',
     storageBucket: 'baganetic-mobile.firebasestorage.app',
     authDomain: 'baganetic-mobile.firebaseapp.com',
-    measurementId: 'G-XXXXXXXXXX',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -81,6 +78,5 @@ class DefaultFirebaseOptions {
     projectId: 'baganetic-mobile',
     storageBucket: 'baganetic-mobile.firebasestorage.app',
     authDomain: 'baganetic-mobile.firebaseapp.com',
-    measurementId: 'G-XXXXXXXXXX',
   );
 }

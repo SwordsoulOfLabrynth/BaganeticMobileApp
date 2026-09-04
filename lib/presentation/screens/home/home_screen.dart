@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/services/ai_chatbot_service.dart';
 import '../../../core/utils/ai_assistant_launcher.dart';
 import 'home_content_screen.dart';
-import '../pagodas/pagodas_list_screen.dart';
+import '../discover/discover_screen.dart';
 import '../map/map_screen.dart';
 import '../community/community_feed_screen.dart';
 import '../chat/chat_screen.dart';
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> _buildScreens() => [
     HomeContentScreen(onNavigateToTab: _onNavigateToTab), // 0
-    const PagodasListScreen(), // 1
+    const DiscoverScreen(), // 1
     MapScreen(initialPagoda: widget.initialMapPagoda), // 2
     const CommunityFeedScreen(), // 3
     ProfileScreen(onBack: () => _onNavigateToTab(0)), // 4
@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    // Navigation order: Home, Pagodas, Map, Community (Profile = avatar in app bar)
+    // Navigation order: Home, Discover, Map, Community (Profile = avatar in app bar)
     final navigationItems = [
       NavigationItem(
         icon: Icons.home,
@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       NavigationItem(
         icon: Icons.temple_buddhist,
-        label: l10n.translate('nav.pagodas'),
+        label: l10n.translate('nav.discover'),
         index: 1,
       ),
       NavigationItem(
@@ -181,7 +181,7 @@ class _StitchBottomNavigation extends StatelessWidget {
     final l10n = context.l10n;
     final items = <(IconData, String, int)>[
       (Icons.home_outlined, l10n.translate('nav.home'), 0),
-      (Icons.temple_buddhist_outlined, l10n.translate('nav.pagodas'), 1),
+      (Icons.explore_outlined, l10n.translate('nav.discover'), 1),
       (Icons.map_outlined, l10n.translate('nav.map'), 2),
       (Icons.forum_outlined, l10n.translate('nav.community'), 3),
     ];

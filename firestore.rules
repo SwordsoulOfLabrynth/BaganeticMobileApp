@@ -64,6 +64,13 @@ service cloud.firestore {
         && request.resource.data.postId is string;
     }
 
+    function isFriendFeedbackSubmission() {
+      return request.resource.data.testVersion == 'friends-v1'
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0
+        && request.resource.data.comment.size() <= 1600;
+    }
+
     match /users/{userId} {
       allow read, write: if isOwner(userId) || isAdmin();
 
@@ -78,7 +85,10 @@ service cloud.firestore {
     }
 
     match /feedbacks/{feedbackId} {
-      allow read, write: if false;
+      // First-round tester feedback is write-only to everyone except admins.
+      // This prevents one tester from seeing another tester's response.
+      allow create: if isFriendFeedbackSubmission();
+      allow read, update, delete: if isAdmin();
     }
 
     match /roadReports/{reportId} {

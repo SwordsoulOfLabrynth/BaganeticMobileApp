@@ -1,10 +1,11 @@
-enum TravelPlaceCategory { stay, food, transport }
+enum TravelPlaceCategory { stay, food, transport, scenery }
 
 TravelPlaceCategory _categoryFromJson(String rawCategory) {
   return switch (rawCategory) {
     'stay' => TravelPlaceCategory.stay,
     'food' => TravelPlaceCategory.food,
     'transport' => TravelPlaceCategory.transport,
+    'scenery' => TravelPlaceCategory.scenery,
     _ => throw FormatException(
       'Unsupported travel place category: $rawCategory',
     ),
@@ -32,6 +33,12 @@ class TravelPlace {
     required this.priceEstimateMyanmar,
     required this.highlights,
     required this.highlightsMyanmar,
+    this.bestTime,
+    this.bestTimeMyanmar,
+    this.seasonNote,
+    this.seasonNoteMyanmar,
+    this.photoTip,
+    this.photoTipMyanmar,
     required this.sourceName,
     required this.sourceUrl,
     required this.lastVerified,
@@ -52,6 +59,12 @@ class TravelPlace {
   final String priceEstimateMyanmar;
   final List<String> highlights;
   final List<String> highlightsMyanmar;
+  final String? bestTime;
+  final String? bestTimeMyanmar;
+  final String? seasonNote;
+  final String? seasonNoteMyanmar;
+  final String? photoTip;
+  final String? photoTipMyanmar;
   final String sourceName;
   final String sourceUrl;
   final DateTime lastVerified;
@@ -83,6 +96,8 @@ class TravelPlace {
       TravelPlaceCategory.food => 'A dining stop in $area for your Bagan day.',
       TravelPlaceCategory.transport =>
         'A travel service or departure point in $area for getting around Bagan.',
+      TravelPlaceCategory.scenery =>
+        'A ground-level photo location for Bagan light and landscape.',
     };
     final defaultSummaryMyanmar = switch (category) {
       TravelPlaceCategory.stay =>
@@ -91,6 +106,8 @@ class TravelPlace {
         '$area တွင် ခရီးသွားရင်း စားသောက်နားနေနိုင်သောနေရာ။',
       TravelPlaceCategory.transport =>
         '$area တွင် ပုဂံအတွင်း သွားလာရန် ဝန်ဆောင်မှု သို့မဟုတ် ထွက်ခွာရာနေရာ။',
+      TravelPlaceCategory.scenery =>
+        '$area တွင် ပုဂံ၏ အလင်းရောင်နှင့် ရှုခင်းကို မြေပြင်မှ ဓာတ်ပုံရိုက်နိုင်သောနေရာ။',
     };
     final defaultNote = switch (category) {
       TravelPlaceCategory.stay =>
@@ -99,6 +116,8 @@ class TravelPlace {
         'Menus and opening times can change, so check before visiting.',
       TravelPlaceCategory.transport =>
         'Confirm schedules, fares, and pickup arrangements directly.',
+      TravelPlaceCategory.scenery =>
+        'Use only public ground or designated viewpoints. Never climb monuments for a photo.',
     };
     final defaultNoteMyanmar = switch (category) {
       TravelPlaceCategory.stay =>
@@ -107,22 +126,27 @@ class TravelPlace {
         'မီနူးနှင့် ဖွင့်ချိန် ပြောင်းလဲနိုင်သောကြောင့် မသွားမီ စစ်ဆေးပါ။',
       TravelPlaceCategory.transport =>
         'ထွက်ချိန်၊ နှုန်းထားနှင့် လာကြိုအစီအစဉ်ကို တိုက်ရိုက်အတည်ပြုပါ။',
+      TravelPlaceCategory.scenery =>
+        'အများသုံးမြေပြင် သို့မဟုတ် သတ်မှတ်ထားသောကြည့်ရှုရာနေရာမှသာ ဓာတ်ပုံရိုက်ပါ။ ဓာတ်ပုံအတွက် အဆောက်အအုံမတက်ပါနှင့်။',
     };
     final defaultPriceEstimate = switch (category) {
       TravelPlaceCategory.stay => 'Price on request',
       TravelPlaceCategory.food => 'Typical meal budget varies',
       TravelPlaceCategory.transport => 'Price varies by operator',
+      TravelPlaceCategory.scenery => 'Ground-level photo spot',
     };
     final defaultPriceEstimateMyanmar = switch (category) {
       TravelPlaceCategory.stay => 'စျေးနှုန်း မေးမြန်းရန်',
       TravelPlaceCategory.food => 'အစားအသောက်အသုံးစရိတ် ကွာခြားနိုင်သည်',
       TravelPlaceCategory.transport =>
         'ဝန်ဆောင်မှုပေးသူအလိုက် စျေးနှုန်းကွာခြားနိုင်သည်',
+      TravelPlaceCategory.scenery => 'မြေပြင်မှ ဓာတ်ပုံရိုက်နိုင်သောနေရာ',
     };
     final defaultHighlights = switch (category) {
       TravelPlaceCategory.stay => <String>['Bagan base', area],
       TravelPlaceCategory.food => <String>['Dining stop', area],
       TravelPlaceCategory.transport => <String>['Travel planning', area],
+      TravelPlaceCategory.scenery => <String>['Photo spot', 'Ground-level view'],
     };
 
     return TravelPlace(
@@ -155,6 +179,12 @@ class TravelPlace {
             growable: false,
           ) ??
           defaultHighlights,
+      bestTime: json['bestTime'] as String?,
+      bestTimeMyanmar: json['bestTimeMyanmar'] as String?,
+      seasonNote: json['seasonNote'] as String?,
+      seasonNoteMyanmar: json['seasonNoteMyanmar'] as String?,
+      photoTip: json['photoTip'] as String?,
+      photoTipMyanmar: json['photoTipMyanmar'] as String?,
       sourceName: json['sourceName'] as String,
       sourceUrl: json['sourceUrl'] as String,
       lastVerified: DateTime.parse(json['lastVerified'] as String),

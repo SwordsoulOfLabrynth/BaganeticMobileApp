@@ -35,13 +35,7 @@ import '../../../core/localization/app_localizations.dart';
 
 enum MapTripMode { browse, path, trips }
 
-enum MapBrowseCategory { all, pagodas, stays, food, transport }
-
-const _featuredTravelPlaceIds = {
-  'thiripyitsaya-sanctuary-resort',
-  'the-moon-vegetarian',
-  'e-scooter-rent',
-};
+enum MapBrowseCategory { all, pagodas, stays, food, transport, scenery }
 
 class MapScreen extends StatefulWidget {
   final Pagoda? initialPagoda;
@@ -966,8 +960,6 @@ class _MapScreenState extends State<MapScreen>
               : const <Pagoda>[];
           final browseTravelPlaces = _browseCategory == MapBrowseCategory.all
               ? travelPlaces
-                  .where((place) => _featuredTravelPlaceIds.contains(place.id))
-                  .toList()
               : travelPlaces
                   .where(
                     (place) => place.category == _travelPlaceCategoryForBrowse(),
@@ -1262,8 +1254,8 @@ class _MapScreenState extends State<MapScreen>
                   right: 84,
                   bottom: 24,
                   child: _buildBrowseOverviewControl(
-                    pagodas,
-                    travelPlaces,
+                    browsePagodas,
+                    browseTravelPlaces,
                   ),
                 ),
               if (_mode == MapTripMode.browse)
@@ -1569,13 +1561,9 @@ class _MapScreenState extends State<MapScreen>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Material(
-        color: const Color(0xFFFFFBF3).withValues(alpha: 0.97),
+        color: const Color(0xFFFFFBF3).withValues(alpha: .97),
         borderRadius: BorderRadius.circular(14),
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Color(0xFFE7D5BC)),
-        ),
         child: SizedBox(
           height: 44,
           child: Row(
@@ -1591,12 +1579,7 @@ class _MapScreenState extends State<MapScreen>
                   onTap: () => _selectBrowseCategory(MapBrowseCategory.all),
                 ),
               ),
-              for (final category in MapBrowseCategory.values.skip(1)) ...[
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: const Color(0xFFE7D5BC),
-                ),
+              for (final category in MapBrowseCategory.values.skip(1))
                 Expanded(
                   child: _MapCategoryChip(
                     label: _browseCategoryLabel(category),
@@ -1606,7 +1589,6 @@ class _MapScreenState extends State<MapScreen>
                     onTap: () => _selectBrowseCategory(category),
                   ),
                 ),
-              ],
             ],
           ),
         ),
@@ -1676,6 +1658,7 @@ class _MapScreenState extends State<MapScreen>
         MapBrowseCategory.stays => 'map.category.stays',
         MapBrowseCategory.food => 'map.category.food',
         MapBrowseCategory.transport => 'map.category.transport',
+        MapBrowseCategory.scenery => 'map.category.scenery',
       },
     );
   }
@@ -1687,6 +1670,7 @@ class _MapScreenState extends State<MapScreen>
       MapBrowseCategory.stays => Icons.bed_rounded,
       MapBrowseCategory.food => Icons.restaurant_rounded,
       MapBrowseCategory.transport => Icons.directions_transit_rounded,
+      MapBrowseCategory.scenery => Icons.photo_camera_outlined,
     };
   }
 
@@ -1697,6 +1681,7 @@ class _MapScreenState extends State<MapScreen>
       MapBrowseCategory.stays => const Color(0xFF91624E),
       MapBrowseCategory.food => const Color(0xFF9A512E),
       MapBrowseCategory.transport => const Color(0xFF166B91),
+      MapBrowseCategory.scenery => const Color(0xFF7A4B2C),
     };
   }
 
@@ -1705,7 +1690,19 @@ class _MapScreenState extends State<MapScreen>
       MapBrowseCategory.stays => TravelPlaceCategory.stay,
       MapBrowseCategory.food => TravelPlaceCategory.food,
       MapBrowseCategory.transport => TravelPlaceCategory.transport,
+      MapBrowseCategory.scenery => TravelPlaceCategory.scenery,
       MapBrowseCategory.all || MapBrowseCategory.pagodas => null,
+    };
+  }
+
+  MapBrowseCategory _browseCategoryForTravelPlace(
+    TravelPlaceCategory category,
+  ) {
+    return switch (category) {
+      TravelPlaceCategory.stay => MapBrowseCategory.stays,
+      TravelPlaceCategory.food => MapBrowseCategory.food,
+      TravelPlaceCategory.transport => MapBrowseCategory.transport,
+      TravelPlaceCategory.scenery => MapBrowseCategory.scenery,
     };
   }
 
@@ -3316,6 +3313,7 @@ class _MapScreenState extends State<MapScreen>
       TravelPlaceCategory.stay => Icons.bed_rounded,
       TravelPlaceCategory.food => Icons.restaurant_rounded,
       TravelPlaceCategory.transport => Icons.directions_transit_rounded,
+      TravelPlaceCategory.scenery => Icons.photo_camera_outlined,
     };
   }
 
@@ -3324,6 +3322,7 @@ class _MapScreenState extends State<MapScreen>
       TravelPlaceCategory.stay => const Color(0xFF91624E),
       TravelPlaceCategory.food => const Color(0xFF9A512E),
       TravelPlaceCategory.transport => const Color(0xFF166B91),
+      TravelPlaceCategory.scenery => const Color(0xFF7A4B2C),
     };
   }
 
@@ -3547,7 +3546,7 @@ class _MapScreenState extends State<MapScreen>
                         children: [
                           Expanded(
                             child: Text(
-                              '${_browseCategoryLabel(_browseCategory)}  •  ${place.area}',
+                              '${_browseCategoryLabel(_browseCategoryForTravelPlace(place.category))}  •  ${place.area}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.labelSmall?.copyWith(
@@ -3587,16 +3586,37 @@ class _MapScreenState extends State<MapScreen>
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        note,
+                       Text(
+                         note,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: const Color(0xFF5C534C),
                           height: 1.25,
-                        ),
-                      ),
-                    ],
+                         ),
+                       ),
+                       const SizedBox(height: 2),
+                       Align(
+                         alignment: Alignment.centerRight,
+                         child: TextButton.icon(
+                           onPressed: () => Navigator.of(context).push(
+                             MaterialPageRoute<void>(
+                               builder: (_) => TravelPlaceDetailScreen(
+                                 place: place,
+                               ),
+                             ),
+                           ),
+                           icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                           label: Text(
+                             context.l10n.translate('common.viewDetails'),
+                           ),
+                           style: TextButton.styleFrom(
+                             foregroundColor: color,
+                             minimumSize: const Size(48, 48),
+                           ),
+                         ),
+                       ),
+                     ],
                   ),
                 ),
               ],

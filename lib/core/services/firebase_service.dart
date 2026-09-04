@@ -191,43 +191,22 @@ class FirebaseService {
       );
       await user.reauthenticateWithCredential(credential);
 
-      try {
-        await FirebaseFunctions.instanceFor(region: _functionsRegion)
-            .httpsCallable(
-              'deleteUserAccount',
-              options: HttpsCallableOptions(
-                timeout: const Duration(seconds: 60),
-              ),
-            )
-            .call();
-        return;
-      } catch (e, st) {
-        Logger.error(
-          'FirebaseService: deleteUserAccount function failed, using client fallback',
-          e,
-          st,
-        );
-      }
-
-      await _deleteOwnedCloudData(user.uid);
-      await user.delete();
+      // Account deletion spans profile data, community activity, AI usage, and
+      // Storage. It must be performed by the trusted Cloud Function; a client
+      // fallback can only remove part of that data and would incorrectly report
+      // a completed deletion.
+      await FirebaseFunctions.instanceFor(region: _functionsRegion)
+          .httpsCallable(
+            'deleteUserAccount',
+            options: HttpsCallableOptions(
+              timeout: const Duration(seconds: 60),
+            ),
+          )
+          .call();
     } catch (e, st) {
       final failure = _handleAuthException(e);
       Logger.error('FirebaseService: Delete account failed', e, st);
       throw failure;
-    }
-  }
-
-  Future<void> _deleteOwnedCloudData(String uid) async {
-    final firestore = _firestoreOrNull;
-    if (firestore != null) {
-      await firestore.collection('users').doc(uid).delete();
-    }
-
-    try {
-      await _storageOrNull?.ref().child('users/$uid/profile.jpg').delete();
-    } catch (e, st) {
-      Logger.error('FirebaseService: Profile photo delete skipped', e, st);
     }
   }
 

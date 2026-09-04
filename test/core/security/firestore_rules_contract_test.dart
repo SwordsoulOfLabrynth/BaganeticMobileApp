@@ -20,4 +20,17 @@ void main() {
     expect(functions, contains('incrementCommunityVoteCount'));
     expect(functions, contains('decrementCommunityVoteCount'));
   });
+
+  test('account deletion is server-owned and processes every matching record', () {
+    final functions = File('functions/index.js').readAsStringSync();
+    final service = File(
+      'lib/core/services/firebase_service.dart',
+    ).readAsStringSync();
+
+    expect(functions, contains("exports.deleteUserAccount = onCall"));
+    expect(functions, contains('query.limit(400).get()'));
+    expect(functions, contains('ignoreNotFound: true'));
+    expect(service, isNot(contains('using client fallback')));
+    expect(service, isNot(contains('_deleteOwnedCloudData')));
+  });
 }

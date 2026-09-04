@@ -78,7 +78,7 @@ class PagodasListScreen extends StatelessWidget {
                     itemCount: pagodas.length,
                     separatorBuilder: (context, index) =>
                         const Divider(height: 48, color: Color(0x33C19A49)),
-                    itemBuilder: (context, index) => _JournalPagodaEntry(
+                    itemBuilder: (context, index) => JournalPagodaEntry(
                       pagoda: pagodas[index],
                       reversed: index.isOdd,
                       imageAsset: _imageAssetFor(pagodas[index].id),
@@ -199,8 +199,9 @@ class PagodasListScreen extends StatelessWidget {
   };
 }
 
-class _JournalPagodaEntry extends StatelessWidget {
-  const _JournalPagodaEntry({
+class JournalPagodaEntry extends StatelessWidget {
+  const JournalPagodaEntry({
+    super.key,
     required this.pagoda,
     required this.reversed,
     required this.imageAsset,

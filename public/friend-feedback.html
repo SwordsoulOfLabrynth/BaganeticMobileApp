@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="my">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Baganetic first-friends tester feedback form.">
+    <title>Baganetic | Tester feedback</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+      form { display: grid; gap: 22px; margin-top: 28px; }
+      fieldset { border: 1px solid #ead7be; border-radius: 12px; padding: 16px; }
+      legend { color: #7d351e; font-weight: 700; padding: 0 6px; }
+      label { display: grid; gap: 7px; font-weight: 600; }
+      input, textarea, select, button { font: inherit; }
+      input, textarea, select { border: 1px solid #cfbfa9; border-radius: 8px; box-sizing: border-box; padding: 10px; width: 100%; }
+      textarea { min-height: 96px; resize: vertical; }
+      .checks { display: grid; gap: 10px; }
+      .checks label { align-items: start; display: flex; font-weight: 400; gap: 9px; }
+      .checks input { margin-top: 5px; width: auto; }
+      button { background: #8b3e24; border: 0; border-radius: 10px; color: #fff; cursor: pointer; font-weight: 700; padding: 13px 18px; }
+      button:disabled { cursor: wait; opacity: .6; }
+      #status { font-weight: 700; }
+      .note { color: #67584a; font-size: .94rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow"><a href="/">Baganetic</a></p>
+      <h1>ပထမအကြိမ် စမ်းသပ်သူ အကြံပြုချက်</h1>
+      <p class="lead">Baganetic ကို စမ်းသပ်ပေးသည့်အတွက် ကျေးဇူးတင်ပါတယ်။ အမှားတွေ၊ မရှင်းတာတွေကို ပွင့်ပွင့်လင်းလင်း ရေးပေးပါ။</p>
+      <p class="note">Thank you for testing Baganetic. Your response is private and will be used only to improve this first test build.</p>
+
+      <form id="feedback-form">
+        <fieldset>
+          <legend>သင့်အကြောင်း / About you</legend>
+          <label>အမည် (မဖြည့်လည်းရသည်) / Name (optional)<input name="userName" maxlength="80"></label>
+          <label>ဖုန်းအမျိုးအစား / Phone model<input name="device" maxlength="120" placeholder="ဥပမာ: Samsung A54" required></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>စမ်းသပ်ခဲ့သောအရာ / What you tried</legend>
+          <div class="checks">
+            <label><input type="checkbox" name="task" value="Pagoda search and details">ဘုရားရှာဖွေပြီး အချက်အလက်ကြည့်ခြင်း / Find a pagoda</label>
+            <label><input type="checkbox" name="task" value="Map and location permission">မြေပုံနှင့် location permission / Map and location</label>
+            <label><input type="checkbox" name="task" value="Trip or route planning">ခရီးစဉ် သို့မဟုတ် route ဖန်တီးခြင်း / Plan a trip</label>
+            <label><input type="checkbox" name="task" value="Travel places discovery">စားသောက်ဆိုင်၊ နေရာများကြည့်ခြင်း / Browse travel places</label>
+            <label><input type="checkbox" name="task" value="Guest or account flow">Guest mode သို့မဟုတ် account flow / Guest or account</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>သင့်အမြင် / Your experience</legend>
+          <label>အသုံးပြုရ လွယ်ကူမှု (1 = ခက်, 5 = အလွန်လွယ်) / Ease of use<select name="rating" required><option value="">ရွေးပါ / Choose</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
+          <label>ပုဂံသွားရင် ဒီအက်ပ်ကို အသုံးပြုမလား? (0–10) / Would you use it in Bagan?<select name="wouldUse" required><option value="">ရွေးပါ / Choose</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></label>
+          <label>အကြိုက်ဆုံး သို့မဟုတ် အများဆုံးအသုံးဝင်သောအရာ / What did you like most?<textarea name="comment" maxlength="1600" required></textarea></label>
+          <label>နားမလည်ခဲ့သောအရာ / What was confusing?<textarea name="confusing" maxlength="1200"></textarea></label>
+          <label>အမှား၊ နှေးကွေးမှု၊ မတက်မှု / Bugs, slowness, or failed screens<textarea name="issueDetails" maxlength="1600"></textarea></label>
+          <label>ထပ်ထည့်စေချင်သောအရာ / One improvement you want<textarea name="suggestion" maxlength="1200"></textarea></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>နောက်ထပ် ဆက်သွယ်ရန် / Follow-up</legend>
+          <div class="checks"><label><input type="checkbox" name="followUp">မေးခွန်းရှိလျှင် ပြန်ဆက်သွယ်လို့ရသည် / You may contact me again</label></div>
+          <label>ဖုန်း/အီးမေးလ် (optional) / Contact (optional)<input name="contact" maxlength="120"></label>
+        </fieldset>
+
+        <button type="submit">အကြံပြုချက် ပို့မည် / Send feedback</button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </form>
+      <p class="contact"><a href="/privacy.html">Privacy policy</a></p>
+    </main>
+
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+      import { addDoc, collection, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+
+      const app = initializeApp({
+        apiKey: 'AIzaSyBCPoRPdPB6p74PmXqTJrjh4z_BdPDiVhs',
+        authDomain: 'baganetic-mobile.firebaseapp.com',
+        projectId: 'baganetic-mobile',
+        storageBucket: 'baganetic-mobile.firebasestorage.app',
+        messagingSenderId: '1076087639842',
+        appId: '1:1076087639842:web:1b6a0aa3b4e9497428df7b',
+      });
+      const db = getFirestore(app, 'baganetic-mobile');
+      const form = document.getElementById('feedback-form');
+      const status = document.getElementById('status');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        const data = new FormData(form);
+        button.disabled = true;
+        status.textContent = 'ပို့နေပါသည်… / Sending…';
+        try {
+          await addDoc(collection(db, 'feedbacks'), {
+            testVersion: 'friends-v1',
+            userName: String(data.get('userName') || '').trim(),
+            device: String(data.get('device') || '').trim(),
+            rating: Number(data.get('rating')),
+            completedTasks: data.getAll('task'),
+            comment: String(data.get('comment') || '').trim(),
+            confusing: String(data.get('confusing') || '').trim(),
+            issueDetails: String(data.get('issueDetails') || '').trim(),
+            suggestion: String(data.get('suggestion') || '').trim(),
+            wouldUse: Number(data.get('wouldUse')),
+            followUp: data.get('followUp') === 'on',
+            contact: String(data.get('contact') || '').trim(),
+            pagodaName: 'Friend test',
+            pagodaId: 'friends-v1',
+            createdAt: serverTimestamp(),
+          });
+          form.reset();
+          status.textContent = 'ကျေးဇူးတင်ပါတယ်။ အကြံပြုချက်ကို သိမ်းပြီးပါပြီ။ / Thank you — your feedback was saved.';
+        } catch (error) {
+          console.error(error);
+          status.textContent = 'မပို့နိုင်သေးပါ။ အင်တာနက်စစ်ပြီး ပြန်ပို့ပါ။ / Could not send. Check your internet and try again.';
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
