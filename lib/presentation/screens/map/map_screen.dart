@@ -1080,7 +1080,10 @@ class _MapScreenState extends State<MapScreen>
                         showPolygon: false,
                         markerChildBehavior: true,
                         builder: (context, clusteredMarkers) =>
-                            _MapClusterMarker(count: clusteredMarkers.length),
+                            _MapClusterMarker(
+                              count: clusteredMarkers.length,
+                              color: _browseCategoryColor(_browseCategory),
+                            ),
                       ),
                     )
                   else
@@ -1452,7 +1455,6 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Widget _buildCategoryFilters() {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Material(
@@ -1468,7 +1470,7 @@ class _MapScreenState extends State<MapScreen>
                 child: _MapCategoryChip(
                   label: context.l10n.translate('map.allPlaces'),
                   icon: _browseCategoryIcon(MapBrowseCategory.all),
-                  color: theme.colorScheme.primary,
+                  color: _browseCategoryColor(MapBrowseCategory.all),
                   selected: _browseCategory == MapBrowseCategory.all,
                   showLabel: true,
                   onTap: () => _selectBrowseCategory(MapBrowseCategory.all),
@@ -1479,7 +1481,7 @@ class _MapScreenState extends State<MapScreen>
                   child: _MapCategoryChip(
                     label: _browseCategoryLabel(category),
                     icon: _browseCategoryIcon(category),
-                    color: theme.colorScheme.primary,
+                    color: _browseCategoryColor(category),
                     selected: _browseCategory == category,
                     onTap: () => _selectBrowseCategory(category),
                   ),
@@ -1572,11 +1574,13 @@ class _MapScreenState extends State<MapScreen>
   Color _browseCategoryColor(MapBrowseCategory category) {
     return switch (category) {
       MapBrowseCategory.all => const Color(0xFFA34A2A),
-      MapBrowseCategory.pagodas => const Color(0xFF9B6B20),
-      MapBrowseCategory.stays => const Color(0xFF91624E),
-      MapBrowseCategory.food => const Color(0xFF9A512E),
-      MapBrowseCategory.transport => const Color(0xFF166B91),
-      MapBrowseCategory.scenery => const Color(0xFF7A4B2C),
+      // Category hues are deliberately distinct so the icon-only filters can
+      // be recognized at a glance, including when one is selected.
+      MapBrowseCategory.pagodas => const Color(0xFF8A5A12),
+      MapBrowseCategory.stays => const Color(0xFF5C527F),
+      MapBrowseCategory.food => const Color(0xFFBE123C),
+      MapBrowseCategory.transport => const Color(0xFF006D77),
+      MapBrowseCategory.scenery => const Color(0xFF2F7A49),
     };
   }
 
@@ -3058,12 +3062,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Color _travelPlaceColor(TravelPlaceCategory category) {
-    return switch (category) {
-      TravelPlaceCategory.stay => const Color(0xFF91624E),
-      TravelPlaceCategory.food => const Color(0xFF9A512E),
-      TravelPlaceCategory.transport => const Color(0xFF166B91),
-      TravelPlaceCategory.scenery => const Color(0xFF7A4B2C),
-    };
+    return _browseCategoryColor(_browseCategoryForTravelPlace(category));
   }
 
   List<Marker> _buildTravelPlaceMarkers(List<TravelPlace> places) {
@@ -3160,7 +3159,11 @@ class _MapScreenState extends State<MapScreen>
                 padding: const EdgeInsets.all(72),
               ),
             ),
-            child: _MapAreaMarker(label: label, count: areaPagodas.length),
+            child: _MapAreaMarker(
+              label: label,
+              count: areaPagodas.length,
+              color: _browseCategoryColor(_browseCategory),
+            ),
           ),
         ),
       );
@@ -3969,14 +3972,15 @@ class _TravelPlaceMapMarker extends StatelessWidget {
 
 class _MapClusterMarker extends StatelessWidget {
   final int count;
+  final Color color;
 
-  const _MapClusterMarker({required this.count});
+  const _MapClusterMarker({required this.count, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFA34A2A),
+        color: color,
         shape: BoxShape.circle,
         border: Border.all(color: const Color(0xFFFFFBF3), width: 2),
         boxShadow: [
@@ -4004,8 +4008,13 @@ class _MapClusterMarker extends StatelessWidget {
 class _MapAreaMarker extends StatelessWidget {
   final String label;
   final int count;
+  final Color color;
 
-  const _MapAreaMarker({required this.label, required this.count});
+  const _MapAreaMarker({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -4034,8 +4043,8 @@ class _MapAreaMarker extends StatelessWidget {
             Container(
               width: 20,
               height: 20,
-              decoration: const BoxDecoration(
-                color: Color(0xFFA34A2A),
+              decoration: BoxDecoration(
+                color: color,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
