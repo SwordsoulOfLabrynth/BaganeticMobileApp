@@ -80,7 +80,7 @@ class PagodasListScreen extends StatelessWidget {
                         const Divider(height: 48, color: Color(0x33C19A49)),
                     itemBuilder: (context, index) => JournalPagodaEntry(
                       pagoda: pagodas[index],
-                      reversed: index.isOdd,
+                      reversed: false,
                       imageAsset: _imageAssetFor(pagodas[index].id),
                       onOpen: () => Navigator.push(
                         context,

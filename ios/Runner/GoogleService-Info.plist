@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyBCPoRPdPB6p74PmXqTJrjh4z_BdPDiVhs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1076087639842</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.baganetic.baganeticMobile</string>
+	<key>PROJECT_ID</key>
+	<string>baganetic-mobile</string>
+	<key>STORAGE_BUCKET</key>
+	<string>baganetic-mobile.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<false/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1076087639842:ios:1b6a0aa3b4e9497428df7b</string>
+</dict>
+</plist>

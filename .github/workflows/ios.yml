@@ -1,0 +1,41 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: Build iOS (macOS Runner)
+    runs-on: macos-14
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.6"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS Application (No Codesign)
+        run: flutter build ios --no-codesign --release
+
+      - name: Archive Runner.app
+        run: |
+          cd build/ios/iphoneos
+          tar -czf Runner.app.tar.gz Runner.app
+
+      - name: Upload iOS Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: baganetic-ios-app
+          path: build/ios/iphoneos/Runner.app.tar.gz
+          retention-days: 14

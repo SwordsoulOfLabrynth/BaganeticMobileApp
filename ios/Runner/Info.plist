@@ -51,5 +51,11 @@
 	<string>Baganetic does not save photos to your library unless you choose to share an image.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Baganetic uses your location on the map to show where you are among Bagan pagodas. Location is only used while the map is open and is not uploaded to our servers.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Baganetic uses your location on the map to show where you are among Bagan pagodas.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Baganetic uses the camera so you can take and upload a profile picture.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

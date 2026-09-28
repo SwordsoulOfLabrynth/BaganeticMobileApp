@@ -184,68 +184,68 @@ class TravelPlaceCard extends StatelessWidget {
     final isMyanmar = Localizations.localeOf(context).languageCode == 'my';
     final color = _categoryColor(place.category);
     final isScenery = place.category == TravelPlaceCategory.scenery;
+    final bestTime = isMyanmar ? place.bestTimeMyanmar ?? place.bestTime : place.bestTime;
+    final primaryDetail = isScenery
+        ? bestTime ?? place.priceEstimate
+        : place.localPriceEstimate;
+    final name = isMyanmar ? place.nameMyanmar : place.name;
+    final summary = isMyanmar ? place.summaryMyanmar : place.summary;
     return Semantics(
       button: true,
-      label: '${isMyanmar ? place.nameMyanmar : place.name}, ${place.area}',
+      label: '$name, ${_categoryLabel(context, place.category)}, ${place.area}, $primaryDetail',
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.transparent,
         child: InkWell(
           onTap: onOpen,
-          borderRadius: BorderRadius.circular(20),
           child: SizedBox(
-            height: 132,
+            height: 160,
             child: Row(
               children: [
-                _AreaImage(place: place, width: 112),
+                _AreaImage(
+                  place: place,
+                  width: 128,
+                  height: 160,
+                  borderRadius: BorderRadius.zero,
+                ),
+                const SizedBox(width: 18),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isMyanmar ? place.nameMyanmar : place.name,
-                          maxLines: 1,
+                          name,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
-                                color: const Color(0xFF30251D),
-                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF100602),
+                                fontSize: 22,
+                                height: 1.15,
                               ),
                         ),
-                        const SizedBox(height: 5),
-                        _AreaPill(area: place.area),
-                        const Spacer(),
-                        Row(
-                          children: [
-                            Icon(
-                              isScenery
-                                  ? Icons.wb_sunny_outlined
-                                  : Icons.account_balance_wallet_outlined,
-                              size: 16,
-                              color: color,
-                            ),
-                            const SizedBox(width: 5),
-                            Expanded(
-                              child: Text(
-                                isScenery
-                                    ? (isMyanmar
-                                          ? place.bestTimeMyanmar ?? place.bestTime
-                                          : place.bestTime) ??
-                                        place.priceEstimate
-                                    : place.localPriceEstimate,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.labelMedium
-                                    ?.copyWith(
-                                      color: color,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                              ),
-                            ),
-                            Icon(Icons.chevron_right_rounded, color: color),
-                          ],
+                        const SizedBox(height: 10),
+                        Text(
+                          '${_categoryLabel(context, place.category)} • ${place.area} • $primaryDetail'.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: color,
+                            fontSize: 11,
+                            letterSpacing: 1.1,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          summary,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: const Color(0xFF4E453F),
+                            height: 1.45,
+                          ),
                         ),
                       ],
                     ),
@@ -261,15 +261,22 @@ class TravelPlaceCard extends StatelessWidget {
 }
 
 class _AreaImage extends StatelessWidget {
-  const _AreaImage({required this.place, this.width, this.height, this.child});
+  const _AreaImage({
+    required this.place,
+    this.width,
+    this.height,
+    this.child,
+    this.borderRadius = const BorderRadius.all(Radius.circular(20)),
+  });
   final TravelPlace place;
   final double? width;
   final double? height;
   final Widget? child;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(20),
+    borderRadius: borderRadius,
     child: SizedBox(
       width: width,
       height: height,
