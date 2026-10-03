@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/services/offline_map_service.dart';
 import '../../../core/utils/auth_gate.dart';
 import '../../../core/utils/helpers.dart';
 import '../../providers/auth_provider.dart';
@@ -160,6 +161,14 @@ class ProfileScreen extends StatelessWidget {
                       'profile.aboutBaganeticSubtitle',
                     ),
                     onTap: () => _showAboutDialog(context),
+                  ),
+                  _ProfileMenuItem(
+                    icon: Icons.download_for_offline_outlined,
+                    title: context.l10n.translate('profile.offlineStorage'),
+                    subtitle: context.l10n.translate(
+                      'profile.offlineStorageSubtitle',
+                    ),
+                    onTap: () => _showOfflineStorageDialog(context),
                   ),
                   _ProfileMenuItem(
                     icon: Icons.privacy_tip_outlined,
@@ -473,6 +482,15 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showOfflineStorageDialog(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => const _OfflineStorageSheet(),
+    );
+  }
+
   void _showAboutDialog(BuildContext context) => showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -486,6 +504,329 @@ class ProfileScreen extends StatelessWidget {
       ],
     ),
   );
+}
+
+class _OfflineStorageSheet extends StatefulWidget {
+  const _OfflineStorageSheet();
+
+  @override
+  State<_OfflineStorageSheet> createState() => _OfflineStorageSheetState();
+}
+
+class _OfflineStorageSheetState extends State<_OfflineStorageSheet> {
+  OfflineMapStatus _status = OfflineMapStatus.notDownloaded;
+  int _tileCount = 0;
+  double _sizeMb = 0.0;
+  bool _isLoading = true;
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    OfflineMapService.instance.statusNotifier.addListener(_onStatusChanged);
+    _loadStats();
+  }
+
+  @override
+  void dispose() {
+    OfflineMapService.instance.statusNotifier.removeListener(_onStatusChanged);
+    super.dispose();
+  }
+
+  void _onStatusChanged() {
+    if (mounted) {
+      setState(() {
+        _status = OfflineMapService.instance.statusNotifier.value;
+      });
+      _loadStats();
+    }
+  }
+
+  Future<void> _loadStats() async {
+    final status = await OfflineMapService.instance.getStatus();
+    final stats = await OfflineMapService.instance.getCacheStats();
+    if (mounted) {
+      setState(() {
+        _status = status;
+        _tileCount = stats.tileCount;
+        _sizeMb = stats.sizeMb;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _startDownload() async {
+    setState(() => _isProcessing = true);
+    try {
+      await OfflineMapService.instance.startBackgroundPrefetch(force: true);
+      await _loadStats();
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  Future<void> _clearCache() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l10n.translate('profile.offlineStorageClear')),
+        content: Text(l10n.translate('profile.offlineStorageClearConfirm')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l10n.translate('common.cancel')),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC8463F),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: Text(l10n.translate('profile.offlineStorageClear')),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isProcessing = true);
+      try {
+        await OfflineMapService.instance.clearCache();
+        await _loadStats();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.translate('profile.offlineStorageCleared')),
+              backgroundColor: const Color(0xFF2B1D14),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final isDownloading =
+        _status == OfflineMapStatus.downloading || _isProcessing;
+
+    final (statusIcon, statusColor, statusKey) = switch (_status) {
+      OfflineMapStatus.ready => (
+        Icons.check_circle_rounded,
+        const Color(0xFF4F7B54),
+        'map.offlineMapReady'
+      ),
+      OfflineMapStatus.downloading => (
+        Icons.downloading_rounded,
+        const Color(0xFFA34A2A),
+        'map.offlineMapDownloading'
+      ),
+      OfflineMapStatus.partial => (
+        Icons.warning_amber_rounded,
+        const Color(0xFFC19A49),
+        'map.offlineMapPartial'
+      ),
+      OfflineMapStatus.failed => (
+        Icons.error_outline_rounded,
+        const Color(0xFFC8463F),
+        'map.offlineMapFailed'
+      ),
+      OfflineMapStatus.notDownloaded => (
+        Icons.cloud_download_outlined,
+        const Color(0xFF786A5D),
+        'map.offlineMapDownloadRequired'
+      ),
+    };
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFFFBF3),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        14,
+        24,
+        28 + MediaQuery.viewPaddingOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDCCCB3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFA34A2A).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.download_for_offline_outlined,
+                  color: Color(0xFFA34A2A),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.translate('profile.offlineStorageTitle'),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: const Color(0xFF30251D),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.translate('profile.offlineStorageSubtitle'),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF786A5D),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            l10n.translate('profile.offlineStorageDesc'),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFF5C534C),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F2E9),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFDCCCB3)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(statusIcon, color: statusColor, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        l10n.translate(statusKey),
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24, color: Color(0xFFDCCCB3)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.translate('profile.offlineStorageStats'),
+                      style: const TextStyle(
+                        color: Color(0xFF786A5D),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    _isLoading
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            '$_tileCount tiles (${_sizeMb.toStringAsFixed(1)} MB)',
+                            style: const TextStyle(
+                              color: Color(0xFF30251D),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          ElevatedButton.icon(
+            onPressed: isDownloading ? null : _startDownload,
+            icon: isDownloading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.download_rounded, size: 20),
+            label: Text(
+              isDownloading
+                  ? l10n.translate('map.offlineMapDownloading')
+                  : _status == OfflineMapStatus.ready
+                  ? l10n.translate('profile.offlineStorageUpdate')
+                  : l10n.translate('profile.offlineStorageDownload'),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFA34A2A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          if (_tileCount > 0 || _status == OfflineMapStatus.ready) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: isDownloading ? null : _clearCache,
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+              label: Text(l10n.translate('profile.offlineStorageClear')),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFC8463F),
+                side: const BorderSide(color: Color(0xFFDCCCB3)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _ProfileHero extends StatelessWidget {

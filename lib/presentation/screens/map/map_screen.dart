@@ -32,6 +32,7 @@ import '../discover/travel_discovery_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/trip_detail_screen.dart';
 import '../../../core/localization/app_localizations.dart';
+import 'widgets/map_markers.dart';
 
 enum MapTripMode { browse, path, trips }
 
@@ -107,6 +108,9 @@ class _MapScreenState extends State<MapScreen>
         );
       });
     }
+    OfflineMapService.instance.statusNotifier.addListener(
+      _onOfflineMapStatusChanged,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_startLocationWatch());
       unawaited(_refreshOfflineMapStatus());
@@ -115,9 +119,20 @@ class _MapScreenState extends State<MapScreen>
 
   @override
   void dispose() {
+    OfflineMapService.instance.statusNotifier.removeListener(
+      _onOfflineMapStatusChanged,
+    );
     _locationSub?.cancel();
     _pulseController.dispose();
     super.dispose();
+  }
+
+  void _onOfflineMapStatusChanged() {
+    if (mounted) {
+      setState(() {
+        _offlineMapStatus = OfflineMapService.instance.statusNotifier.value;
+      });
+    }
   }
 
   Future<void> _startLocationWatch() async {
@@ -1080,7 +1095,7 @@ class _MapScreenState extends State<MapScreen>
                         showPolygon: false,
                         markerChildBehavior: true,
                         builder: (context, clusteredMarkers) =>
-                            _MapClusterMarker(
+                            MapClusterMarker(
                               count: clusteredMarkers.length,
                               color: _browseCategoryColor(_browseCategory),
                             ),
@@ -1424,21 +1439,21 @@ class _MapScreenState extends State<MapScreen>
               ),
               child: Row(
                 children: [
-                  _ModeToggleItem(
+                  ModeToggleItem(
                     selected: _mode == MapTripMode.browse,
                     label: l10n.translate('map.mode.browse'),
                     icon: Icons.explore_outlined,
                     activeColor: theme.colorScheme.primary,
                     onTap: () => _setMode(MapTripMode.browse),
                   ),
-                  _ModeToggleItem(
+                  ModeToggleItem(
                     selected: _mode == MapTripMode.path,
                     label: l10n.translate('map.mode.path'),
                     icon: Icons.alt_route_rounded,
                     activeColor: theme.colorScheme.primary,
                     onTap: () => _setMode(MapTripMode.path),
                   ),
-                  _ModeToggleItem(
+                  ModeToggleItem(
                     selected: _mode == MapTripMode.trips,
                     label: l10n.translate('map.planTrip'),
                     icon: Icons.route_rounded,
@@ -1467,7 +1482,7 @@ class _MapScreenState extends State<MapScreen>
             children: [
               Expanded(
                 flex: 2,
-                child: _MapCategoryChip(
+                child: MapCategoryChip(
                   label: context.l10n.translate('map.allPlaces'),
                   icon: _browseCategoryIcon(MapBrowseCategory.all),
                   color: _browseCategoryColor(MapBrowseCategory.all),
@@ -1478,7 +1493,7 @@ class _MapScreenState extends State<MapScreen>
               ),
               for (final category in MapBrowseCategory.values.skip(1))
                 Expanded(
-                  child: _MapCategoryChip(
+                  child: MapCategoryChip(
                     label: _browseCategoryLabel(category),
                     icon: _browseCategoryIcon(category),
                     color: _browseCategoryColor(category),
@@ -3080,7 +3095,7 @@ class _MapScreenState extends State<MapScreen>
                   _selectedPagoda = null;
                   _selectedTravelPlace = place;
                 }),
-                child: _TravelPlaceMapMarker(
+                child: TravelPlaceMapMarker(
                   icon: _travelPlaceIcon(place.category),
                   color: _travelPlaceColor(place.category),
                   isSelected: _selectedTravelPlace?.id == place.id,
@@ -3107,7 +3122,7 @@ class _MapScreenState extends State<MapScreen>
           ),
           child: GestureDetector(
             onTap: () => _selectPagoda(pagoda),
-            child: _MapMarker(
+            child: PagodaMapMarker(
               isSelected: _selectedPagoda?.id == pagoda.id,
               pulse: _pulseController,
             ),
@@ -3159,7 +3174,7 @@ class _MapScreenState extends State<MapScreen>
                 padding: const EdgeInsets.all(72),
               ),
             ),
-            child: _MapAreaMarker(
+            child: MapAreaMarker(
               label: label,
               count: areaPagodas.length,
               color: _browseCategoryColor(_browseCategory),
@@ -3195,7 +3210,7 @@ class _MapScreenState extends State<MapScreen>
         height: 44,
         child: GestureDetector(
           onTap: () => _handlePathPagodaTap(pagoda),
-          child: _PathMapMarker(
+          child: PathMapMarker(
             isStart: isStart,
             isEnd: isEnd,
             pathOrder: pathIndex == null || isStart || isEnd ? null : pathIndex,
@@ -3225,7 +3240,7 @@ class _MapScreenState extends State<MapScreen>
           onTap: pagoda == null
               ? null
               : () => _handleTripStopTap(stop, pagodas),
-          child: _TripMapMarker(
+          child: TripMapMarker(
             label: '${index + 1}',
             color: color,
             isSelected: _selectedPagoda?.id == stop.pagodaId,
@@ -3672,465 +3687,6 @@ class _MapScreenState extends State<MapScreen>
           },
         ),
       ),
-    );
-  }
-}
-
-class _ModeToggleItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final Color activeColor;
-  final VoidCallback onTap;
-
-  const _ModeToggleItem({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.activeColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          decoration: BoxDecoration(
-            color: selected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: selected ? Colors.white : activeColor,
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: selected ? Colors.white : activeColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: Responsive.responsiveFontSize(context, 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MapCategoryChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final bool selected;
-  final bool showLabel;
-  final VoidCallback onTap;
-
-  const _MapCategoryChip({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.selected,
-    this.showLabel = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: Material(
-        color: selected
-            ? color
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(11),
-        elevation: 0,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(11),
-          child: Center(
-            child: showLabel
-                ? FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          icon,
-                          size: 18,
-                          color: selected ? Colors.white : color,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            color: selected
-                                ? Colors.white
-                                : const Color(0xFF30251D),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Tooltip(
-                    message: label,
-                    child: Icon(
-                      icon,
-                      size: 20,
-                      color: selected ? Colors.white : color,
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PathMapMarker extends StatelessWidget {
-  final bool isStart;
-  final bool isEnd;
-  final int? pathOrder;
-  final Animation<double> pulse;
-
-  const _PathMapMarker({
-    required this.isStart,
-    required this.isEnd,
-    required this.pathOrder,
-    required this.pulse,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isPathNode = pathOrder != null;
-    final markerColor = isStart
-        ? Colors.green
-        : isEnd
-        ? Colors.red
-        : isPathNode
-        ? Colors.blue
-        : const Color(0xFF8B4513);
-
-    final child = isStart
-        ? const Text(
-            'A',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          )
-        : isEnd
-        ? const Text(
-            'B',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          )
-        : isPathNode
-        ? Text(
-            '$pathOrder',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          )
-        : const Icon(Icons.temple_buddhist, color: Colors.white, size: 20);
-
-    final marker = Container(
-      decoration: BoxDecoration(
-        color: markerColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: Center(child: child),
-    );
-
-    if (!isStart && !isEnd) {
-      return marker;
-    }
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ScaleTransition(
-          scale: Tween<double>(
-            begin: 0.8,
-            end: 1.4,
-          ).animate(CurvedAnimation(parent: pulse, curve: Curves.easeOut)),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.45, end: 0.0).animate(pulse),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: markerColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ),
-        marker,
-      ],
-    );
-  }
-}
-
-class _MapMarker extends StatelessWidget {
-  final bool isSelected;
-  final Animation<double> pulse;
-
-  const _MapMarker({required this.isSelected, required this.pulse});
-
-  @override
-  Widget build(BuildContext context) {
-    final marker = Container(
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF8B4513),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: const Icon(Icons.temple_buddhist, color: Colors.white, size: 20),
-    );
-
-    if (!isSelected) {
-      return marker;
-    }
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ScaleTransition(
-          scale: Tween<double>(
-            begin: 0.8,
-            end: 1.4,
-          ).animate(CurvedAnimation(parent: pulse, curve: Curves.easeOut)),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.5, end: 0.0).animate(pulse),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFFD4AF37),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ),
-        marker,
-      ],
-    );
-  }
-}
-
-class _TravelPlaceMapMarker extends StatelessWidget {
-  const _TravelPlaceMapMarker({
-    required this.icon,
-    required this.color,
-    required this.isSelected,
-  });
-
-  final IconData icon;
-  final Color color;
-  final bool isSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isSelected ? const Color(0xFFFFD995) : Colors.white,
-          width: isSelected ? 3 : 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isSelected ? 0.28 : 0.16),
-            blurRadius: isSelected ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: Colors.white, size: 19),
-    );
-  }
-}
-
-class _MapClusterMarker extends StatelessWidget {
-  final int count;
-  final Color color;
-
-  const _MapClusterMarker({required this.count, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFFFFBF3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          count.toString(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MapAreaMarker extends StatelessWidget {
-  final String label;
-  final int count;
-  final Color color;
-
-  const _MapAreaMarker({
-    required this.label,
-    required this.count,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFFFFBF3).withValues(alpha: 0.94),
-      borderRadius: BorderRadius.circular(18),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF30251D),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const SizedBox(width: 5),
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                count.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TripMapMarker extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool isSelected;
-  final Animation<double> pulse;
-
-  const _TripMapMarker({
-    required this.label,
-    required this.color,
-    required this.isSelected,
-    required this.pulse,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final marker = Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isSelected ? const Color(0xFF5C3A17) : Colors.white,
-          width: isSelected ? 3 : 2,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-
-    if (!isSelected) {
-      return marker;
-    }
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        ScaleTransition(
-          scale: Tween<double>(
-            begin: 0.82,
-            end: 1.38,
-          ).animate(CurvedAnimation(parent: pulse, curve: Curves.easeOut)),
-          child: FadeTransition(
-            opacity: Tween<double>(begin: 0.42, end: 0.0).animate(pulse),
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-          ),
-        ),
-        marker,
-      ],
     );
   }
 }

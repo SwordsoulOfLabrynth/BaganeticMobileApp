@@ -18,6 +18,7 @@ void main() {
     expect(json['profile.deleteAccount'], isNotEmpty);
     expect(json['map.osmAttribution'], contains('OpenStreetMap'));
     expect(json['map.locateMe'], isNotEmpty);
+    expect(json['profile.offlineStorage'], isNotEmpty);
     expect(json['legal.privacyBody'] as String, contains('Location'));
   });
 }

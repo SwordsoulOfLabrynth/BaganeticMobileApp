@@ -27,6 +27,12 @@ void main() {
       ),
       OfflineMapStatus.failed,
     );
+    expect(
+      OfflineMapService.statusFromMetadata(
+        const {'offline_map_status_v1': 'not_downloaded'},
+      ),
+      OfflineMapStatus.notDownloaded,
+    );
   });
 
   test('treats missing offline map metadata as not downloaded', () {
@@ -34,5 +40,11 @@ void main() {
       OfflineMapService.statusFromMetadata(const {}),
       OfflineMapStatus.notDownloaded,
     );
+  });
+
+  test('provides reactive statusNotifier with initial status', () {
+    final service = OfflineMapService.instance;
+    expect(service.statusNotifier.value, isNotNull);
+    expect(service.isDownloading, isFalse);
   });
 }

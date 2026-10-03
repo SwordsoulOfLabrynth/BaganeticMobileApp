@@ -197,20 +197,21 @@ class TravelPlaceCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onOpen,
-          child: SizedBox(
-            height: 160,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 148),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _AreaImage(
                   place: place,
-                  width: 128,
-                  height: 160,
-                  borderRadius: BorderRadius.zero,
+                  width: 120,
+                  height: 148,
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
                 ),
-                const SizedBox(width: 18),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -221,29 +222,45 @@ class TravelPlaceCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(
                                 color: const Color(0xFF100602),
-                                fontSize: 22,
-                                height: 1.15,
+                                fontSize: 20,
+                                height: 1.18,
                               ),
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '${_categoryLabel(context, place.category)} • ${place.area} • $primaryDetail'.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: color,
-                            fontSize: 11,
-                            letterSpacing: 1.1,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              isScenery
+                                  ? Icons.wb_sunny_outlined
+                                  : Icons.sell_outlined,
+                              size: 13,
+                              color: color,
+                            ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                primaryDetail,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      color: color,
+                                      fontSize: 11,
+                                      letterSpacing: 0.6,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Text(
                           summary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: const Color(0xFF4E453F),
+                            fontSize: 13,
                             height: 1.45,
                           ),
                         ),

@@ -30,61 +30,81 @@ class _CategoryBar extends StatelessWidget {
   final ValueChanged<_DiscoverCategory> onSelected;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 30),
-    child: SizedBox(
-      height: 60,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _DiscoverCategory.values.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 4),
-        itemBuilder: (context, index) {
-          final category = _DiscoverCategory.values[index];
-          return Semantics(
-            button: true,
-            selected: category == selected,
-            label: category.label(context),
-            child: SizedBox(
-              width: 104,
-              child: Material(
-                color: category == selected
+  Widget build(BuildContext context) => SizedBox(
+    height: 62,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      itemCount: _DiscoverCategory.values.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 8),
+      itemBuilder: (context, index) {
+        final category = _DiscoverCategory.values[index];
+        final isSelected = category == selected;
+        return Semantics(
+          button: true,
+          selected: isSelected,
+          label: category.label(context),
+          child: Container(
+            width: 96,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected
                     ? const Color(0xFFA34A2A)
-                    : Colors.white.withValues(alpha: .66),
-                child: InkWell(
-                  onTap: () => onSelected(category),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        category.icon,
-                        color: category == selected
-                            ? Colors.white
-                            : const Color(0xFF4E453F),
-                        size: 22,
+                    : const Color(0x2880756F),
+                width: isSelected ? 1.5 : 1.0,
+              ),
+              boxShadow: isSelected
+                  ? const [
+                      BoxShadow(
+                        color: Color(0x24A34A2A),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
                       ),
-                      Text(
-                        category.label(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(
-                              color: category == selected
-                                  ? Colors.white
-                                  : const Color(0xFF4E453F),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ],
-                  ),
+                    ]
+                  : null,
+            ),
+            child: Material(
+              color: isSelected
+                  ? const Color(0xFFA34A2A)
+                  : Colors.white.withValues(alpha: .75),
+              borderRadius: BorderRadius.circular(11),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(11),
+                onTap: () => onSelected(category),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      category.icon,
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF4E453F),
+                      size: 20,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      category.label(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium
+                          ?.copyWith(
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF4E453F),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     ),
   );
 }
-class _Title extends StatelessWidget{const _Title(this.title,this.count);final String title;final int count;@override Widget build(BuildContext c)=>Row(children:[Expanded(child:Text(title,style:Theme.of(c).textTheme.headlineSmall?.copyWith(color:_DiscoverScreenState._ink,fontSize:28))),Text('$count',style:Theme.of(c).textTheme.labelLarge?.copyWith(color:_DiscoverScreenState._terracotta,fontWeight:FontWeight.w800))]);}
+class _Title extends StatelessWidget{const _Title(this.title,this.count);final String title;final int count;@override Widget build(BuildContext c)=>Row(children:[Expanded(child:Text(title,style:Theme.of(c).textTheme.headlineSmall?.copyWith(color:_DiscoverScreenState._ink,fontSize:28))),Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:3),decoration:BoxDecoration(color:const Color(0x1AA34A2A),borderRadius:BorderRadius.circular(12),border:Border.all(color:const Color(0x33A34A2A))),child:Text('$count',style:Theme.of(c).textTheme.labelMedium?.copyWith(color:_DiscoverScreenState._terracotta,fontWeight:FontWeight.w800)))]); }
 enum _DiscoverCategory{pagodas,stays,food,transport,scenery;IconData get icon=>switch(this){pagodas=>Icons.temple_buddhist_outlined,stays=>Icons.bed_outlined,food=>Icons.restaurant_outlined,transport=>Icons.directions_transit_rounded,scenery=>Icons.photo_camera_outlined};String label(BuildContext c)=>c.l10n.translate(switch(this){pagodas=>'map.category.pagodas',stays=>'map.category.stays',food=>'map.category.food',transport=>'map.category.transport',scenery=>'map.category.scenery'});}

@@ -141,13 +141,15 @@ class _HomeScreenState extends State<HomeScreen> {
         fit: StackFit.expand,
         children: [
           IndexedStack(index: _currentIndex, children: _screens),
-          IgnorePointer(
-            ignoring: !_isChatOpen,
-            child: AnimatedSlide(
-              duration: const Duration(milliseconds: 380),
-              curve: Curves.easeOutCubic,
-              offset: _isChatOpen ? Offset.zero : const Offset(0, 1),
-              child: ChatScreen(embedded: true, onClose: _toggleMobileChat),
+          ClipRect(
+            child: IgnorePointer(
+              ignoring: !_isChatOpen,
+              child: AnimatedSlide(
+                duration: const Duration(milliseconds: 380),
+                curve: Curves.easeOutCubic,
+                offset: _isChatOpen ? Offset.zero : const Offset(0, 1),
+                child: ChatScreen(embedded: true, onClose: _toggleMobileChat),
+              ),
             ),
           ),
         ],

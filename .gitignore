@@ -68,3 +68,5 @@ app.*.map.json
 /pitch_build/node_modules/
 /pitch_build/rendered/
 /deliverables/*.inspect.ndjson
+*.apk
+/public/downloads/

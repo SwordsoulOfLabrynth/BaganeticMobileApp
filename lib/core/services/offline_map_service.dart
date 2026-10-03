@@ -25,18 +25,49 @@ class OfflineMapService {
   static const String _statusPartial = 'partial';
   static const String _statusFailed = 'failed';
   static const String _statusInProgress = 'in_progress';
+  static const String _statusNotDownloaded = 'not_downloaded';
 
   static const int _minZoom = 12;
   static const int _maxZoom = 16;
-  static const double _latPadding = 0.20;
-  static const double _lngPadding = 0.20;
   static const Duration _staleInProgressThreshold = Duration(hours: 6);
+
+  final ValueNotifier<OfflineMapStatus> statusNotifier =
+      ValueNotifier<OfflineMapStatus>(OfflineMapStatus.notDownloaded);
 
   bool _isDownloading = false;
 
+  bool get isDownloading => _isDownloading;
+
   Future<OfflineMapStatus> getStatus() async {
     final store = const FMTCStore(AppConstants.mapTileStore);
-    return statusFromMetadata(await store.metadata.read);
+    final status = statusFromMetadata(await store.metadata.read);
+    statusNotifier.value = status;
+    return status;
+  }
+
+  Future<({double sizeMb, int tileCount})> getCacheStats() async {
+    try {
+      final store = const FMTCStore(AppConstants.mapTileStore);
+      if (!await store.manage.ready) {
+        return (sizeMb: 0.0, tileCount: 0);
+      }
+      final stats = await store.stats.all;
+      return (sizeMb: stats.size / 1024, tileCount: stats.length);
+    } catch (_) {
+      return (sizeMb: 0.0, tileCount: 0);
+    }
+  }
+
+  Future<void> clearCache() async {
+    final store = const FMTCStore(AppConstants.mapTileStore);
+    try {
+      if (await store.manage.ready) {
+        await store.manage.reset();
+      }
+      await _updateStatus(store, _statusNotDownloaded);
+    } catch (e) {
+      Logger.error('Failed to clear map tile cache', e);
+    }
   }
 
   @visibleForTesting
@@ -76,6 +107,7 @@ class OfflineMapService {
     }
 
     _isDownloading = true;
+    statusNotifier.value = OfflineMapStatus.downloading;
 
     try {
       await store.metadata.setBulk(
@@ -128,20 +160,21 @@ class OfflineMapService {
   LatLngBounds _baganBounds() {
     return LatLngBounds(
       LatLng(
-        AppConstants.baganLatitude - _latPadding,
-        AppConstants.baganLongitude - _lngPadding,
+        AppConstants.baganLatitude - AppConstants.mapCoverageLatitudePadding,
+        AppConstants.baganLongitude - AppConstants.mapCoverageLongitudePadding,
       ),
       LatLng(
-        AppConstants.baganLatitude + _latPadding,
-        AppConstants.baganLongitude + _lngPadding,
+        AppConstants.baganLatitude + AppConstants.mapCoverageLatitudePadding,
+        AppConstants.baganLongitude + AppConstants.mapCoverageLongitudePadding,
       ),
     );
   }
 
-  Future<void> _updateStatus(FMTCStore store, String status) {
-    return store.metadata.setBulk(
+  Future<void> _updateStatus(FMTCStore store, String status) async {
+    await store.metadata.setBulk(
       kvs: {_statusKey: status, _updatedKey: DateTime.now().toIso8601String()},
     );
+    statusNotifier.value = statusFromMetadata({_statusKey: status});
   }
 
   Future<bool> _hasNetwork() async {
