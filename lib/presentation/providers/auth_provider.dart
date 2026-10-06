@@ -267,13 +267,33 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _loadLocalProfilePhoto(String userId) async {
     try {
+      final directory = await getApplicationDocumentsDirectory();
+      final standardFile = File(
+        '${directory.path}${Platform.pathSeparator}profile_$userId.jpg',
+      );
       final preferences = await SharedPreferences.getInstance();
-      final path = preferences.getString('profile_photo_path_$userId');
-      if (path == null || !await File(path).exists()) {
+      String? validPath;
+      if (await standardFile.exists()) {
+        validPath = standardFile.path;
+      } else {
+        final path = preferences.getString('profile_photo_path_$userId');
+        if (path != null && await File(path).exists()) {
+          validPath = path;
+        }
+      }
+
+      if (validPath == null) {
         return;
       }
-      if (_user?.uid == userId && _localProfilePhotoPath != path) {
-        _localProfilePhotoPath = path;
+
+      if (_user?.uid == userId && _localProfilePhotoPath != validPath) {
+        _localProfilePhotoPath = validPath;
+        if (preferences.getString('profile_photo_path_$userId') != validPath) {
+          await preferences.setString(
+            'profile_photo_path_$userId',
+            validPath,
+          );
+        }
         notifyListeners();
       }
     } catch (e, st) {

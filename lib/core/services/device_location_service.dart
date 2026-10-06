@@ -64,8 +64,8 @@ class DeviceLocationService {
       return AppleSettings(
         accuracy: accuracy,
         distanceFilter: distanceFilter,
-        activityType: ActivityType.fitness,
-        pauseLocationUpdatesAutomatically: true,
+        activityType: ActivityType.otherNavigation,
+        pauseLocationUpdatesAutomatically: false,
         showBackgroundLocationIndicator: false,
       );
     }

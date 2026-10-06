@@ -35,12 +35,22 @@ jobs:
       - name: Build iOS Application (No Codesign)
         run: flutter build ios --no-codesign --release
 
-      - name: Archive Runner.app
+      - name: Package iOS IPA & Runner Archive
         run: |
           cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -R Runner.app Payload/
+          zip -r -9 Baganetic-v1.0.3.ipa Payload
           tar -czf Runner.app.tar.gz Runner.app
 
-      - name: Upload iOS Build Artifact
+      - name: Upload iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: baganetic-ios-ipa
+          path: build/ios/iphoneos/Baganetic-v1.0.3.ipa
+          retention-days: 14
+
+      - name: Upload iOS App Archive
         uses: actions/upload-artifact@v4
         with:
           name: baganetic-ios-app

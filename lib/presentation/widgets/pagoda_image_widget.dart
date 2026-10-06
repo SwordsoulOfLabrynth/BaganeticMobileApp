@@ -31,10 +31,15 @@ class PagodaImageWidget extends StatelessWidget {
       return _buildPlaceholder(context);
     }
 
+    final targetCacheWidth = (width != null && width!.isFinite && width! > 0)
+        ? (width! * 2.5).round().clamp(100, 1200)
+        : 800;
+
     return Image.asset(
       normalizedPath,
       width: width,
       height: height,
+      cacheWidth: targetCacheWidth,
       fit: fit,
       errorBuilder: (context, error, stackTrace) {
         Logger.error(
@@ -51,6 +56,7 @@ class PagodaImageWidget extends StatelessWidget {
             altPath,
             width: width,
             height: height,
+            cacheWidth: targetCacheWidth,
             fit: fit,
             errorBuilder: (context, error2, stackTrace2) {
               return _buildPlaceholder(context);

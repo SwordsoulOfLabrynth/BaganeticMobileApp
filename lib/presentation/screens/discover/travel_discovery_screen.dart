@@ -292,58 +292,128 @@ class _AreaImage extends StatelessWidget {
   final BorderRadius borderRadius;
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: borderRadius,
-    child: SizedBox(
-      width: width,
-      height: height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            _placeImageAsset(place),
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => ColoredBox(
-              color: _categoryColor(place.category).withValues(alpha: 0.18),
-              child: Center(
-                child: Icon(
-                  _categoryIcon(place.category),
-                  color: _categoryColor(place.category),
-                  size: 38,
+  Widget build(BuildContext context) {
+    final asset = _placeImageAsset(place);
+    final categoryColor = _categoryColor(place.category);
+    final categoryIcon = _categoryIcon(place.category);
+
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (asset != null)
+              Image.asset(
+                asset,
+                cacheWidth: 600,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _CategoryBackdrop(
+                  place: place,
+                  color: categoryColor,
+                  icon: categoryIcon,
+                ),
+              )
+            else
+              _CategoryBackdrop(
+                place: place,
+                color: categoryColor,
+                icon: categoryIcon,
+              ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x10000000), Color(0xAA21110A)],
                 ),
               ),
             ),
-          ),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0x10000000), Color(0xAA21110A)],
-              ),
-            ),
-          ),
-          if (child case final Widget child) child,
-          if (child == null)
-            Positioned(
-              left: 8,
-              right: 8,
-              bottom: 8,
-              child: Text(
-                place.area,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
+            if (child case final Widget child) child,
+            if (child == null)
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Text(
+                  place.area,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+}
+
+class _CategoryBackdrop extends StatelessWidget {
+  const _CategoryBackdrop({
+    required this.place,
+    required this.color,
+    required this.icon,
+  });
+
+  final TravelPlace place;
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.85),
+            const Color(0xFF1B120C),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.28),
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _categoryLabel(context, place.category).toUpperCase(),
+              style: const TextStyle(
+                color: Color(0xD0FFFFFF),
+                fontSize: 9,
+                letterSpacing: 1.4,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _HighlightChip extends StatelessWidget {
@@ -446,11 +516,12 @@ Color _categoryColor(TravelPlaceCategory category) => switch (category) {
   TravelPlaceCategory.scenery => const Color(0xFF7A4B2C),
 };
 
-String _placeImageAsset(TravelPlace place) => switch (place.id) {
+String? _placeImageAsset(TravelPlace place) => switch (place.id) {
   'sulamani-ground-view' => 'assets/images/pagodas/Sulamani Temple/sulamani-temple-bagan-myanmar-sunset-asia-82328684.webp',
   'bupaya-riverside-view' => 'assets/images/pagodas/BuPaya/Bupaya-Pagoda-and-Irrawaddy-in-the-back.jpg',
   'law-ka-ou-saung-field' => 'assets/images/pagodas/researched/lawkaousaung.jpg',
   'north-guni-field-view' => 'assets/images/pagodas/researched/northguni.jpg',
   'dhammayazika-ground-view' => 'assets/images/pagodas/Dhammayazaka/dhammayazika-pagoda-l.jpg',
-  _ => 'assets/images/stitch/bagan_sunrise.jpg',
+  'minnanthu-lake-light' => 'assets/images/stitch/bagan_sunrise.jpg',
+  _ => null,
 };
