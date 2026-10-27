@@ -1,8 +1,28 @@
-# Baganetic Mobile
+# 📱 Baganetic Mobile — Offline-First Bagan Heritage Companion
 
-Baganetic is a Flutter app for exploring Bagan pagodas with an offline-first
-focus. The current app combines local pagoda data, map browsing, trip planning,
-Firebase auth, road safety reports, and an optional AI travel assistant.
+> **University Special Award-Winning Mobile Project**  
+> An offline-first mobile companion for exploring Bagan's ancient pagodas, built with Flutter. Combines local SQLite caching, interactive OpenStreetMap navigation with offline route graphs, trip planning, Firebase authentication, community road hazard reports, and an AI travel assistant.
+
+[![Flutter](https://img.shields.io/badge/Flutter-3.10+-02569B?style=flat-square&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat-square&logo=dart&logoColor=white)](https://dart.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-Offline%20First-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org/)
+[![Provider](https://img.shields.io/badge/State-Provider-blue?style=flat-square)](https://pub.dev/packages/provider)
+[![Award](https://img.shields.io/badge/Recognition-University%20Special%20Award-gold?style=flat-square)](https://github.com/SwordsoulOfLabrynth/BaganeticMobileApp)
+
+---
+
+## 📱 Mobile App Showcase
+
+<div align="center">
+
+| **Pagoda Discovery & Home** | **Offline Map & Routing** | **Cultural Directory & Detail** | **Community Road Reports** |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/images/mobile-home.png" alt="Baganetic Mobile Home" width="220" /> | <img src="docs/images/mobile-map.png" alt="Offline Map" width="220" /> | <img src="docs/images/mobile-pagodas.png" alt="Pagoda Detail" width="220" /> | <img src="docs/images/mobile-community.png" alt="Road Community" width="220" /> |
+
+</div>
+
+---
 
 ## Current Features
 
